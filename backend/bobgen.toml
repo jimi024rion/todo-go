@@ -1,0 +1,7 @@
+[psql]
+  driver = "pgx/v5"
+  dsn = "postgres://user:password@postgres:5432/todo-go?sslmode=disable"
+  out = "internal/model"
+  pkg = "model"
+
+  [psql.tables.todos]

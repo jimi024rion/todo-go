@@ -1,0 +1,102 @@
+version: "2"
+linters:
+  # デフォルトで適応されているルールを無効にする
+  default: none
+  # 有効にするルールを設定する
+  enable:
+
+    # エラー未ハンドリングのコードを検査する
+    #
+    # 返されたerrオブジェクトによるエラー判定を実施していないコードを検出できる
+    # err判定は必須とした方が安全なコードになる、と判断したため採用
+    - errcheck
+
+    # コードを簡素化できるところを検出する
+    #
+    # よりsimpleなコードの方が可読性が上がるので良いと判断したため採用
+    - gosimple
+
+    # 不要な変数の代入を検出する
+    #
+    # errオブジェクトを受け取っているが、err判定を行っていないケースを検出できる
+    # エラーハンドリングが抜けているコードを無くしたいため採用
+    - ineffassign
+
+    # gofmtに沿ったコードになっていないところを検出する
+    #
+    # gofmtに即したコードの方が良いと判断したため採用
+    - gofmt
+
+    # 引数がフォーマット文字列と一致しない Printf 呼び出しなど、疑わしい構成を検出する
+    #
+    # goの不正コードを無くしたいため採用
+    - govet
+
+    # グローバル変数を検出する
+    #
+    # グローバル変数はNGとしておいた方が保守性が上がると判断したため採用
+    - gochecknoglobals
+
+    # ソースコードにセキュリティ上の問題がないかを検査する
+    #
+    # セキュリティ向上のため採用
+    - gosec
+
+    # 数多くのルールの静的解析を実行する
+    # 詳細: https://staticcheck.dev/docs/checks/
+    #
+    # 静的チェックの内容を見て良いと判断したため採用
+    - staticcheck
+
+    # 不要な型変換を検出する
+    #
+    # 不要な型変換処理を無くしたいため採用
+    - unconvert
+
+    # golintの後継のlinter
+    # 様々なルールをチェックしてくれる
+    #
+    # 様々なところで導入されている実績のあるLinter
+    # よりGoらしいコードがかけるようになる効果が見込めるため採用
+    # 参考: https://github.com/mgechev/revive#who-uses-revive
+    - revive
+
+    # importの並び順の検査を行う
+    #
+    # importの記載に関して整理を行いたいため採用
+    #
+    - gci
+
+run:
+  timeout: 60s
+  # skip-dirs:
+  #   - .idea
+
+issues:
+  max-issues-per-linter: 0 # 0でlintごとの最大チェック数制限を無制限にする
+  max-same-issues: 0 # 0で重複したエラーも全件数表示するようにする
+  # exclude-dirs: [.idea]
+
+linters-settings:
+  errcheck:
+    check-blank: true     # エラーを「_」に代入しているコードを検出する
+  revive:
+    rules:
+      - name: var-naming
+        severity: warning
+        disabled: false
+        arguments:
+          # AllowList
+          # 以下の命名を許可する
+          - ["ID"]
+          # DenyList
+          # 以下の命名を拒否する
+          - [""]
+  gci:
+    # 並び順の設定
+    sections:
+      - standard
+      - default
+      - prefix(fujifilm.com/nps/content-service)
+    skip-generated: true
+    custom-order: true

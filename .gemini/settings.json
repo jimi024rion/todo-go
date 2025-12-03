@@ -1,0 +1,8 @@
+{
+  "gemini.cli.toolUsage": {
+    "write_todos": {
+      "enabled": true,
+      "strategy": "auto"
+    }
+  }
+}
