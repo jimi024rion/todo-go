@@ -1,33 +1,30 @@
-.PHONY: build run test swagger clean bobgen
+.PHONY: build run test swagger
 
-APP_NAME := todo-api
-CMD_DIR := ./cmd/app
-BUILD_DIR := ./bin
-SWAGGER_OUTPUT_DIR := ./docs
+# Go configuration
+BINARY_NAME=todo-go
+# Path is relative to the 'backend' directory
+CMD_PATH=./cmd/server
 
+# Build the application
 build:
-	@echo "Building $(APP_NAME)..."
-	go build -o $(BUILD_DIR)/$(APP_NAME) $(CMD_DIR)
+	@echo "Building Go binary..."
+	go build -o ../$(BINARY_NAME) $(CMD_PATH)
 
-run: build
-	@echo "Running $(APP_NAME)..."
-	$(BUILD_DIR)/$(APP_NAME)
+# Run the application
+run:
+	@echo "Running Go application..."
+	go run $(CMD_PATH)
 
+# Run tests
 test:
 	@echo "Running tests..."
-	go test ./...
+	go test -v ./...
 
+# Generate Swagger docs
 swagger:
-	@echo "Generating Swagger documentation (placeholder)..."
-	swag init -g ./cmd/app/main.go -o $(SWAGGER_OUTPUT_DIR)
+	@echo "Generating Swagger docs..."
+	@echo "swag init will be configured here later"
 
-bobgen:
-	@echo "Generating Bob ORM models..."
-	@bobgen-psql --config bobgen.yaml
-
-clean:
-	@echo "Cleaning up..."
-	@rm -rf $(BUILD_DIR)
-	@rm -f $(SWAGGER_OUTPUT_DIR)/swagger.json
-	@rm -f $(SWAGGER_OUTPUT_DIR)/swagger.yaml
-	@rm -rf models dbinfo factory dberrors
+air:
+	@echo "Starting Air for live reloading..."
+	air --build.cmd "go build -ldflags '-s -w' -trimpath -o ./bin/server ./cmd/server/main.go" --build.bin "./bin/server"

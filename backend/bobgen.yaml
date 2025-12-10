@@ -1,8 +1,0 @@
-psql:
-  driver: "github.com/jackc/pgx/v5/stdlib"
-  dsn: "postgres://user:password@localhost:5432/todo-go?sslmode=disable"
-  out: "internal/model"
-  pkg: "model"
-  wipe: true
-  tables:
-    todos: {}
