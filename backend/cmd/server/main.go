@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jimi024rion/todo-go/backend/cmd/server/di"
 	"github.com/jimi024rion/todo-go/backend/internal/config"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/logger"
-	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,13 +23,17 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to load configuration")
 	}
 
-	// Setup Router
-	r := http.NewRouter()
+	// Setup Server with DI
+	server, cleanup, err := di.InitializeServer()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to initialize server")
+	}
+	defer cleanup()
 
 	// Run the server
 	addr := fmt.Sprintf(":%d", cfg.Port)
 	log.Info().Msgf("Starting server on %s", addr)
-	if err := r.Run(addr); err != nil {
+	if err := server.Run(addr); err != nil {
 		log.Fatal().Err(err).Msg("Failed to start server")
 	}
 }
