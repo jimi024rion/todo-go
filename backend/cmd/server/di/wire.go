@@ -1,10 +1,12 @@
 //go:build wireinject
+// +build wireinject
 
 package di
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 )
@@ -13,8 +15,9 @@ import (
 func InitializeServer() (*gin.Engine, func(), error) {
 	wire.Build(
 		http.NewRouter,
-		http.NewHandler,
+		handler.NewHandler,
 		health.NewHandler,
+		health.NewHealthCheckHandler,
 	)
 
 	// ここはwire generateによって置き換えられる

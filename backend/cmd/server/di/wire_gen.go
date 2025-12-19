@@ -8,6 +8,7 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 )
@@ -16,9 +17,10 @@ import (
 
 // InitializeServer initializes the Gin engine with all its dependencies.
 func InitializeServer() (*gin.Engine, func(), error) {
-	handler := health.NewHandler()
-	httpHandler := http.NewHandler(handler)
-	engine := http.NewRouter(httpHandler)
+	healthCheckHandler := health.NewHealthCheckHandler()
+	healthHandler := health.NewHandler(healthCheckHandler)
+	handlerHandler := handler.NewHandler(healthHandler)
+	engine := http.NewRouter(handlerHandler)
 	return engine, func() {
 	}, nil
 }
