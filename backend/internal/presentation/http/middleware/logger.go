@@ -4,21 +4,27 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
+	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 )
 
 // Logger is a Gin middleware for logging requests using zerolog.
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
+
 		c.Next()
-		end := time.Now()
-		log.Info().
+
+		latency := time.Since(start)
+
+		l := logger.NewLogger(c.Request.Context())
+		l.InfoEvent().
 			Str("method", c.Request.Method).
-			Str("path", c.Request.URL.Path).
+			Str("full_path", c.FullPath()).
 			Int("status", c.Writer.Status()).
-			Dur("duration", end.Sub(start)).
-			Str("ip", c.ClientIP()).
-			Msg("")
+			Dur("latency", latency).
+			Str("client_ip", c.ClientIP()).
+			Str("remote_ip", c.RemoteIP()).
+			Str("user_agent", c.Request.UserAgent()).
+			Msg("Request")
 	}
 }

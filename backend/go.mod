@@ -6,6 +6,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/google/wire v0.7.0
+	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.34.0
 )
 

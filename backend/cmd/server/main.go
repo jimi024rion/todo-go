@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/cmd/server/di"
-	"github.com/jimi024rion/todo-go/backend/internal/config"
-	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/logger"
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
+	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	"github.com/rs/zerolog/log"
 )
 
@@ -15,10 +15,11 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	// Setup logger
-	logger.Setup()
+	// logger.Setup()
+	logger.InitializeLogger()
 
 	// Load configuration
-	cfg, err := config.Load()
+	cfg, err := env.Load()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to load configuration")
 	}

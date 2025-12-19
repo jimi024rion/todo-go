@@ -1,0 +1,147 @@
+package logger
+
+import (
+	"context"
+	"errors"
+	"os"
+	"strconv"
+	"time"
+
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
+	pkgerrs "github.com/pkg/errors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
+)
+
+type contextKey string
+
+const (
+	skipLogKey = contextKey("skip-log")
+)
+
+type Logger struct {
+	logger zerolog.Logger
+}
+
+func NewLogger(ctx context.Context) *Logger {
+	l := zerolog.New(os.Stdout)
+	logger := &Logger{l}
+	// logger = logger.setTrace(ctx)
+	return logger
+}
+
+func InitializeLogger() {
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+}
+
+// func (l *Logger) setTrace(ctx context.Context) *Logger {
+// 	span := trace.SpanFromContext(ctx)
+// 	sc := span.SpanContext()
+// 	if !sc.IsValid() {
+// 		return l
+// 	}
+
+// 	traceStr := fmt.Sprintf("projects/%s/traces/%s", env.Cfg.ProjectID, sc.TraceID().String())
+// 	l.logger = l.logger.
+// 		With().Str("logging.googleapis.com/trace", traceStr).Logger().
+// 		With().Str("logging.googleapis.com/spanId", sc.SpanID().String()).Logger()
+
+// 	return l
+// }
+
+// func (l *Logger) setUserInfo(ctx context.Context) *Logger {
+// 	if v, ok := ctx.Value("CPID").(string); ok {
+// 		l.logger = l.logger.
+// 			With().Str("CPID", v).Logger()
+// 	}
+
+// 	if v, ok := ctx.Value("userID").(string); ok {
+// 		l.logger = l.logger.
+// 			With().Str("userID", v).Logger()
+// 	}
+
+// 	return l
+// }
+
+func (l *Logger) DebugWriter() zerolog.Logger {
+	return l.logger.With().Str("severity", "DEBUG").Logger()
+}
+
+func (l *Logger) DebugLog(msg string) {
+	l.logger.Debug().
+		Str("severity", "DEBUG").
+		Msg(msg)
+}
+
+func (l *Logger) InfoEvent() *zerolog.Event {
+	return l.logger.Info().Str("severity", "INFO")
+}
+
+func (l *Logger) InfoLog(msg string) {
+	l.InfoEvent().Msg(msg)
+}
+
+func (l *Logger) SkipLog(ctx context.Context) context.Context {
+	return context.WithValue(ctx, skipLogKey, true)
+}
+
+func (l *Logger) ShouldSkipLog(ctx context.Context) bool {
+	return ctx.Value(skipLogKey) != nil
+}
+
+func (l *Logger) WarnLog(err error) {
+	var e *errs.Err
+	if errors.As(err, &e) {
+		l.logger.Warn().
+			Str("severity", "WARNING").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(pkgerrs.WithStack(e)).
+			Msg("")
+	} else {
+		l.logger.Warn().
+			Str("severity", "WARNING").
+			Stack().
+			Err(pkgerrs.WithStack(err)).
+			Msg("")
+	}
+}
+
+func (l *Logger) ErrorLog(err error) {
+	var e *errs.Err
+	if errors.As(err, &e) {
+		l.logger.Error().
+			Str("severity", "ERROR").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(pkgerrs.WithStack(e)).
+			Msg("")
+	} else {
+		l.logger.Error().
+			Str("severity", "ERROR").
+			Stack().
+			Err(pkgerrs.WithStack(err)).
+			Msg("")
+	}
+}
+
+func (l *Logger) FatalLog(err error) {
+	var e *errs.Err
+	if errors.As(err, &e) {
+		// Cloud LoggingにはFatalレベルのログがないため、ALERTレベルのログを出力する
+		l.logger.Fatal().
+			Str("severity", "ALERT").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(pkgerrs.WithStack(e)).
+			Msg("")
+	} else {
+		l.logger.Fatal().
+			Str("severity", "ALERT").
+			Stack().
+			Err(pkgerrs.WithStack(err)).
+			Msg("")
+	}
+}
