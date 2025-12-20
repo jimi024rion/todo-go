@@ -43,3 +43,12 @@ down:
 migrate-up:
 	@echo "Running database migrations..."
 	@echo "Atlas migration command will be configured here later"
+
+# Air live reloadr
+air-reload:
+	air --build.cmd "go build -ldflags '-s -w' -trimpath -o ./bin/server ./cmd/server/main.go" --build.bin "./bin/server"
+
+# wire generate
+wire:
+	wire ./cmd/server/di
+	@echo "Wire code generation completed."

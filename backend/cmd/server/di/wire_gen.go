@@ -11,6 +11,7 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
 )
 
 // Injectors from wire.go:
@@ -19,7 +20,13 @@ import (
 func InitializeServer() (*gin.Engine, func(), error) {
 	healthCheckHandler := health.NewHealthCheckHandler()
 	healthHandler := health.NewHandler(healthCheckHandler)
-	handlerHandler := handler.NewHandler(healthHandler)
+	listHandler := todo.NewListHandler()
+	createHandler := todo.NewCreateHandler()
+	getHandler := todo.NewGetHandler()
+	updateHandler := todo.NewUpdateHandler()
+	deleteHandler := todo.NewDeleteHandler()
+	todoHandler := todo.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
+	handlerHandler := handler.NewHandler(healthHandler, todoHandler)
 	engine := http.NewRouter(handlerHandler)
 	return engine, func() {
 	}, nil
