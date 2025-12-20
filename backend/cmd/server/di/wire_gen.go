@@ -11,7 +11,8 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
-	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
+	todo2 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
 // Injectors from wire.go:
@@ -20,12 +21,17 @@ import (
 func InitializeServer() (*gin.Engine, func(), error) {
 	healthCheckHandler := health.NewHealthCheckHandler()
 	healthHandler := health.NewHandler(healthCheckHandler)
-	listHandler := todo.NewListHandler()
-	createHandler := todo.NewCreateHandler()
-	getHandler := todo.NewGetHandler()
-	updateHandler := todo.NewUpdateHandler()
-	deleteHandler := todo.NewDeleteHandler()
-	todoHandler := todo.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
+	listUseCase := todo.NewListUseCase()
+	listHandler := todo2.NewListHandler(listUseCase)
+	createUseCase := todo.NewCreateUseCase()
+	createHandler := todo2.NewCreateHandler(createUseCase)
+	getUseCase := todo.NewGetUseCase()
+	getHandler := todo2.NewGetHandler(getUseCase)
+	updateUseCase := todo.NewUpdateUseCase()
+	updateHandler := todo2.NewUpdateHandler(updateUseCase)
+	deleteUseCase := todo.NewDeleteUseCase()
+	deleteHandler := todo2.NewDeleteHandler(deleteUseCase)
+	todoHandler := todo2.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 	handlerHandler := handler.NewHandler(healthHandler, todoHandler)
 	engine := http.NewRouter(handlerHandler)
 	return engine, func() {
