@@ -1,16 +1,46 @@
 package todo
 
+import (
+	"context"
+
+	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+)
+
+// DeleteUseCase は、Todoを削除するためのユースケースです。
 type DeleteUseCase struct {
-	// Add necessary fields here, e.g., repository interfaces
+	todoRepo todorepository.TodoRepository
 }
 
-func NewDeleteUseCase() *DeleteUseCase {
+// NewDeleteUseCase は、DeleteUseCaseを生成します。
+func NewDeleteUseCase(todoRepo todorepository.TodoRepository) *DeleteUseCase {
 	return &DeleteUseCase{
-		// Initialize fields here
+		todoRepo: todoRepo,
 	}
 }
 
-func (uc *DeleteUseCase) Execute(id string) error {
-	// Implement the logic to delete a todo item
-	return nil
+// DeleteInput は、DeleteUseCaseの入力です。
+type DeleteInput struct {
+	ID string
+}
+
+// DeleteOutput は、DeleteUseCaseの出力です。
+// 削除処理が成功したことを示すため、フィールドは空です。
+type DeleteOutput struct{}
+
+// Execute は、ユースケースを実行します。
+func (uc *DeleteUseCase) Execute(ctx context.Context, input *DeleteInput) (*DeleteOutput, error) {
+	// 1. IDの検証
+	todoID, err := todomodel.TodoIDFromString(input.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. リポジトリに削除を依頼
+	if err := uc.todoRepo.Delete(ctx, todoID); err != nil {
+		return nil, err
+	}
+
+	// 3. 成功を示す空の出力を返す
+	return &DeleteOutput{}, nil
 }

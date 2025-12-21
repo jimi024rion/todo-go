@@ -7,6 +7,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gin-gonic/gin v1.11.0
 	github.com/gofrs/uuid/v5 v5.4.0
+	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.7.0
 	github.com/lib/pq v1.10.9
 	github.com/pkg/errors v0.9.1

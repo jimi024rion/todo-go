@@ -8,11 +8,12 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
-	todo2 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
-	"github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	todo3 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
+	todo2 "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
 // Injectors from wire.go:
@@ -21,17 +22,18 @@ import (
 func InitializeServer() (*gin.Engine, func(), error) {
 	healthCheckHandler := health.NewHealthCheckHandler()
 	healthHandler := health.NewHandler(healthCheckHandler)
-	listUseCase := todo.NewListUseCase()
-	listHandler := todo2.NewListHandler(listUseCase)
-	createUseCase := todo.NewCreateUseCase()
-	createHandler := todo2.NewCreateHandler(createUseCase)
-	getUseCase := todo.NewGetUseCase()
-	getHandler := todo2.NewGetHandler(getUseCase)
-	updateUseCase := todo.NewUpdateUseCase()
-	updateHandler := todo2.NewUpdateHandler(updateUseCase)
-	deleteUseCase := todo.NewDeleteUseCase()
-	deleteHandler := todo2.NewDeleteHandler(deleteUseCase)
-	todoHandler := todo2.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
+	dummyRepository := todo.NewDummyRepository()
+	listUseCase := todo2.NewListUseCase(dummyRepository)
+	listHandler := todo3.NewListHandler(listUseCase)
+	createUseCase := todo2.NewCreateUseCase(dummyRepository)
+	createHandler := todo3.NewCreateHandler(createUseCase)
+	getUseCase := todo2.NewGetUseCase(dummyRepository)
+	getHandler := todo3.NewGetHandler(getUseCase)
+	updateUseCase := todo2.NewUpdateUseCase(dummyRepository)
+	updateHandler := todo3.NewUpdateHandler(updateUseCase)
+	deleteUseCase := todo2.NewDeleteUseCase(dummyRepository)
+	deleteHandler := todo3.NewDeleteHandler(deleteUseCase)
+	todoHandler := todo3.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 	handlerHandler := handler.NewHandler(healthHandler, todoHandler)
 	engine := http.NewRouter(handlerHandler)
 	return engine, func() {

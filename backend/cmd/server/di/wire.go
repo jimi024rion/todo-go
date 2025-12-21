@@ -6,16 +6,31 @@ package di
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
-	todo_presen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
-	todo_usecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	todopresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
+	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
 // InitializeServer initializes the Gin engine with all its dependencies.
 func InitializeServer() (*gin.Engine, func(), error) {
 	wire.Build(
+		// --- infrastructure ---
+		// todo
+		todoinfra.NewDummyRepository,
+		wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.DummyRepository)),
+
+		// --- usecase ---
+		// todo
+		todousecase.NewListUseCase,
+		todousecase.NewCreateUseCase,
+		todousecase.NewGetUseCase,
+		todousecase.NewUpdateUseCase,
+		todousecase.NewDeleteUseCase,
+
 		// --- presentation ---
 		http.NewRouter,
 		handler.NewHandler,
@@ -23,20 +38,12 @@ func InitializeServer() (*gin.Engine, func(), error) {
 		health.NewHandler,
 		health.NewHealthCheckHandler,
 		// todo
-		todo_presen.NewHandler,
-		todo_presen.NewListHandler,
-		todo_presen.NewCreateHandler,
-		todo_presen.NewGetHandler,
-		todo_presen.NewUpdateHandler,
-		todo_presen.NewDeleteHandler,
-
-		// --- usecase ---
-		// todo
-		todo_usecase.NewListUseCase,
-		todo_usecase.NewCreateUseCase,
-		todo_usecase.NewGetUseCase,
-		todo_usecase.NewUpdateUseCase,
-		todo_usecase.NewDeleteUseCase,
+		todopresen.NewHandler,
+		todopresen.NewListHandler,
+		todopresen.NewCreateHandler,
+		todopresen.NewGetHandler,
+		todopresen.NewUpdateHandler,
+		todopresen.NewDeleteHandler,
 	)
 
 	// ここはwire generateによって置き換えられる

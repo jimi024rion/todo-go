@@ -11,7 +11,7 @@ CREATE TABLE "todos" (
   "user_id" uuid NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
   "title" varchar(255) NOT NULL,
   "description" text,
-  "done" boolean NOT NULL DEFAULT false,
+  "status" varchar(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL
 );
