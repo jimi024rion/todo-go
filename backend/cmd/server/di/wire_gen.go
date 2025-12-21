@@ -8,6 +8,8 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
@@ -22,20 +24,29 @@ import (
 func InitializeServer() (*gin.Engine, func(), error) {
 	healthCheckHandler := health.NewHealthCheckHandler()
 	healthHandler := health.NewHandler(healthCheckHandler)
-	dummyRepository := todo.NewDummyRepository()
-	listUseCase := todo2.NewListUseCase(dummyRepository)
+	config, err := env.Load()
+	if err != nil {
+		return nil, nil, err
+	}
+	executor, cleanup, err := rdb.NewDB(config)
+	if err != nil {
+		return nil, nil, err
+	}
+	repository := todo.NewRepository(executor)
+	listUseCase := todo2.NewListUseCase(repository)
 	listHandler := todo3.NewListHandler(listUseCase)
-	createUseCase := todo2.NewCreateUseCase(dummyRepository)
+	createUseCase := todo2.NewCreateUseCase(repository)
 	createHandler := todo3.NewCreateHandler(createUseCase)
-	getUseCase := todo2.NewGetUseCase(dummyRepository)
+	getUseCase := todo2.NewGetUseCase(repository)
 	getHandler := todo3.NewGetHandler(getUseCase)
-	updateUseCase := todo2.NewUpdateUseCase(dummyRepository)
+	updateUseCase := todo2.NewUpdateUseCase(repository)
 	updateHandler := todo3.NewUpdateHandler(updateUseCase)
-	deleteUseCase := todo2.NewDeleteUseCase(dummyRepository)
+	deleteUseCase := todo2.NewDeleteUseCase(repository)
 	deleteHandler := todo3.NewDeleteHandler(deleteUseCase)
 	todoHandler := todo3.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 	handlerHandler := handler.NewHandler(healthHandler, todoHandler)
 	engine := http.NewRouter(handlerHandler)
 	return engine, func() {
+		cleanup()
 	}, nil
 }

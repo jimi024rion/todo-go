@@ -63,10 +63,10 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 	switch todomodel.Status(input.Status) {
 	case todomodel.StatusCompleted:
 		targetTodo.MarkAsCompleted()
-	case todomodel.StatusPending:
-		targetTodo.MarkAsPending()
 	case todomodel.StatusInProgress:
 		targetTodo.MarkAsInProgress()
+	case todomodel.StatusPending:
+		targetTodo.MarkAsPending()
 	default:
 		// 不明なステータスが指定された場合は何もしないか、エラーを返す
 		// ここでは何もしないポリシーとする

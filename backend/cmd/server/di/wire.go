@@ -6,7 +6,8 @@ package di
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
-	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
@@ -18,10 +19,14 @@ import (
 // InitializeServer initializes the Gin engine with all its dependencies.
 func InitializeServer() (*gin.Engine, func(), error) {
 	wire.Build(
+		// --- config ---
+		env.Load,
+		rdb.NewDB,
+
 		// --- infrastructure ---
 		// todo
-		todoinfra.NewDummyRepository,
-		wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.DummyRepository)),
+		todoinfra.NewRepository,
+		// wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.Repository)),
 
 		// --- usecase ---
 		// todo

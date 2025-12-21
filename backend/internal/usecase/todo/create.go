@@ -4,6 +4,7 @@ import (
 	"context"
 
 	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
+	usermodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/user"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
 )
 
@@ -21,6 +22,7 @@ func NewCreateUseCase(todoRepo todorepository.TodoRepository) *CreateUseCase {
 
 // CreateInput は、CreateUseCaseの入力です。
 type CreateInput struct {
+	UserID      string
 	Title       string
 	Description string
 }
@@ -32,9 +34,14 @@ type CreateOutput struct {
 
 // Execute は、ユースケースを実行します。
 func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*CreateOutput, error) {
+	userID, err := usermodel.UserIDFromString(input.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	// ドメインモデルのファクトリを呼び出し、エンティティを生成します。
 	// この中でビジネスルール（タイトルの長さなど）が検証されます。
-	newTodo, err := todomodel.NewTodo(input.Title, input.Description)
+	newTodo, err := todomodel.NewTodo(userID, input.Title, input.Description)
 	if err != nil {
 		// ビジネスルール違反の場合、エラーを返す。
 		return nil, err

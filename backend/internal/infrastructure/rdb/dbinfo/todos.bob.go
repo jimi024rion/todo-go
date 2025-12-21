@@ -51,15 +51,6 @@ var Todos = Table[
 			Generated: false,
 			AutoIncr:  false,
 		},
-		Done: column{
-			Name:      "done",
-			DBType:    "boolean",
-			Default:   "false",
-			Comment:   "",
-			Nullable:  false,
-			Generated: false,
-			AutoIncr:  false,
-		},
 		CreatedAt: column{
 			Name:      "created_at",
 			DBType:    "timestamp with time zone",
@@ -73,6 +64,15 @@ var Todos = Table[
 			Name:      "updated_at",
 			DBType:    "timestamp with time zone",
 			Default:   "",
+			Comment:   "",
+			Nullable:  false,
+			Generated: false,
+			AutoIncr:  false,
+		},
+		Status: column{
+			Name:      "status",
+			DBType:    "character varying",
+			Default:   "'pending'::character varying",
 			Comment:   "",
 			Nullable:  false,
 			Generated: false,
@@ -115,6 +115,16 @@ var Todos = Table[
 		},
 	},
 
+	Checks: todoChecks{
+		TodosStatusCheck: check{
+			constraint: constraint{
+				Name:    "todos_status_check",
+				Columns: []string{"status"},
+				Comment: "",
+			},
+			Expression: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('in_progress'::character varying)::text, ('completed'::character varying)::text]))",
+		},
+	},
 	Comment: "",
 }
 
@@ -123,14 +133,14 @@ type todoColumns struct {
 	UserID      column
 	Title       column
 	Description column
-	Done        column
 	CreatedAt   column
 	UpdatedAt   column
+	Status      column
 }
 
 func (c todoColumns) AsSlice() []column {
 	return []column{
-		c.ID, c.UserID, c.Title, c.Description, c.Done, c.CreatedAt, c.UpdatedAt,
+		c.ID, c.UserID, c.Title, c.Description, c.CreatedAt, c.UpdatedAt, c.Status,
 	}
 }
 
@@ -160,8 +170,12 @@ func (u todoUniques) AsSlice() []constraint {
 	return []constraint{}
 }
 
-type todoChecks struct{}
+type todoChecks struct {
+	TodosStatusCheck check
+}
 
 func (c todoChecks) AsSlice() []check {
-	return []check{}
+	return []check{
+		c.TodosStatusCheck,
+	}
 }
