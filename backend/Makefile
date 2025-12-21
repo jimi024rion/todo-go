@@ -1,14 +1,14 @@
 .PHONY: build run test swagger up down migrate-up
 
 # Go configuration
-BINARY_NAME=todo-go
+BINARY_NAME=./bin/server
 # Path is relative to the 'backend' directory
 CMD_PATH=./cmd/server
 
 # Build the application
 build:
 	@echo "Building Go binary..."
-	go build -o ../$(BINARY_NAME) $(CMD_PATH)
+	go build -o $(BINARY_NAME) $(CMD_PATH)
 
 # Run the application
 run:
@@ -27,7 +27,7 @@ swagger:
 
 air:
 	@echo "Starting Air for live reloading..."
-	air --build.cmd "go build -ldflags '-s -w' -trimpath -o ./bin/server ./cmd/server/main.go" --build.bin "./bin/server"
+	air --build.cmd "go build -ldflags '-s -w' -trimpath -o $(BINARY_NAME) $(CMD_PATH)" --build.bin "$(BINARY_NAME)"
 
 # Start Docker Compose services
 up:

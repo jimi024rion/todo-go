@@ -3,6 +3,8 @@ package todo
 
 import (
 	"time"
+
+	"github.com/jimi024rion/todo-go/backend/internal/domain/model/user"
 )
 
 // --- エンティティ (Entity) ---
@@ -11,6 +13,7 @@ import (
 // フィールドはすべて非公開であり、公開されたメソッドを通じてのみ操作されます。
 type Todo struct {
 	id          TodoID
+	userID      user.UserID
 	title       Title
 	description string
 	status      Status
@@ -23,7 +26,7 @@ type Todo struct {
 // NewTodoは、新しいTodoエンティティを「新規作成」するためのファクトリ関数です。
 // ID、ステータス、タイムスタンプは自動的に設定されます。
 // 引数で受け取った値のビジネスルール検証もこの中で行います。
-func NewTodo(title, description string) (*Todo, error) {
+func NewTodo(userID user.UserID, title, description string) (*Todo, error) {
 	// 値オブジェクトを生成することで、ビジネスルールを検証する
 	validatedTitle, err := NewTitle(title)
 	if err != nil {
@@ -33,6 +36,7 @@ func NewTodo(title, description string) (*Todo, error) {
 	now := time.Now()
 	return &Todo{
 		id:          NewTodoID(),
+		userID:      userID,
 		title:       validatedTitle,
 		description: description,
 		status:      StatusPending, // 新規作成時は必ず「未完了」
@@ -44,8 +48,12 @@ func NewTodo(title, description string) (*Todo, error) {
 // Reconstructは、データベースなどの永続化層から読み取ったデータを用いて、
 // 既存のTodoエンティティをメモリ上に「再構築」するためのファクトリ関数です。
 // この関数も、内部で値の検証を行います。
-func Reconstruct(id, title, description, status string, createdAt, updatedAt time.Time) (*Todo, error) {
+func Reconstruct(id, userID, title, description, status string, createdAt, updatedAt time.Time) (*Todo, error) {
 	validatedID, err := TodoIDFromString(id)
+	if err != nil {
+		return nil, err
+	}
+	validatedUserID, err := user.UserIDFromString(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +68,7 @@ func Reconstruct(id, title, description, status string, createdAt, updatedAt tim
 
 	return &Todo{
 		id:          validatedID,
+		userID:      validatedUserID,
 		title:       validatedTitle,
 		description: description,
 		status:      validatedStatus,
@@ -73,6 +82,11 @@ func Reconstruct(id, title, description, status string, createdAt, updatedAt tim
 // IDは、TodoのIDを返します。
 func (t *Todo) ID() TodoID {
 	return t.id
+}
+
+// UserIDは、Todoの所有者であるユーザーのIDを返します。
+func (t *Todo) UserID() user.UserID {
+	return t.userID
 }
 
 // Titleは、Todoのタイトルを返します。

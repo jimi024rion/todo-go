@@ -33,9 +33,9 @@ type Todo struct {
 	UserID      uuid.UUID        `db:"user_id" `
 	Title       string           `db:"title" `
 	Description null.Val[string] `db:"description" `
-	Done        bool             `db:"done" `
 	CreatedAt   time.Time        `db:"created_at" `
 	UpdatedAt   time.Time        `db:"updated_at" `
+	Status      string           `db:"status" `
 
 	R todoR `db:"-" `
 }
@@ -59,16 +59,16 @@ type todoR struct {
 func buildTodoColumns(alias string) todoColumns {
 	return todoColumns{
 		ColumnsExpr: expr.NewColumnsExpr(
-			"id", "user_id", "title", "description", "done", "created_at", "updated_at",
+			"id", "user_id", "title", "description", "created_at", "updated_at", "status",
 		).WithParent("todos"),
 		tableAlias:  alias,
 		ID:          psql.Quote(alias, "id"),
 		UserID:      psql.Quote(alias, "user_id"),
 		Title:       psql.Quote(alias, "title"),
 		Description: psql.Quote(alias, "description"),
-		Done:        psql.Quote(alias, "done"),
 		CreatedAt:   psql.Quote(alias, "created_at"),
 		UpdatedAt:   psql.Quote(alias, "updated_at"),
+		Status:      psql.Quote(alias, "status"),
 	}
 }
 
@@ -79,9 +79,9 @@ type todoColumns struct {
 	UserID      psql.Expression
 	Title       psql.Expression
 	Description psql.Expression
-	Done        psql.Expression
 	CreatedAt   psql.Expression
 	UpdatedAt   psql.Expression
+	Status      psql.Expression
 }
 
 func (c todoColumns) Alias() string {
@@ -100,9 +100,9 @@ type TodoSetter struct {
 	UserID      omit.Val[uuid.UUID]  `db:"user_id" `
 	Title       omit.Val[string]     `db:"title" `
 	Description omitnull.Val[string] `db:"description" `
-	Done        omit.Val[bool]       `db:"done" `
 	CreatedAt   omit.Val[time.Time]  `db:"created_at" `
 	UpdatedAt   omit.Val[time.Time]  `db:"updated_at" `
+	Status      omit.Val[string]     `db:"status" `
 }
 
 func (s TodoSetter) SetColumns() []string {
@@ -119,14 +119,14 @@ func (s TodoSetter) SetColumns() []string {
 	if !s.Description.IsUnset() {
 		vals = append(vals, "description")
 	}
-	if s.Done.IsValue() {
-		vals = append(vals, "done")
-	}
 	if s.CreatedAt.IsValue() {
 		vals = append(vals, "created_at")
 	}
 	if s.UpdatedAt.IsValue() {
 		vals = append(vals, "updated_at")
+	}
+	if s.Status.IsValue() {
+		vals = append(vals, "status")
 	}
 	return vals
 }
@@ -144,14 +144,14 @@ func (s TodoSetter) Overwrite(t *Todo) {
 	if !s.Description.IsUnset() {
 		t.Description = s.Description.MustGetNull()
 	}
-	if s.Done.IsValue() {
-		t.Done = s.Done.MustGet()
-	}
 	if s.CreatedAt.IsValue() {
 		t.CreatedAt = s.CreatedAt.MustGet()
 	}
 	if s.UpdatedAt.IsValue() {
 		t.UpdatedAt = s.UpdatedAt.MustGet()
+	}
+	if s.Status.IsValue() {
+		t.Status = s.Status.MustGet()
 	}
 }
 
@@ -186,20 +186,20 @@ func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
 			vals[3] = psql.Raw("DEFAULT")
 		}
 
-		if s.Done.IsValue() {
-			vals[4] = psql.Arg(s.Done.MustGet())
+		if s.CreatedAt.IsValue() {
+			vals[4] = psql.Arg(s.CreatedAt.MustGet())
 		} else {
 			vals[4] = psql.Raw("DEFAULT")
 		}
 
-		if s.CreatedAt.IsValue() {
-			vals[5] = psql.Arg(s.CreatedAt.MustGet())
+		if s.UpdatedAt.IsValue() {
+			vals[5] = psql.Arg(s.UpdatedAt.MustGet())
 		} else {
 			vals[5] = psql.Raw("DEFAULT")
 		}
 
-		if s.UpdatedAt.IsValue() {
-			vals[6] = psql.Arg(s.UpdatedAt.MustGet())
+		if s.Status.IsValue() {
+			vals[6] = psql.Arg(s.Status.MustGet())
 		} else {
 			vals[6] = psql.Raw("DEFAULT")
 		}
@@ -243,13 +243,6 @@ func (s TodoSetter) Expressions(prefix ...string) []bob.Expression {
 		}})
 	}
 
-	if s.Done.IsValue() {
-		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
-			psql.Quote(append(prefix, "done")...),
-			psql.Arg(s.Done),
-		}})
-	}
-
 	if s.CreatedAt.IsValue() {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
 			psql.Quote(append(prefix, "created_at")...),
@@ -261,6 +254,13 @@ func (s TodoSetter) Expressions(prefix ...string) []bob.Expression {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
 			psql.Quote(append(prefix, "updated_at")...),
 			psql.Arg(s.UpdatedAt),
+		}})
+	}
+
+	if s.Status.IsValue() {
+		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
+			psql.Quote(append(prefix, "status")...),
+			psql.Arg(s.Status),
 		}})
 	}
 
@@ -661,9 +661,9 @@ type todoWhere[Q psql.Filterable] struct {
 	UserID      psql.WhereMod[Q, uuid.UUID]
 	Title       psql.WhereMod[Q, string]
 	Description psql.WhereNullMod[Q, string]
-	Done        psql.WhereMod[Q, bool]
 	CreatedAt   psql.WhereMod[Q, time.Time]
 	UpdatedAt   psql.WhereMod[Q, time.Time]
+	Status      psql.WhereMod[Q, string]
 }
 
 func (todoWhere[Q]) AliasedAs(alias string) todoWhere[Q] {
@@ -676,9 +676,9 @@ func buildTodoWhere[Q psql.Filterable](cols todoColumns) todoWhere[Q] {
 		UserID:      psql.Where[Q, uuid.UUID](cols.UserID),
 		Title:       psql.Where[Q, string](cols.Title),
 		Description: psql.WhereNull[Q, string](cols.Description),
-		Done:        psql.Where[Q, bool](cols.Done),
 		CreatedAt:   psql.Where[Q, time.Time](cols.CreatedAt),
 		UpdatedAt:   psql.Where[Q, time.Time](cols.UpdatedAt),
+		Status:      psql.Where[Q, string](cols.Status),
 	}
 }
 

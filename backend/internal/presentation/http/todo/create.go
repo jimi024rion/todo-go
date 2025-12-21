@@ -25,6 +25,8 @@ type requestBody struct {
 	Description string `json:"description"`
 }
 
+const dummyUserID = "4D029D7A-E711-4390-AD84-E6E48B184E1C"
+
 // Handle はTodo作成リクエストを処理します。
 func (h *CreateHandler) Handle(c *gin.Context) {
 	// リクエストボディをバインド
@@ -36,6 +38,7 @@ func (h *CreateHandler) Handle(c *gin.Context) {
 
 	// ユースケースの入力DTOを作成
 	input := &todousecase.CreateInput{
+		UserID:      dummyUserID, // FIXME: 将来的に認証から取得した実際のUserIDに置き換える
 		Title:       req.Title,
 		Description: req.Description,
 	}
