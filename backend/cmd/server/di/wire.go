@@ -25,6 +25,8 @@ func InitializeServer() (*gin.Engine, func(), error) {
 		rdb.NewDB,
 
 		// --- infrastructure ---
+		// tx
+		rdb.NewTxManager,
 		// todo
 		todoinfra.NewRepository,
 		wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.Repository)),

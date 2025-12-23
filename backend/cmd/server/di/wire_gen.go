@@ -28,14 +28,15 @@ func InitializeServer() (*gin.Engine, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	executor, cleanup, err := rdb.NewDB(config)
+	db, cleanup, err := rdb.NewDB(config)
 	if err != nil {
 		return nil, nil, err
 	}
-	repository := todo.NewRepository(executor)
+	repository := todo.NewRepository(db)
 	listUseCase := todo2.NewListUseCase(repository)
 	listHandler := todo3.NewListHandler(listUseCase)
-	createUseCase := todo2.NewCreateUseCase(repository)
+	txManager := rdb.NewTxManager(db)
+	createUseCase := todo2.NewCreateUseCase(repository, txManager)
 	createHandler := todo3.NewCreateHandler(createUseCase)
 	getUseCase := todo2.NewGetUseCase(repository)
 	getHandler := todo3.NewGetHandler(getUseCase)

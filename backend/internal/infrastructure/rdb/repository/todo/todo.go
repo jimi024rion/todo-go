@@ -14,16 +14,26 @@ import (
 	"github.com/stephenafamo/bob/dialect/psql/um"
 
 	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/models"
 )
 
 type Repository struct {
-	exec bob.Executor
+	db bob.DB
 }
 
 // NewRepository は Repository の新しいインスタンスを生成します。
-func NewRepository(exec bob.Executor) *Repository {
-	return &Repository{exec: exec}
+func NewRepository(db bob.DB) *Repository {
+	return &Repository{db: db}
+}
+
+// getExecutor はコンテキストからトランザクションを取得し、存在すればそれを返します。
+// 存在しない場合は、デフォルトのDB接続を返します。
+func (r *Repository) getExecutor(ctx context.Context) bob.Executor {
+	if exec, ok := rdb.GetExecutor(ctx); ok {
+		return exec
+	}
+	return r.db
 }
 
 // Save は、Todoエンティティを永続化します。
@@ -33,7 +43,8 @@ func (r *Repository) Save(ctx context.Context, td *todomodel.Todo) error {
 		return fmt.Errorf("invalid todo id format: %w", err)
 	}
 
-	exists, err := models.TodoExists(ctx, r.exec, uid)
+	exec := r.getExecutor(ctx)
+	exists, err := models.TodoExists(ctx, exec, uid)
 	if err != nil {
 		return fmt.Errorf("failed to check todo existence: %w", err)
 	}
@@ -45,14 +56,14 @@ func (r *Repository) Save(ctx context.Context, td *todomodel.Todo) error {
 		_, err = models.Todos.Update(
 			setter.UpdateMod(),
 			um.Where(models.Todos.Columns.ID.EQ(psql.Arg(uid))),
-		).Exec(ctx, r.exec)
+		).Exec(ctx, exec)
 
 		if err != nil {
 			return fmt.Errorf("failed to update todo: %w", err)
 		}
 	} else {
 		// 存在しなければ挿入
-		_, err = models.Todos.Insert(setter).Exec(ctx, r.exec)
+		_, err = models.Todos.Insert(setter).Exec(ctx, exec)
 		if err != nil {
 			return fmt.Errorf("failed to insert todo: %w", err)
 		}
@@ -69,7 +80,7 @@ func (r *Repository) FindByID(ctx context.Context, id todomodel.TodoID) (*todomo
 	}
 
 	// bobが生成したFindTodoヘルパー関数を利用
-	todoModel, err := models.FindTodo(ctx, r.exec, uid)
+	todoModel, err := models.FindTodo(ctx, r.getExecutor(ctx), uid)
 	if err != nil {
 		// TODO: エラーの種類に応じてドメイン層で定義したエラーを返す
 		return nil, fmt.Errorf("failed to find todo by id: %w", err)
@@ -87,7 +98,7 @@ func (r *Repository) Delete(ctx context.Context, id todomodel.TodoID) error {
 
 	_, err = models.Todos.Delete(
 		dm.Where(models.Todos.Columns.ID.EQ(psql.Arg(uid))),
-	).Exec(ctx, r.exec)
+	).Exec(ctx, r.getExecutor(ctx))
 
 	if err != nil {
 		return fmt.Errorf("failed to delete todo: %w", err)
@@ -98,7 +109,7 @@ func (r *Repository) Delete(ctx context.Context, id todomodel.TodoID) error {
 
 // List は、すべてのTodoエンティティのリストを取得します。
 func (r *Repository) List(ctx context.Context) ([]*todomodel.Todo, error) {
-	todoModels, err := models.Todos.Query().All(ctx, r.exec)
+	todoModels, err := models.Todos.Query().All(ctx, r.getExecutor(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list todos: %w", err)
 	}
