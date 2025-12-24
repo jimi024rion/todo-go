@@ -32,7 +32,6 @@ type CreateInput struct {
 
 // CreateOutput は、CreateUseCaseの出力です。
 type CreateOutput struct {
-
 	ID string
 }
 
