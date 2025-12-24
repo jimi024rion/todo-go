@@ -73,7 +73,7 @@ var Todos = Table[
 			Name:      "status",
 			DBType:    "character varying",
 			Default:   "'pending'::character varying",
-			Comment:   "",
+			Comment:   "タスクの状態 (pending, in_progress, completed)",
 			Nullable:  false,
 			Generated: false,
 			AutoIncr:  false,
@@ -104,9 +104,9 @@ var Todos = Table[
 		Comment: "",
 	},
 	ForeignKeys: todoForeignKeys{
-		TodosTodosUserIDFkey: foreignKey{
+		TodosFKTodosUserID: foreignKey{
 			constraint: constraint{
-				Name:    "todos.todos_user_id_fkey",
+				Name:    "todos.fk_todos_user_id",
 				Columns: []string{"user_id"},
 				Comment: "",
 			},
@@ -116,16 +116,16 @@ var Todos = Table[
 	},
 
 	Checks: todoChecks{
-		TodosStatusCheck: check{
+		CHKTodosStatus: check{
 			constraint: constraint{
-				Name:    "todos_status_check",
+				Name:    "chk_todos_status",
 				Columns: []string{"status"},
 				Comment: "",
 			},
 			Expression: "((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('in_progress'::character varying)::text, ('completed'::character varying)::text]))",
 		},
 	},
-	Comment: "",
+	Comment: "ToDoタスク",
 }
 
 type todoColumns struct {
@@ -155,12 +155,12 @@ func (i todoIndexes) AsSlice() []index {
 }
 
 type todoForeignKeys struct {
-	TodosTodosUserIDFkey foreignKey
+	TodosFKTodosUserID foreignKey
 }
 
 func (f todoForeignKeys) AsSlice() []foreignKey {
 	return []foreignKey{
-		f.TodosTodosUserIDFkey,
+		f.TodosFKTodosUserID,
 	}
 }
 
@@ -171,11 +171,11 @@ func (u todoUniques) AsSlice() []constraint {
 }
 
 type todoChecks struct {
-	TodosStatusCheck check
+	CHKTodosStatus check
 }
 
 func (c todoChecks) AsSlice() []check {
 	return []check{
-		c.TodosStatusCheck,
+		c.CHKTodosStatus,
 	}
 }

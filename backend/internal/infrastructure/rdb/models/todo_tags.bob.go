@@ -42,8 +42,8 @@ type TodoTagsQuery = *psql.ViewQuery[*TodoTag, TodoTagSlice]
 
 // todoTagR is where relationships are stored.
 type todoTagR struct {
-	Tag  *Tag  // todo_tags.todo_tags_tag_id_fkey
-	Todo *Todo // todo_tags.todo_tags_todo_id_fkey
+	Tag  *Tag  // todo_tags.fk_todo_tags_tag_id
+	Todo *Todo // todo_tags.fk_todo_tags_todo_id
 }
 
 func buildTodoTagColumns(alias string) todoTagColumns {

@@ -86,9 +86,9 @@ var Tags = Table[
 		Comment: "",
 	},
 	ForeignKeys: tagForeignKeys{
-		TagsTagsUserIDFkey: foreignKey{
+		TagsFKTagsUserID: foreignKey{
 			constraint: constraint{
-				Name:    "tags.tags_user_id_fkey",
+				Name:    "tags.fk_tags_user_id",
 				Columns: []string{"user_id"},
 				Comment: "",
 			},
@@ -97,7 +97,7 @@ var Tags = Table[
 		},
 	},
 
-	Comment: "",
+	Comment: "タグ",
 }
 
 type tagColumns struct {
@@ -125,12 +125,12 @@ func (i tagIndexes) AsSlice() []index {
 }
 
 type tagForeignKeys struct {
-	TagsTagsUserIDFkey foreignKey
+	TagsFKTagsUserID foreignKey
 }
 
 func (f tagForeignKeys) AsSlice() []foreignKey {
 	return []foreignKey{
-		f.TagsTagsUserIDFkey,
+		f.TagsFKTagsUserID,
 	}
 }
 

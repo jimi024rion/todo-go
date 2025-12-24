@@ -46,8 +46,8 @@ type UsersQuery = *psql.ViewQuery[*User, UserSlice]
 
 // userR is where relationships are stored.
 type userR struct {
-	Tags  TagSlice  // tags.tags_user_id_fkey
-	Todos TodoSlice // todos.todos_user_id_fkey
+	Tags  TagSlice  // tags.fk_tags_user_id
+	Todos TodoSlice // todos.fk_todos_user_id
 }
 
 func buildUserColumns(alias string) userColumns {

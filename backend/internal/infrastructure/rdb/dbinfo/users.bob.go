@@ -111,7 +111,7 @@ var Users = Table[
 		},
 	},
 
-	Comment: "",
+	Comment: "ユーザー情報",
 }
 
 type userColumns struct {

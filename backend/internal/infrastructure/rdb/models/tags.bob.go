@@ -48,8 +48,8 @@ type TagsQuery = *psql.ViewQuery[*Tag, TagSlice]
 
 // tagR is where relationships are stored.
 type tagR struct {
-	User  *User     // tags.tags_user_id_fkey
-	Todos TodoSlice // todo_tags.todo_tags_tag_id_fkeytodo_tags.todo_tags_todo_id_fkey
+	User  *User     // tags.fk_tags_user_id
+	Todos TodoSlice // todo_tags.fk_todo_tags_tag_idtodo_tags.fk_todo_tags_todo_id
 }
 
 func buildTagColumns(alias string) tagColumns {

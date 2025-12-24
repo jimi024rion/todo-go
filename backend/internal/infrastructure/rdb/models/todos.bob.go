@@ -35,7 +35,8 @@ type Todo struct {
 	Description null.Val[string] `db:"description" `
 	CreatedAt   time.Time        `db:"created_at" `
 	UpdatedAt   time.Time        `db:"updated_at" `
-	Status      string           `db:"status" `
+	// タスクの状態 (pending, in_progress, completed)
+	Status string `db:"status" `
 
 	R todoR `db:"-" `
 }
@@ -52,8 +53,8 @@ type TodosQuery = *psql.ViewQuery[*Todo, TodoSlice]
 
 // todoR is where relationships are stored.
 type todoR struct {
-	Tags TagSlice // todo_tags.todo_tags_tag_id_fkeytodo_tags.todo_tags_todo_id_fkey
-	User *User    // todos.todos_user_id_fkey
+	Tags TagSlice // todo_tags.fk_todo_tags_tag_idtodo_tags.fk_todo_tags_todo_id
+	User *User    // todos.fk_todos_user_id
 }
 
 func buildTodoColumns(alias string) todoColumns {

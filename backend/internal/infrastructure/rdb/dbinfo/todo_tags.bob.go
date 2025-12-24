@@ -64,18 +64,18 @@ var TodoTags = Table[
 		Comment: "",
 	},
 	ForeignKeys: todoTagForeignKeys{
-		TodoTagsTodoTagsTagIDFkey: foreignKey{
+		TodoTagsFKTodoTagsTagID: foreignKey{
 			constraint: constraint{
-				Name:    "todo_tags.todo_tags_tag_id_fkey",
+				Name:    "todo_tags.fk_todo_tags_tag_id",
 				Columns: []string{"tag_id"},
 				Comment: "",
 			},
 			ForeignTable:   "tags",
 			ForeignColumns: []string{"id"},
 		},
-		TodoTagsTodoTagsTodoIDFkey: foreignKey{
+		TodoTagsFKTodoTagsTodoID: foreignKey{
 			constraint: constraint{
-				Name:    "todo_tags.todo_tags_todo_id_fkey",
+				Name:    "todo_tags.fk_todo_tags_todo_id",
 				Columns: []string{"todo_id"},
 				Comment: "",
 			},
@@ -84,7 +84,7 @@ var TodoTags = Table[
 		},
 	},
 
-	Comment: "",
+	Comment: "ToDoとタグの中間テーブル",
 }
 
 type todoTagColumns struct {
@@ -109,13 +109,13 @@ func (i todoTagIndexes) AsSlice() []index {
 }
 
 type todoTagForeignKeys struct {
-	TodoTagsTodoTagsTagIDFkey  foreignKey
-	TodoTagsTodoTagsTodoIDFkey foreignKey
+	TodoTagsFKTodoTagsTagID  foreignKey
+	TodoTagsFKTodoTagsTodoID foreignKey
 }
 
 func (f todoTagForeignKeys) AsSlice() []foreignKey {
 	return []foreignKey{
-		f.TodoTagsTodoTagsTagIDFkey, f.TodoTagsTodoTagsTodoIDFkey,
+		f.TodoTagsFKTodoTagsTagID, f.TodoTagsFKTodoTagsTodoID,
 	}
 }
 
