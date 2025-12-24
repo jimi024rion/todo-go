@@ -74,3 +74,15 @@ migrate-hash:
 schema-clean:
 	cd ./internal/infrastructure/rdb && atlas schema clean --env local --auto-approve
 	@echo "Atlas schema clean completed."
+
+aqua-init:
+	@echo "Initializing Aqua configuration..."
+	aqua init
+
+aqua-generate:
+	@echo "Generating Aqua configuration..."
+	aqua g -i -s
+
+aqua-install:
+	@echo "Installing Aqua dependencies..."
+	aqua i -l
