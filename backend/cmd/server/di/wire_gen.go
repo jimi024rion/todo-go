@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
-	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
@@ -28,14 +28,15 @@ func InitializeServer() (*gin.Engine, func(), error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	executor, cleanup, err := rdb.NewDB(config)
+	db, cleanup, err := rdb.NewDB(config)
 	if err != nil {
 		return nil, nil, err
 	}
-	repository := todo.NewRepository(executor)
+	repository := todo.NewRepository(db)
 	listUseCase := todo2.NewListUseCase(repository)
 	listHandler := todo3.NewListHandler(listUseCase)
-	createUseCase := todo2.NewCreateUseCase(repository)
+	txManager := rdb.NewTxManager(db)
+	createUseCase := todo2.NewCreateUseCase(repository, txManager)
 	createHandler := todo3.NewCreateHandler(createUseCase)
 	getUseCase := todo2.NewGetUseCase(repository)
 	getHandler := todo3.NewGetHandler(getUseCase)

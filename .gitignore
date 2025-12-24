@@ -28,4 +28,4 @@ go.work.sum
 # Other
 .DS_Store
 tmp
-/.gemini/TODO.md
+# /.gemini/TODO.md

@@ -7,8 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
+	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
-	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/repository/todo"
+	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
@@ -24,9 +25,11 @@ func InitializeServer() (*gin.Engine, func(), error) {
 		rdb.NewDB,
 
 		// --- infrastructure ---
+		// tx
+		rdb.NewTxManager,
 		// todo
 		todoinfra.NewRepository,
-		// wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.Repository)),
+		wire.Bind(new(todorepo.TodoRepository), new(*todoinfra.Repository)),
 
 		// --- usecase ---
 		// todo

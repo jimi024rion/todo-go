@@ -9,24 +9,24 @@ import (
 	"github.com/stephenafamo/bob"
 )
 
-// NewDB creates a new database connection and returns it as a bob.Executor.
-func NewDB(cfg *env.Config) (bob.Executor, func(), error) {
+// NewDB creates a new database connection and returns it as a bob.DB.
+func NewDB(cfg *env.Config) (bob.DB, func(), error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.DB.Host, strconv.Itoa(cfg.DB.Port), cfg.DB.User, cfg.DB.Password, cfg.DB.Name)
 
 	db, err := bob.Open("postgres", dsn)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open database: %w", err)
+		return bob.DB{}, nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	// Ping the underlying *sql.DB
-	if err := db.DB.Ping(); err != nil {
-		db.DB.Close()
-		return nil, nil, fmt.Errorf("failed to ping database: %w", err)
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return bob.DB{}, nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	cleanup := func() {
-		db.DB.Close()
+		db.Close()
 	}
 
 	return db, cleanup, nil

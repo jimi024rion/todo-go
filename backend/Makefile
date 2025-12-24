@@ -1,4 +1,4 @@
-.PHONY: build run test swagger up down migrate-up
+.PHONY: build run test swagger up down migrate-up migrate-diff migrate-apply migrate-hash db-reset schema-clean
 
 # Go configuration
 BINARY_NAME=./bin/server
@@ -52,3 +52,25 @@ wire:
 bob:
 	bobgen-psql generate -c ./bobgen.yaml
 	@echo "Bob code generation completed."
+
+# migrate-diff 用の引数処理: make migrate-diff <name>
+ifeq (migrate-diff,$(firstword $(MAKECMDGOALS)))
+  MIGRATION_NAME := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(MIGRATION_NAME):;@:)
+endif
+
+migrate-diff:
+	cd ./internal/infrastructure/rdb && atlas migrate diff $(MIGRATION_NAME) --env local
+	@echo "Atlas migration diff completed."
+
+migrate-apply:
+	cd ./internal/infrastructure/rdb && atlas migrate apply --env local
+	@echo "Atlas migration apply completed."
+
+migrate-hash:
+	cd ./internal/infrastructure/rdb && atlas migrate hash
+	@echo "Atlas migration hash updated."
+
+schema-clean:
+	cd ./internal/infrastructure/rdb && atlas schema clean --env local --auto-approve
+	@echo "Atlas schema clean completed."
