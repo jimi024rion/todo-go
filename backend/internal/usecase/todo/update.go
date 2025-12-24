@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
-	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
 
 // UpdateUseCase は、Todoを更新するためのユースケースです。
@@ -41,7 +41,7 @@ type UpdateOutput struct {
 // Execute は、ユースケースを実行します。
 func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*UpdateOutput, error) {
 	// 1. IDの検証
-	todoID, err := todomodel.TodoIDFromString(input.ID)
+	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +60,12 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 	targetTodo.ChangeDescription(input.Description)
 
 	// Statusの更新
-	switch todomodel.Status(input.Status) {
-	case todomodel.StatusCompleted:
+	switch todovo.Status(input.Status) {
+	case todovo.StatusCompleted:
 		targetTodo.MarkAsCompleted()
-	case todomodel.StatusInProgress:
+	case todovo.StatusInProgress:
 		targetTodo.MarkAsInProgress()
-	case todomodel.StatusPending:
+	case todovo.StatusPending:
 		targetTodo.MarkAsPending()
 	default:
 		// 不明なステータスが指定された場合は何もしないか、エラーを返す

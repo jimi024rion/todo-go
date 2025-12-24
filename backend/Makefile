@@ -25,6 +25,11 @@ swagger:
 	@echo "Generating Swagger docs..."
 	@echo "swag init will be configured here later"
 
+# Run linter
+lint:
+	@echo "Running linter..."
+	golangci-lint run -v ./...
+
 air:
 	@echo "Starting Air for live reloading..."
 	air --build.cmd "go build -ldflags '-s -w' -trimpath -o $(BINARY_NAME) $(CMD_PATH)" --build.bin "$(BINARY_NAME)"

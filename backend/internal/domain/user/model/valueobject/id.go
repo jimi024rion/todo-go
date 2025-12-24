@@ -1,4 +1,4 @@
-package user
+package valueobject
 
 import (
 	"fmt"

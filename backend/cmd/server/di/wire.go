@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
-	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"

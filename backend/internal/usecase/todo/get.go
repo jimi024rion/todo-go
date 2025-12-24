@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
-	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
 
 // GetUseCase は、TodoをIDで取得するためのユースケースです。
@@ -40,7 +40,7 @@ type GetOutput struct {
 func (uc *GetUseCase) Execute(ctx context.Context, input *GetInput) (*GetOutput, error) {
 	// 文字列のIDから、ドメインモデルのTodoID値オブジェクトを生成します。
 	// これにより、IDのフォーマットが不正な場合はこの時点でエラーとして扱えます。
-	todoID, err := todomodel.TodoIDFromString(input.ID)
+	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
 		return nil, err
 	}

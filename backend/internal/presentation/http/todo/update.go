@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
+	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
@@ -51,7 +51,7 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 	output, err := h.usecase.Execute(c.Request.Context(), input)
 	if err != nil {
 		// ビジネスルール違反
-		if errors.Is(err, todomodel.ErrTitleIsEmpty) || errors.Is(err, todomodel.ErrTitleTooLong) {
+		if errors.Is(err, todovo.ErrTitleIsEmpty) || errors.Is(err, todovo.ErrTitleTooLong) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}

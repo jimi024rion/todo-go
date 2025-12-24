@@ -3,8 +3,8 @@ package todo
 import (
 	"context"
 
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
-	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
 
 // DeleteUseCase は、Todoを削除するためのユースケースです。
@@ -31,7 +31,7 @@ type DeleteOutput struct{}
 // Execute は、ユースケースを実行します。
 func (uc *DeleteUseCase) Execute(ctx context.Context, input *DeleteInput) (*DeleteOutput, error) {
 	// 1. IDの検証
-	todoID, err := todomodel.TodoIDFromString(input.ID)
+	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
 
 // ListUseCase は、Todoを一覧取得するためのユースケースです。

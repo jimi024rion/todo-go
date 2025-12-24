@@ -13,7 +13,8 @@ import (
 	"github.com/stephenafamo/bob/dialect/psql/dm"
 	"github.com/stephenafamo/bob/dialect/psql/um"
 
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
+	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/models"
 )
@@ -37,7 +38,7 @@ func (r *Repository) getExecutor(ctx context.Context) bob.Executor {
 }
 
 // Save は、Todoエンティティを永続化します。
-func (r *Repository) Save(ctx context.Context, td *todomodel.Todo) error {
+func (r *Repository) Save(ctx context.Context, td *entity.Todo) error {
 	uid, err := uuid.FromString(td.ID().String())
 	if err != nil {
 		return fmt.Errorf("invalid todo id format: %w", err)
@@ -73,7 +74,7 @@ func (r *Repository) Save(ctx context.Context, td *todomodel.Todo) error {
 }
 
 // FindByID は、指定されたIDを持つTodoエンティティを検索します。
-func (r *Repository) FindByID(ctx context.Context, id todomodel.TodoID) (*todomodel.Todo, error) {
+func (r *Repository) FindByID(ctx context.Context, id valueobject.TodoID) (*entity.Todo, error) {
 	uid, err := uuid.FromString(id.String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid todo id format: %w", err)
@@ -90,7 +91,7 @@ func (r *Repository) FindByID(ctx context.Context, id todomodel.TodoID) (*todomo
 }
 
 // Delete は、指定されたIDを持つTodoエンティティを削除します。
-func (r *Repository) Delete(ctx context.Context, id todomodel.TodoID) error {
+func (r *Repository) Delete(ctx context.Context, id valueobject.TodoID) error {
 	uid, err := uuid.FromString(id.String())
 	if err != nil {
 		return fmt.Errorf("invalid todo id format: %w", err)
@@ -108,13 +109,13 @@ func (r *Repository) Delete(ctx context.Context, id todomodel.TodoID) error {
 }
 
 // List は、すべてのTodoエンティティのリストを取得します。
-func (r *Repository) List(ctx context.Context) ([]*todomodel.Todo, error) {
+func (r *Repository) List(ctx context.Context) ([]*entity.Todo, error) {
 	todoModels, err := models.Todos.Query().All(ctx, r.getExecutor(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list todos: %w", err)
 	}
 
-	domainTodos := make([]*todomodel.Todo, len(todoModels))
+	domainTodos := make([]*entity.Todo, len(todoModels))
 	for i, m := range todoModels {
 		domainTodos[i], err = toDomainTodo(m)
 		if err != nil {
@@ -126,14 +127,14 @@ func (r *Repository) List(ctx context.Context) ([]*todomodel.Todo, error) {
 }
 
 // toDomainTodo は Bob の models.Todo をドメインの todomodel.Todo に変換します。
-func toDomainTodo(m *models.Todo) (*todomodel.Todo, error) {
+func toDomainTodo(m *models.Todo) (*entity.Todo, error) {
 	if m == nil {
 		return nil, nil
 	}
 
 	description := m.Description.GetOrZero()
 
-	return todomodel.Reconstruct(
+	return entity.Reconstruct(
 		m.ID.String(),
 		m.UserID.String(),
 		m.Title,
@@ -145,7 +146,7 @@ func toDomainTodo(m *models.Todo) (*todomodel.Todo, error) {
 }
 
 // toDBTodoSetter はドメインの todomodel.Todo を Bob の models.TodoSetter に変換します。
-func toDBTodoSetter(td *todomodel.Todo) *models.TodoSetter {
+func toDBTodoSetter(td *entity.Todo) *models.TodoSetter {
 	if td == nil {
 		return nil
 	}

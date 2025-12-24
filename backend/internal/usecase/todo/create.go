@@ -3,10 +3,10 @@ package todo
 import (
 	"context"
 
-	todomodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/todo"
-	usermodel "github.com/jimi024rion/todo-go/backend/internal/domain/model/user"
-	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/repository/todo"
+	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
+	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
+	uservo "github.com/jimi024rion/todo-go/backend/internal/domain/user/model/valueobject"
 )
 
 // CreateUseCase は、Todoを作成するためのユースケースです。
@@ -38,14 +38,14 @@ type CreateOutput struct {
 // Execute は、ユースケースを実行します。
 func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*CreateOutput, error) {
 	result, err := uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {
-		userID, err := usermodel.UserIDFromString(input.UserID)
+		userID, err := uservo.UserIDFromString(input.UserID)
 		if err != nil {
 			return nil, err
 		}
 
 		// ドメインモデルのファクトリを呼び出し、エンティティを生成します。
 		// この中でビジネスルール（タイトルの長さなど）が検証されます。
-		newTodo, err := todomodel.NewTodo(userID, input.Title, input.Description)
+		newTodo, err := entity.NewTodo(userID, input.Title, input.Description)
 		if err != nil {
 			// ビジネスルール違反の場合、エラーを返す。
 			return nil, err

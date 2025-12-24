@@ -1,0 +1,216 @@
+# golangci-lint 設定ファイル
+# Phase3（品質向上期）前提
+# DDD / クリーンアーキテクチャの境界保護と
+# 実運用での事故防止を目的とする
+
+version: "2"
+
+linters:
+  # golangci-lint 推奨の標準セットをベースにする
+  default: standard
+
+  # 明示的に有効化するリンタ
+  enable:
+    # --- アーキテクチャ・設計保護 ---
+    - depguard        # レイヤ間の依存関係を強制
+    - forbidigo       # 禁止 API / 関数の使用防止
+    - revive          # 命名・設計・コメント規約
+
+    # --- 品質・安全性 ---
+    - errcheck        # error の握り潰し防止
+    - staticcheck     # 高度なバグ・非推奨検出
+    - govet           # Go公式静的解析
+    - ineffassign     # 無効な代入検出
+    - unused          # 未使用コード検出
+
+    # --- HTTP / DB 周りの事故防止 ---
+    - bodyclose       # http.Response.Body の Close 忘れ
+    - rowserrcheck    # rows.Err() のチェック忘れ
+    - sqlclosecheck   # rows / stmt の Close 忘れ
+    - gosec           # セキュリティ上の危険な記述検出
+
+    # --- 保守性・可読性 ---
+    - gocyclo         # 循環的複雑度チェック
+    - funlen          # 関数肥大化防止
+
+  # 個別リンタの設定
+  settings:
+    # depguard: レイヤ間依存ルール
+    depguard:
+      rules:
+        # ===== domain 層 =====
+        domain:
+          files:
+            - "internal/domain/**"
+          deny:
+            - pkg: "context"
+              desc: "domain 層では context を使用しない（技術的関心の遮断）"
+            - pkg: "database/sql"
+              desc: "domain 層で DB 依存は禁止"
+            - pkg: "github.com/gin-gonic/gin"
+              desc: "domain 層で Gin 依存は禁止"
+            - pkg: "log"
+              desc: "domain 層で logger 使用は禁止"
+            - pkg: "time"
+              desc: "domain 層で time 直接使用は禁止（Clock を注入）"
+            - pkg: "github.com/google/uuid"
+              desc: "domain 層で UUID 生成は禁止（ID Generator を使用）"
+            - pkg: "internal/infrastructure"
+              desc: "domain → infrastructure 依存は禁止"
+            - pkg: "internal/presentation"
+              desc: "domain → presentation 依存は禁止"
+
+        # ===== usecase 層 =====
+        usecase:
+          files:
+            - "internal/usecase/**"
+          deny:
+            - pkg: "github.com/gin-gonic/gin"
+              desc: "usecase 層で Gin 依存は禁止"
+            - pkg: "internal/infrastructure"
+              desc: "usecase → infrastructure 実装依存は禁止（interface 経由に限定）"
+
+        # ===== presentation 層 =====
+        presentation:
+          files:
+            - "internal/presentation/**"
+          deny:
+            - pkg: "database/sql"
+              desc: "presentation 層で DB 直接操作は禁止"
+            - pkg: "internal/infrastructure"
+              desc: "presentation → infrastructure 直依存は禁止"
+
+        # ===== infrastructure 層 =====
+        infrastructure:
+          files:
+            - "internal/infrastructure/**"
+          deny:
+            - pkg: "github.com/gin-gonic/gin"
+              desc: "infrastructure 層で Gin 依存は禁止（HTTP は presentation 層）"
+
+    # forbidigo: 禁止関数の指定
+    forbidigo:
+      forbid:
+        # ===== 全体共通 =====
+        - pattern: ^fmt\.Print.*$
+          msg: "fmt.Print 系は禁止です。logger を使用してください"
+        - pattern: ^print(ln)?$
+          msg: "print/println は禁止です"
+        - pattern: ^log\.(Fatal|Panic).*
+          msg: "log.Fatal / log.Panic は禁止です。エラーを返してください"
+
+        # ===== domain 層での事故防止 =====
+        - pattern: ^time\.(Now|Since|After|Sleep)$
+          msg: "domain 層での時間取得は禁止。Clock インターフェースを使用してください"
+        - pattern: ^uuid\.(New|NewString).*
+          msg: "domain 層での ID 生成は禁止。Generator を usecase から注入してください"
+
+      analyze-types: true
+      exclude-godoc-examples: false
+
+    # revive: 最低限の設計・可読性ルール
+    revive:
+      rules:
+        - name: var-naming
+        - name: receiver-naming
+        - name: import-shadowing
+        - name: line-length-limit
+          arguments: [120]
+        - name: early-return
+        - name: unused-parameter
+
+    # funlen: 関数の肥大化防止
+    funlen:
+      lines: 80
+      statements: 40
+
+    # gocyclo: 循環的複雑度の上限
+    gocyclo:
+      min-complexity: 15
+
+  # 除外ルール（lint はかけるが報告しない）
+  exclusions:
+    # 自動生成コードの判定を緩める
+    generated: lax
+
+    # よくある誤検知をまとめて除外
+    presets:
+      - common-false-positives
+      - std-error-handling
+
+    # 個別除外ルール
+    rules:
+      # --- テストコードでは厳しすぎる lint を緩和 ---
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - funlen
+          - errcheck
+          - gosec
+
+      # --- sqlboiler / bob の生成コードは除外 ---
+      - path: "internal/infrastructure/rdb/(models|dbinfo|dberrors)/"
+        linters:
+          - revive
+          - gocyclo
+          - funlen
+          - lll
+
+formatters:
+  # フォーマッタは最小構成
+  enable:
+    - gofmt
+    - goimports
+    - gci   # import 並び順・グルーピングを統一
+
+  settings:
+    gci:
+      # import の並び順を明示的に定義
+      sections:
+        # 標準ライブラリ
+        - Standard
+        # サードパーティ
+        - Default
+        # プロジェクト内（internal 配下）
+        - Prefix(internal/domain)
+        - Prefix(internal/usecase)
+        - Prefix(internal/infrastructure)
+        - Prefix(internal/presentation)
+issues:
+  # 既存コードを壊さないため新規差分のみ対象
+  new: true
+  new-from-merge-base: main
+
+  # 自動修正可能なものは修正
+  fix: true
+
+output:
+  # CI / ローカル双方で扱いやすい text 出力
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      colors: false
+
+  # CI ログ向けに絶対パスで出力
+  path-mode: abs
+
+run:
+  # CI でのハング防止
+  timeout: 5m
+
+  # go.mod 基準でパス解決
+  relative-path-mode: gomod
+
+  # テストコードも解析対象にするか
+  tests: false
+
+  # go.mod を勝手に変更させない
+  modules-download-mode: readonly
+
+  # Go バージョン（CI と合わせる）
+  go: "1.23"
+
+severity:
+  # デフォルトは error 扱い
+  default: error

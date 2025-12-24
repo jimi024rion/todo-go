@@ -1,5 +1,5 @@
-// package todo は、Todoエンティティとそれに関連する値オブジェクトを定義します。
-package todo
+// package valueobject は、Todoに関連する値オブジェクトを定義します。
+package valueobject
 
 import (
 	"fmt"
