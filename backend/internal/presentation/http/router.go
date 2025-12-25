@@ -13,20 +13,21 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	// Global Middleware
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
+	r.Use(middleware.Trace())
 
 	// Routes
-	r.GET("/health", h.HealthHandler.HealthCheckHandler.Handle)
+	r.GET("/health", h.Health.HealthCheckHandler.Handle)
 
 	// API v1 group
 	v1 := r.Group("/v1")
 	{
 		todos := v1.Group("/todos")
 		{
-			todos.GET("", h.TodoHandler.ListHandler.Handle)
-			todos.POST("", h.TodoHandler.CreateHandler.Handle)
-			todos.GET("/:id", h.TodoHandler.GetHandler.Handle)
-			todos.PUT("/:id", h.TodoHandler.UpdateHandler.Handle)
-			todos.DELETE("/:id", h.TodoHandler.DeleteHandler.Handle)
+			todos.GET("", h.Todo.List.Handle)
+			todos.POST("", h.Todo.Create.Handle)
+			todos.GET("/:id", h.Todo.Get.Handle)
+			todos.PUT("/:id", h.Todo.Update.Handle)
+			todos.DELETE("/:id", h.Todo.Delete.Handle)
 		}
 	}
 

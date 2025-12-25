@@ -2,11 +2,11 @@ package todo
 
 // Handler is a collection of todo handlers.
 type Handler struct {
-	ListHandler   *ListHandler
-	CreateHandler *CreateHandler
-	GetHandler    *GetHandler
-	UpdateHandler *UpdateHandler
-	DeleteHandler *DeleteHandler
+	List   *ListHandler
+	Create *CreateHandler
+	Get    *GetHandler
+	Update *UpdateHandler
+	Delete *DeleteHandler
 }
 
 // NewHandler creates a new todo handler collection.
@@ -18,10 +18,10 @@ func NewHandler(
 	deleteHandler *DeleteHandler,
 ) *Handler {
 	return &Handler{
-		ListHandler:   listHandler,
-		CreateHandler: createHandler,
-		GetHandler:    getHandler,
-		UpdateHandler: updateHandler,
-		DeleteHandler: deleteHandler,
+		List:   listHandler,
+		Create: createHandler,
+		Get:    getHandler,
+		Update: updateHandler,
+		Delete: deleteHandler,
 	}
 }

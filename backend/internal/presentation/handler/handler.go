@@ -6,8 +6,8 @@ import (
 )
 
 type Handler struct {
-	HealthHandler *health.Handler
-	TodoHandler   *todo.Handler
+	Health *health.Handler
+	Todo   *todo.Handler
 }
 
 func NewHandler(
@@ -15,7 +15,7 @@ func NewHandler(
 	todoHandler *todo.Handler,
 ) *Handler {
 	return &Handler{
-		HealthHandler: healthHandler,
-		TodoHandler:   todoHandler,
+		Health: healthHandler,
+		Todo:   todoHandler,
 	}
 }

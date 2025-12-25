@@ -1,13 +1,14 @@
 package env
 
 import (
-	"github.com/caarlos0/env/v6"
+	envConfig "github.com/caarlos0/env/v6"
 )
 
 // Config holds the application configuration.
 type Config struct {
-	Port int      `env:"PORT" envDefault:"8080"`
-	DB   DBConfig `envPrefix:"DB_"`
+	Port         int      `env:"PORT" envDefault:"8080"`
+	DB           DBConfig `envPrefix:"DB_"`
+	GCPProjectID string   `env:"GCP_PROJECT_ID"`
 }
 
 // DBConfig holds the database connection configuration.
@@ -22,8 +23,17 @@ type DBConfig struct {
 // Load loads the configuration from environment variables.
 func Load() (*Config, error) {
 	cfg := &Config{}
-	if err := env.Parse(cfg); err != nil {
+	if err := envConfig.Parse(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
+}
+
+// GetConfig is a helper function to load the configuration.
+func GetConfig() *Config {
+	cfg, err := Load()
+	if err != nil {
+		panic(err)
+	}
+	return cfg
 }

@@ -171,11 +171,9 @@ formatters:
         - Standard
         # サードパーティ
         - Default
-        # プロジェクト内（internal 配下）
-        - Prefix(internal/domain)
-        - Prefix(internal/usecase)
-        - Prefix(internal/infrastructure)
-        - Prefix(internal/presentation)
+        # プロジェクト内パッケージ
+        - Prefix(github.com/jimi024rion/todo-go/backend)
+
 issues:
   # 既存コードを壊さないため新規差分のみ対象
   new: true

@@ -3,14 +3,18 @@ package logger
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	pkgerrs "github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
+	"go.opentelemetry.io/otel/trace"
+
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 )
 
 type contextKey string
@@ -25,8 +29,10 @@ type Logger struct {
 
 func NewLogger(ctx context.Context) *Logger {
 	l := zerolog.New(os.Stdout)
-	logger := &Logger{l}
-	// logger = logger.setTrace(ctx)
+	logger := &Logger{
+		logger: l,
+	}
+	logger = logger.setTrace(ctx)
 	return logger
 }
 
@@ -36,20 +42,20 @@ func InitializeLogger() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 }
 
-// func (l *Logger) setTrace(ctx context.Context) *Logger {
-// 	span := trace.SpanFromContext(ctx)
-// 	sc := span.SpanContext()
-// 	if !sc.IsValid() {
-// 		return l
-// 	}
+func (l *Logger) setTrace(ctx context.Context) *Logger {
+	span := trace.SpanFromContext(ctx)
+	sc := span.SpanContext()
+	if !sc.IsValid() {
+		return l
+	}
 
-// 	traceStr := fmt.Sprintf("projects/%s/traces/%s", env.Cfg.ProjectID, sc.TraceID().String())
-// 	l.logger = l.logger.
-// 		With().Str("logging.googleapis.com/trace", traceStr).Logger().
-// 		With().Str("logging.googleapis.com/spanId", sc.SpanID().String()).Logger()
+	traceStr := fmt.Sprintf("projects/%s/traces/%s", env.GetConfig().GCPProjectID, sc.TraceID().String())
+	l.logger = l.logger.With().
+		Str("logging.googleapis.com/trace", traceStr).
+		Str("logging.googleapis.com/spanId", sc.SpanID().String()).Logger()
 
-// 	return l
-// }
+	return l
+}
 
 // func (l *Logger) setUserInfo(ctx context.Context) *Logger {
 // 	if v, ok := ctx.Value("CPID").(string); ok {

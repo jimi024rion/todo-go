@@ -3,6 +3,8 @@ package todo
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
@@ -37,6 +39,10 @@ type CreateOutput struct {
 
 // Execute は、ユースケースを実行します。
 func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*CreateOutput, error) {
+	tr := otel.Tracer("todo-usecase")
+	ctx, span := tr.Start(ctx, "CreateUseCase.Execute")
+	defer span.End()
+
 	result, err := uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {
 		userID, err := uservo.UserIDFromString(input.UserID)
 		if err != nil {
