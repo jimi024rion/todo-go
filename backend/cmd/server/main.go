@@ -9,7 +9,6 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	"github.com/jimi024rion/todo-go/backend/internal/config/trace"
-	"github.com/rs/zerolog/log"
 )
 
 func main() {
@@ -34,20 +33,20 @@ func main() {
 	// Load configuration
 	cfg, err := env.Load()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to load configuration")
+		l.FatalLog(err)
 	}
 
 	// Setup Server with DI
 	server, cleanup, err := di.InitializeServer()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to initialize server")
+		l.FatalLog(err)
 	}
 	defer cleanup()
 
 	// Run the server
 	addr := fmt.Sprintf(":%d", cfg.Port)
-	log.Info().Msgf("Starting server on %s", addr)
+	l.InfoLog(fmt.Sprintf("Starting server on %s", addr))
 	if err := server.Run(addr); err != nil {
-		log.Fatal().Err(err).Msg("Failed to start server")
+		l.FatalLog(err)
 	}
 }

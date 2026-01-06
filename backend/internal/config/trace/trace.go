@@ -11,7 +11,7 @@ import (
 )
 
 func InitializeTracer() (func(context.Context) error, error) {
-	exp, err := stdouttrace.New(
+	_, err := stdouttrace.New(
 		stdouttrace.WithPrettyPrint(),
 	)
 	if err != nil {
@@ -19,7 +19,7 @@ func InitializeTracer() (func(context.Context) error, error) {
 	}
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exp),
+		// sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,
