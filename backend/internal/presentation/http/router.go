@@ -16,7 +16,7 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	r.Use(middleware.Trace())
 
 	// Routes
-	r.GET("/health", h.Health.HealthCheckHandler.Handle)
+	r.GET("/health", h.Health.Check.Handle)
 
 	// API v1 group
 	v1 := r.Group("/v1")
