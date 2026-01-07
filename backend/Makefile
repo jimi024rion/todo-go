@@ -51,8 +51,18 @@ migrate-up:
 
 # wire generate
 wire:
-	wire ./cmd/server/di
+	wire ./cmd/server/di/wire
 	@echo "Wire code generation completed."
+
+# kessoku migrate from wire
+kessoku-migrate:
+	go tool kessoku migrate ./cmd/server/di/wire -o ./cmd/server/di/kessoku/kessoku.go
+	@echo "Kessoku migrations applied."
+
+# kessoku generate
+kessoku:
+	go generate ./...
+	@echo "Kessoku code generation completed."
 
 bob:
 	bobgen-psql generate -c ./bobgen.yaml

@@ -5,19 +5,23 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jimi024rion/todo-go/backend/cmd/server/di"
+	// di "github.com/jimi024rion/todo-go/backend/cmd/server/di/wire"
+	di "github.com/jimi024rion/todo-go/backend/cmd/server/di/kessoku"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	"github.com/jimi024rion/todo-go/backend/internal/config/trace"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 )
 
 func main() {
+	ctx := context.Background()
+
 	// Set Gin mode based on environment (e.g., GIN_MODE)
 	gin.SetMode(gin.ReleaseMode)
 
 	// Initialize logger
 	logger.InitializeLogger()
-	l := logger.NewLogger(context.Background())
+	l := logger.NewLogger(ctx)
 
 	// Initialize tracer
 	shutdownTracer, err := trace.InitializeTracer()
@@ -36,12 +40,19 @@ func main() {
 		l.FatalLog(err)
 	}
 
-	// Setup Server with DI
-	server, cleanup, err := di.InitializeServer()
+	// Initialize database
+	db, err := rdb.NewDB(cfg)
 	if err != nil {
 		l.FatalLog(err)
 	}
-	defer cleanup()
+	defer func() {
+		if err := db.Close(); err != nil {
+			l.FatalLog(err)
+		}
+	}()
+
+	// Setup Server with DI
+	server := di.InitializeServer(ctx, db)
 
 	// Run the server
 	addr := fmt.Sprintf(":%d", cfg.Port)

@@ -8,7 +8,6 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
@@ -16,22 +15,15 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	todo3 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
 	todo2 "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	"github.com/stephenafamo/bob"
 )
 
 // Injectors from wire.go:
 
 // InitializeServer initializes the Gin engine with all its dependencies.
-func InitializeServer() (*gin.Engine, func(), error) {
+func InitializeServer(db bob.DB) (*gin.Engine, error) {
 	healthCheckHandler := health.NewHealthCheckHandler()
 	healthHandler := health.NewHandler(healthCheckHandler)
-	config, err := env.Load()
-	if err != nil {
-		return nil, nil, err
-	}
-	db, cleanup, err := rdb.NewDB(config)
-	if err != nil {
-		return nil, nil, err
-	}
 	repository := todo.NewRepository(db)
 	listUseCase := todo2.NewListUseCase(repository)
 	listHandler := todo3.NewListHandler(listUseCase)
@@ -47,7 +39,5 @@ func InitializeServer() (*gin.Engine, func(), error) {
 	todoHandler := todo3.NewHandler(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 	handlerHandler := handler.NewHandler(healthHandler, todoHandler)
 	engine := http.NewRouter(handlerHandler)
-	return engine, func() {
-		cleanup()
-	}, nil
+	return engine, nil
 }

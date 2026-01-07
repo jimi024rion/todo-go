@@ -6,7 +6,6 @@ package di
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
-	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	todoinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
@@ -15,15 +14,12 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	todopresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	"github.com/stephenafamo/bob"
 )
 
 // InitializeServer initializes the Gin engine with all its dependencies.
-func InitializeServer() (*gin.Engine, func(), error) {
+func InitializeServer(db bob.DB) (*gin.Engine, error) {
 	wire.Build(
-		// --- config ---
-		env.Load,
-		rdb.NewDB,
-
 		// --- infrastructure ---
 		// tx
 		rdb.NewTxManager,
@@ -55,5 +51,5 @@ func InitializeServer() (*gin.Engine, func(), error) {
 	)
 
 	// ここはwire generateによって置き換えられる
-	return nil, nil, nil
+	return nil, nil
 }
