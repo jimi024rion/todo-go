@@ -5,7 +5,7 @@ go 1.24.3
 require (
 	github.com/aarondl/opt v0.0.0-20250607033636-982744e1bd65
 	github.com/caarlos0/env/v6 v6.10.1
-	github.com/gin-gonic/gin v1.11.0
+	github.com/gin-gonic/gin v1.10.0
 	github.com/gofrs/uuid/v5 v5.4.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.7.0
