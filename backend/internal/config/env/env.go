@@ -9,15 +9,15 @@ type Config struct {
 	AppEnv       string   `env:"APP_ENV" envDefault:"local"`
 	Port         int      `env:"PORT" envDefault:"8080"`
 	DB           DBConfig `envPrefix:"DB_"`
-	GCPProjectID string   `env:"GCP_PROJECT_ID"`
+	GCPProjectID string   `env:"GCP_PROJECT_ID" envDefault:"test-project"`
 }
 
 // DBConfig holds the database connection configuration.
 type DBConfig struct {
-	Host     string `env:"HOST,required"`
-	User     string `env:"USER,required"`
-	Password string `env:"PASSWORD,required"`
-	Name     string `env:"NAME,required"`
+	Host     string `env:"HOST" envDefault:"localhost"`
+	User     string `env:"USER" envDefault:"postgres"`
+	Password string `env:"PASSWORD" envDefault:"postgres"`
+	Name     string `env:"NAME" envDefault:"todo-db"`
 	Port     int    `env:"PORT" envDefault:"5432"`
 }
 
