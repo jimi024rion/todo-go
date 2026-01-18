@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
-	pkgerrs "github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/pkgerrors"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
@@ -47,8 +47,33 @@ func NewLogger(ctx context.Context) *Logger {
 
 func InitializeLogger() {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.ErrorStackMarshaler = func(err error) interface{} {
+		st, ok := err.(interface {
+			StackFrames() []uintptr
+		})
+		if !ok {
+			return nil
+		}
+
+		frames := runtime.CallersFrames(st.StackFrames())
+
+		var stack []map[string]interface{}
+		for {
+			frame, more := frames.Next()
+
+			stack = append(stack, map[string]interface{}{
+				"func":   frame.Function,
+				"line":   frame.Line,
+				"source": filepath.Base(frame.File),
+			})
+
+			if !more {
+				break
+			}
+		}
+		return stack
+	}
 }
 
 func (l *Logger) setTrace(ctx context.Context) *Logger {
@@ -114,13 +139,13 @@ func (l *Logger) WarnLog(err error) {
 			Str("severity", "WARNING").
 			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
 			Stack().
-			Err(pkgerrs.WithStack(e)).
+			Err(e).
 			Msg("")
 	} else {
 		l.logger.Warn().
 			Str("severity", "WARNING").
 			Stack().
-			Err(pkgerrs.WithStack(err)).
+			Err(err).
 			Msg("")
 	}
 }
@@ -132,13 +157,13 @@ func (l *Logger) ErrorLog(err error) {
 			Str("severity", "ERROR").
 			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
 			Stack().
-			Err(pkgerrs.WithStack(e)).
+			Err(e).
 			Msg("")
 	} else {
 		l.logger.Error().
 			Str("severity", "ERROR").
 			Stack().
-			Err(pkgerrs.WithStack(err)).
+			Err(err).
 			Msg("")
 	}
 }
@@ -151,13 +176,13 @@ func (l *Logger) FatalLog(err error) {
 			Str("severity", "ALERT").
 			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
 			Stack().
-			Err(pkgerrs.WithStack(e)).
+			Err(e).
 			Msg("")
 	} else {
 		l.logger.Fatal().
 			Str("severity", "ALERT").
 			Stack().
-			Err(pkgerrs.WithStack(err)).
+			Err(err).
 			Msg("")
 	}
 }

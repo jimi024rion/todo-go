@@ -1,9 +1,9 @@
 package errs
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
+	"runtime"
 )
 
 type ResultCode int
@@ -17,12 +17,15 @@ const (
 )
 
 type Err struct {
-	code ResultCode
-	err  error
+	code    ResultCode
+	err     error
+	callers []uintptr
 }
 
 func NewErr(code ResultCode, err error) error {
-	return &Err{code, err}
+	callers := make([]uintptr, 64)
+	n := runtime.Callers(2, callers)
+	return &Err{code, err, callers[:n]}
 }
 
 func (e *Err) Error() string {
@@ -34,6 +37,10 @@ func (e *Err) Error() string {
 
 func (e *Err) Unwrap() error {
 	return e.err
+}
+
+func (e *Err) StackFrames() []uintptr {
+	return e.callers
 }
 
 func (e *Err) ResultCode() ResultCode {
