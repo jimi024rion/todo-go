@@ -3,7 +3,9 @@ package errs
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 type ResultCode int
@@ -28,6 +30,41 @@ func NewErr(code ResultCode, err error) error {
 	return &Err{code, err, callers[:n]}
 }
 
+// formatFuncName フルパスの関数名をパッケージ名を含まない短い形式に整形する。
+// e.g. "github.com/foo/bar/baz.MyFunc" -> "MyFunc"
+func formatFuncName(fullName string) string {
+	if i := strings.LastIndex(fullName, "/"); i != -1 {
+		fullName = fullName[i+1:] // baz.MyFunc
+	}
+	if i := strings.Index(fullName, "."); i != -1 {
+		fullName = fullName[i+1:] // MyFunc
+	}
+	return fullName
+}
+
+func MarshalStack(err error) any {
+	var e *Err
+	if !errors.As(err, &e) {
+		return nil
+	}
+	frames := runtime.CallersFrames(e.callers)
+
+	var stack []map[string]any
+	for {
+		frame, more := frames.Next()
+		stack = append(stack, map[string]any{
+			"func":   formatFuncName(frame.Function),
+			"line":   frame.Line,
+			"source": filepath.Base(frame.File),
+		})
+
+		if !more {
+			break
+		}
+	}
+	return stack
+}
+
 func (e *Err) Error() string {
 	if e.err == nil {
 		return "error is nil"
@@ -37,10 +74,6 @@ func (e *Err) Error() string {
 
 func (e *Err) Unwrap() error {
 	return e.err
-}
-
-func (e *Err) StackFrames() []uintptr {
-	return e.callers
 }
 
 func (e *Err) ResultCode() ResultCode {

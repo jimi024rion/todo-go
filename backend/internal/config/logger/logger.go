@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 	"strconv"
 	"time"
 
@@ -48,32 +46,7 @@ func NewLogger(ctx context.Context) *Logger {
 func InitializeLogger() {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	zerolog.ErrorStackMarshaler = func(err error) interface{} {
-		st, ok := err.(interface {
-			StackFrames() []uintptr
-		})
-		if !ok {
-			return nil
-		}
-
-		frames := runtime.CallersFrames(st.StackFrames())
-
-		var stack []map[string]interface{}
-		for {
-			frame, more := frames.Next()
-
-			stack = append(stack, map[string]interface{}{
-				"func":   frame.Function,
-				"line":   frame.Line,
-				"source": filepath.Base(frame.File),
-			})
-
-			if !more {
-				break
-			}
-		}
-		return stack
-	}
+	zerolog.ErrorStackMarshaler = errs.MarshalStack
 }
 
 func (l *Logger) setTrace(ctx context.Context) *Logger {
