@@ -5,11 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"time"
 
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/pkgerrors"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
@@ -47,8 +48,32 @@ func NewLogger(ctx context.Context) *Logger {
 func InitializeLogger() {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	// MarshalStackが errs.Err の StackTrace() メソッドを呼び出してくれます。
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+	zerolog.ErrorStackMarshaler = func(err error) interface{} {
+		st, ok := err.(interface {
+			StackFrames() []uintptr
+		})
+		if !ok {
+			return nil
+		}
+
+		frames := runtime.CallersFrames(st.StackFrames())
+
+		var stack []map[string]interface{}
+		for {
+			frame, more := frames.Next()
+
+			stack = append(stack, map[string]interface{}{
+				"func":   frame.Function,
+				"line":   frame.Line,
+				"source": filepath.Base(frame.File),
+			})
+
+			if !more {
+				break
+			}
+		}
+		return stack
+	}
 }
 
 func (l *Logger) setTrace(ctx context.Context) *Logger {
@@ -109,28 +134,55 @@ func (l *Logger) ShouldSkipLog(ctx context.Context) bool {
 
 func (l *Logger) WarnLog(err error) {
 	var e *errs.Err
-	event := l.logger.Warn().Stack()
 	if errors.As(err, &e) {
-		event.Str("result_code", strconv.Itoa(int(e.ResultCode())))
+		l.logger.Warn().
+			Str("severity", "WARNING").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(e).
+			Msg("")
+	} else {
+		l.logger.Warn().
+			Str("severity", "WARNING").
+			Stack().
+			Err(err).
+			Msg("")
 	}
-	event.Err(err).Str("severity", "WARNING").Msg("")
 }
 
 func (l *Logger) ErrorLog(err error) {
 	var e *errs.Err
-	event := l.logger.Error().Stack()
 	if errors.As(err, &e) {
-		event.Str("result_code", strconv.Itoa(int(e.ResultCode())))
+		l.logger.Error().
+			Str("severity", "ERROR").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(e).
+			Msg("")
+	} else {
+		l.logger.Error().
+			Str("severity", "ERROR").
+			Stack().
+			Err(err).
+			Msg("")
 	}
-	event.Err(err).Str("severity", "ERROR").Msg("")
 }
 
 func (l *Logger) FatalLog(err error) {
 	var e *errs.Err
-	event := l.logger.Fatal().Stack()
 	if errors.As(err, &e) {
-		event.Str("result_code", strconv.Itoa(int(e.ResultCode())))
+		// Cloud LoggingにはFatalレベルのログがないため、ALERTレベルのログを出力する
+		l.logger.Fatal().
+			Str("severity", "ALERT").
+			Str("result_code", strconv.Itoa(int(e.ResultCode()))).
+			Stack().
+			Err(e).
+			Msg("")
+	} else {
+		l.logger.Fatal().
+			Str("severity", "ALERT").
+			Stack().
+			Err(err).
+			Msg("")
 	}
-	// Cloud LoggingにはFatalレベルのログがないため、ALERTレベルのログを出力する
-	event.Err(err).Str("severity", "ALERT").Msg("")
 }

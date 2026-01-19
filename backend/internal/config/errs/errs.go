@@ -1,8 +1,9 @@
 package errs
 
 import (
-	"github.com/cockroachdb/errors"
-	pkgerrors "github.com/pkg/errors"
+	"errors"
+	"fmt"
+	"runtime"
 )
 
 type ResultCode int
@@ -15,52 +16,40 @@ const (
 	CodeUnknownErr        ResultCode = 9999
 )
 
-// Err はプロジェクト固有のエラー型です。
-// 内部で cockroachdb/errors を利用してスタックトレースを保持します。
 type Err struct {
-	code ResultCode
-	// cockroachdb/errors でラップされたエラーを保持
-	err error
+	code    ResultCode
+	err     error
+	callers []uintptr
 }
 
-// NewErr は、エラーにスタックトレースとResultCodeを付与します。
 func NewErr(code ResultCode, err error) error {
-	return &Err{
-		code: code,
-		// errors.Wrapf を使ってスタックトレースをキャプチャする。
-		// 第2引数のメッセージは空で良い。
-		err: errors.Wrapf(err, ""),
-	}
+	callers := make([]uintptr, 64)
+	n := runtime.Callers(2, callers)
+	return &Err{code, err, callers[:n]}
 }
 
 func (e *Err) Error() string {
-	return e.err.Error()
+	if e.err == nil {
+		return "error is nil"
+	}
+	return fmt.Sprintf("%d: %s", e.code, e.err.Error())
 }
 
-// Unwrap は、errors.Unwrap, errors.Is, errors.As のために必要です。
 func (e *Err) Unwrap() error {
 	return e.err
 }
 
+func (e *Err) StackFrames() []uintptr {
+	return e.callers
+}
+
 func (e *Err) ResultCode() ResultCode {
+	if e == nil {
+		return 0
+	}
 	return e.code
 }
 
-// StackTrace は、pkgerrors.MarshalStack がスタックトレースを取得するために実装します。
-// cockroachdb/errors はこのインターフェースを実装しているため、それを呼び出します。
-func (e *Err) StackTrace() pkgerrors.StackTrace {
-	type stackTracer interface {
-		StackTrace() pkgerrors.StackTrace
-	}
-	var st stackTracer
-	// 内部のエラーから StackTrace を取得しようと試みる
-	if errors.As(e.err, &st) {
-		return st.StackTrace()
-	}
-	return nil
-}
-
-// 以下、各種エラー判定用のヘルパー関数です。
 func IsBadRequest(err error) bool {
 	var e *Err
 	if !errors.As(err, &e) {
