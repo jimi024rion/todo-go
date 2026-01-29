@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
-	// di "github.com/jimi024rion/todo-go/backend/cmd/server/di/wire"
 	di "github.com/jimi024rion/todo-go/backend/cmd/server/di/kessoku"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/config/logger"

@@ -4,34 +4,58 @@ package di
 
 import (
 	"github.com/gin-gonic/gin"
-	todo_1 "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
+	// repository
+	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
+
+	// presentation
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
-	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
+	healthpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	todopresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
-	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	userpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/user"
+
+	// usecase
+	todouc "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
+	useruc "github.com/jimi024rion/todo-go/backend/internal/usecase/user"
 	"github.com/mazrean/kessoku"
 )
 
 var _ = kessoku.Inject[*gin.Engine](
 	"InitializeServer",
+
+	// -- Infrastructure Layer --
+	// todo
+	kessoku.Bind[todorepo.TodoRepository](kessoku.Async(kessoku.Provide(todo.NewRepository))),
+
 	kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))),
-	kessoku.Bind[todo_1.TodoRepository](kessoku.Async(kessoku.Provide(todo.NewRepository))),
-	kessoku.Async(kessoku.Provide(todousecase.NewListUseCase)),
-	kessoku.Async(kessoku.Provide(todousecase.NewCreateUseCase)),
-	kessoku.Async(kessoku.Provide(todousecase.NewGetUseCase)),
-	kessoku.Async(kessoku.Provide(todousecase.NewUpdateUseCase)),
-	kessoku.Async(kessoku.Provide(todousecase.NewDeleteUseCase)),
-	kessoku.Async(kessoku.Provide(http.NewRouter)),
-	kessoku.Async(kessoku.Provide(handler.NewHandler)),
-	kessoku.Provide(health.NewHandler),
-	kessoku.Provide(health.NewHealthCheckHandler),
-	kessoku.Async(kessoku.Provide(todopresen.NewHandler)),
-	kessoku.Async(kessoku.Provide(todopresen.NewListHandler)),
-	kessoku.Async(kessoku.Provide(todopresen.NewCreateHandler)),
-	kessoku.Async(kessoku.Provide(todopresen.NewGetHandler)),
-	kessoku.Async(kessoku.Provide(todopresen.NewUpdateHandler)),
-	kessoku.Async(kessoku.Provide(todopresen.NewDeleteHandler)),
+
+	// -- Usecase Layer --
+	// todo
+	kessoku.Provide(todouc.NewListUseCase),
+	kessoku.Provide(todouc.NewCreateUseCase),
+	kessoku.Provide(todouc.NewGetUseCase),
+	kessoku.Provide(todouc.NewUpdateUseCase),
+	kessoku.Provide(todouc.NewDeleteUseCase),
+	// user
+	kessoku.Provide(useruc.NewCreateUserUsecase),
+
+	// -- Presentation Layer --
+	// health
+	kessoku.Provide(healthpresen.NewHandler),
+	kessoku.Provide(healthpresen.NewHealthCheckHandler),
+	// user
+	kessoku.Provide(userpresen.NewCreateUserHandler),
+	kessoku.Provide(userpresen.NewHandler),
+	// todo
+	kessoku.Provide(todopresen.NewListHandler),
+	kessoku.Provide(todopresen.NewCreateHandler),
+	kessoku.Provide(todopresen.NewGetHandler),
+	kessoku.Provide(todopresen.NewUpdateHandler),
+	kessoku.Provide(todopresen.NewDeleteHandler),
+	kessoku.Provide(todopresen.NewHandler),
+
+	kessoku.Provide(handler.NewHandler),
+	kessoku.Provide(http.NewRouter),
 )

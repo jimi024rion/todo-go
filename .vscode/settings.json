@@ -1,3 +1,35 @@
 {
-    "makefile.configureOnOpen": false
+    // ---------------------------------------------------------
+    // 1. Go 言語固有の設定
+    // ---------------------------------------------------------
+    "go.useLanguageServer": true, // Go言語サーバー(gopls)を有効化
+    "gopls": {
+        "ui.completion.usePlaceholders": true, // 関数補完時に引数のプレースホルダを表示
+        "ui.diagnostic.staticcheck": true, // staticcheck による高度な静的解析を有効化
+        "formatting.gofumpt": true // gofumpt (より厳格なフォーマッター) を有効化
+    },
+    // 保存時のアクション
+    "[go]": {
+        "editor.formatOnSave": true, // 保存時に自動フォーマット
+        // golangci-lintがフォーマットとインポート整理を行うため、codeActionsOnSaveは不要
+        "editor.codeActionsOnSave": {}
+    },
+    // ---------------------------------------------------------
+    // 2. ツール（Linter/Formatter）の指定
+    // ---------------------------------------------------------
+    "go.lintTool": "golangci-lint", // デフォルトのgolintは古いのでgolangci-lintを推奨
+    "go.lintFlags": [
+        "--fast"
+    ],
+    // "go.formatTool": "golangci-lint", // フォーマットをgolangci-lintに一任する
+    // ---------------------------------------------------------
+    // 3. エディタの基本挙動
+    // ---------------------------------------------------------
+    "editor.insertSpaces": false, // Goの規約に合わせてタブを使用
+    "editor.tabSize": 4,
+    // テスト実行時の詳細表示
+    "go.testFlags": [
+        "-v"
+    ],
+    "go.testOnSave": false // 負荷軽減のため、保存時の自動テストは基本オフ（任意）
 }

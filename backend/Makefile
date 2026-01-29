@@ -88,7 +88,7 @@ gen-wire: ## Generate Wire DI code
 # NOTE: kessoku-migrate と kessoku(go generate) を統合
 gen-kessoku: ## Migrate from Wire and generate Kessoku code
 	@echo "Migrating and generating Kessoku code..."
-	@go tool kessoku migrate ./cmd/server/di/wire -o ./cmd/server/di/kessoku/kessoku.go
+# 	@go tool kessoku migrate ./cmd/server/di/wire -o ./cmd/server/di/kessoku/kessoku.go
 	@$(GOGENERATE) ./...
 
 gen-bob: ## Generate Bob ORM code
