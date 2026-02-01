@@ -58,7 +58,6 @@ func (r *Repository) Save(ctx context.Context, td *entity.Todo) error {
 			setter.UpdateMod(),
 			um.Where(models.Todos.Columns.ID.EQ(psql.Arg(uid))),
 		).Exec(ctx, exec)
-
 		if err != nil {
 			return fmt.Errorf("failed to update todo: %w", err)
 		}
@@ -100,7 +99,6 @@ func (r *Repository) Delete(ctx context.Context, id valueobject.TodoID) error {
 	_, err = models.Todos.Delete(
 		dm.Where(models.Todos.Columns.ID.EQ(psql.Arg(uid))),
 	).Exec(ctx, r.getExecutor(ctx))
-
 	if err != nil {
 		return fmt.Errorf("failed to delete todo: %w", err)
 	}

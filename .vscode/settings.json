@@ -5,8 +5,8 @@
     "go.useLanguageServer": true, // Go言語サーバー(gopls)を有効化
     "gopls": {
         "ui.completion.usePlaceholders": true, // 関数補完時に引数のプレースホルダを表示
-        "ui.diagnostic.staticcheck": true, // staticcheck による高度な静的解析を有効化
-        "formatting.gofumpt": true // gofumpt (より厳格なフォーマッター) を有効化
+        // "ui.diagnostic.staticcheck": true, // staticcheck による高度な静的解析を有効化
+        // "formatting.gofumpt": true // gofumpt (より厳格なフォーマッター) を有効化
     },
     // 保存時のアクション
     "[go]": {

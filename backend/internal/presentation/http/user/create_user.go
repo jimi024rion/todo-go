@@ -15,4 +15,5 @@ func NewCreateUserHandler(createUserUsecase *useruc.CreateUserUsecase) *CreateUs
 }
 
 func (h *CreateUserHandler) Handle() {
+	h.u.Execute()
 }

@@ -29,6 +29,7 @@ linters:
     - sqlclosecheck   # rows / stmt の Close 忘れ
     - gosec           # セキュリティ上の危険な記述検出
 
+    - gochecknoglobals # グローバル変数の使用を禁止
     # --- 保守性・可読性 ---
     - gocyclo         # 循環的複雑度チェック
     - funlen          # 関数肥大化防止
@@ -151,10 +152,15 @@ linters:
       # --- sqlboiler / bob の生成コードは除外 ---
       - path: "internal/infrastructure/rdb/(models|dbinfo|dberrors)/"
         linters:
+          - gochecknoglobals
           - revive
           - gocyclo
           - funlen
           - lll
+      # --- DIコンテナの定義ファイルはグローバル変数のチェックから除外 ---
+      - path: "internal/cmd/server/di/kessoku/kessoku.go"
+        linters:
+          - gochecknoglobals
 
 formatters:
   # フォーマッタは最小構成
@@ -194,21 +200,11 @@ output:
   path-mode: abs
 
 run:
-  # CI でのハング防止
-  timeout: 5m
-
-  # go.mod 基準でパス解決
-  relative-path-mode: gomod
-
-  # テストコードも解析対象にするか
-  tests: false
-
-  # go.mod を勝手に変更させない
-  modules-download-mode: readonly
-
-  # Go バージョン（CI と合わせる）
-  go: "1.23"
+  timeout: 5m                     # CI でのハング防止
+  relative-path-mode: gomod       # go.mod 基準でパス解決
+  tests: false                    # テストコードも解析対象にするか
+  modules-download-mode: readonly # go.mod を勝手に変更させない
+  go: "1.23"                      # Go バージョン（CI と合わせる）
 
 severity:
-  # デフォルトは error 扱い
-  default: error
+  default: error # デフォルトは error 扱い

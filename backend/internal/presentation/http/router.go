@@ -21,6 +21,7 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	// API v1 group
 	v1 := r.Group("/v1")
 	{
+
 		todos := v1.Group("/todos")
 		{
 			todos.GET("", h.Todo.List.Handle)

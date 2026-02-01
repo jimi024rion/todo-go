@@ -18,6 +18,13 @@ func main() {
 	// Set Gin mode based on environment (e.g., GIN_MODE)
 	gin.SetMode(gin.ReleaseMode)
 
+	// Load configuration
+	err := env.Load()
+	if err != nil {
+		// Logger is not initialized yet, so use standard fmt for this critical error.
+		panic(fmt.Sprintf("failed to load configuration: %v", err))
+	}
+
 	// Initialize logger
 	logger.InitializeLogger()
 	l := logger.NewLogger(ctx)
@@ -33,14 +40,8 @@ func main() {
 		}
 	}()
 
-	// Load configuration
-	cfg, err := env.Load()
-	if err != nil {
-		l.FatalLog(err)
-	}
-
 	// Initialize database
-	db, err := rdb.NewDB(cfg)
+	db, err := rdb.NewDB(&env.Cfg)
 	if err != nil {
 		l.FatalLog(err)
 	}
@@ -54,7 +55,7 @@ func main() {
 	server := di.InitializeServer(ctx, db)
 
 	// Run the server
-	addr := fmt.Sprintf(":%d", cfg.Port)
+	addr := fmt.Sprintf(":%d", env.Cfg.Port)
 	l.InfoLog(fmt.Sprintf("Starting server on %s", addr))
 	if err := server.Run(addr); err != nil {
 		l.FatalLog(err)

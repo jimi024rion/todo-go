@@ -26,10 +26,8 @@ type Logger struct {
 }
 
 func NewLogger(ctx context.Context) *Logger {
-	cfg := env.GetConfig()
 	var l zerolog.Logger
-	if cfg.AppEnv == "local" {
-		// Use ConsoleWriter for human-friendly, colorized output in local dev.
+	if env.Cfg.AppEnv == "local" {
 		output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 		l = zerolog.New(output).With().Timestamp().Logger()
 	} else {
@@ -45,19 +43,22 @@ func NewLogger(ctx context.Context) *Logger {
 
 func InitializeLogger() {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerologLevel, err := zerolog.ParseLevel(env.Cfg.LogLevel)
+	if err != nil {
+		zerologLevel = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(zerologLevel)
 	zerolog.ErrorStackMarshaler = errs.MarshalStack
 }
 
 func (l *Logger) setTrace(ctx context.Context) *Logger {
-	cfg := env.GetConfig()
 	span := trace.SpanFromContext(ctx)
 	sc := span.SpanContext()
 	if !sc.IsValid() {
 		return l
 	}
 
-	traceStr := fmt.Sprintf("projects/%s/traces/%s", cfg.GCPProjectID, sc.TraceID().String())
+	traceStr := fmt.Sprintf("projects/%s/traces/%s", env.Cfg.GCPProjectID, sc.TraceID().String())
 	l.logger = l.logger.With().
 		Str("logging.googleapis.com/trace", traceStr).
 		Str("logging.googleapis.com/spanId", sc.SpanID().String()).Logger()
