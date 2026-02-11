@@ -12,11 +12,30 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+  # Firebase Emulator Suite
+  firebase:
+    container_name: local-firebase
+    build:
+      context: .
+      dockerfile: local/firebase/Dockerfile
+    ports:
+      - "4000:4000" # Emulator UI
+      - "9099:9099" # Authentication
+      - "8085:8085" # Pub/Sub
+      - "9199:9199" # Cloud Storage
+    volumes:
+      # ホスト側のfirebaseディレクトリをマウント（設定変更などを即反映させるため）
+      - ./local/firebase:/app
+    working_dir: /app
+    # デモプロジェクトIDを指定して起動（ログイン不要で動作します）
+    command: firebase emulators:start --project=demo-local --import=./data --export-on-exit
+    tty: true
 
 volumes:
   postgres_data:

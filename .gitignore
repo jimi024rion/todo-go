@@ -29,3 +29,11 @@ go.work.sum
 .DS_Store
 tmp
 # /.gemini/TODO.md
+
+# Firebase Emulator Logs
+firebase-debug.log
+pubsub-debug.log
+ui-debug.log
+
+# Firebase Emulator Data
+local/firebase/data/
