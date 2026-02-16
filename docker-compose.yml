@@ -37,5 +37,18 @@ services:
     command: firebase emulators:start --project=demo-local --import=./data --export-on-exit
     tty: true
 
+  ses-local:
+    container_name: ses-local
+    # image: node:22
+    # working_dir: /app
+    # command: ["npx", "-y", "aws-ses-v2-local", "--host", "0.0.0.0"]
+    build:
+      context: .
+      dockerfile: local/ses/Dockerfile
+    ports:
+      - "8005:8005"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8005/health-check" ]
+
 volumes:
   postgres_data:
