@@ -5,8 +5,10 @@ package di
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
+	clock0 "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	todo0 "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
@@ -25,11 +27,12 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 	var (
 		healthCheckHandler *health.HealthCheckHandler
 		createUserUsecase  *user0.CreateUserUsecase
+		clock1             clock.Clock
 		handler0           *health.Handler
 		createUserHandler  *user.CreateUserHandler
 		repository         *todo0.Repository
-		repositoryCh       = make(chan struct{})
 		txManager          tx.TxManager
+		txManagerCh        = make(chan struct{})
 		handler1           *user.Handler
 		listUseCase        *todo2.ListUseCase
 		getUseCase         *todo2.GetUseCase
@@ -41,7 +44,6 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 		updateHandler      *todo1.UpdateHandler
 		deleteHandler      *todo1.DeleteHandler
 		createHandler      *todo1.CreateHandler
-		createHandlerCh    = make(chan struct{})
 		handler2           *todo1.Handler
 		handler3           *handler.Handler
 		engine             *gin.Engine
@@ -49,32 +51,27 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		txManager = kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))).Fn()(db)
-		select {
-		case <-repositoryCh:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-		createUseCase = kessoku.Provide(todo2.NewCreateUseCase).Fn()(repository, txManager)
-		createHandler = kessoku.Provide(todo1.NewCreateHandler).Fn()(createUseCase)
-		close(createHandlerCh)
+		close(txManagerCh)
 		return nil
 	})
 	healthCheckHandler = kessoku.Provide(health.NewHealthCheckHandler).Fn()()
 	createUserUsecase = kessoku.Provide(user0.NewCreateUserUsecase).Fn()()
+	clock1 = kessoku.Bind[clock.Clock](kessoku.Provide(clock0.NewRealClock)).Fn()()
 	handler0 = kessoku.Provide(health.NewHandler).Fn()(healthCheckHandler)
 	createUserHandler = kessoku.Provide(user.NewCreateUserHandler).Fn()(createUserUsecase)
 	repository = kessoku.Bind[todo.TodoRepository](kessoku.Async(kessoku.Provide(todo0.NewRepository))).Fn()(db)
-	close(repositoryCh)
 	handler1 = kessoku.Provide(user.NewHandler).Fn()(createUserHandler)
 	listUseCase = kessoku.Provide(todo2.NewListUseCase).Fn()(repository)
 	getUseCase = kessoku.Provide(todo2.NewGetUseCase).Fn()(repository)
-	updateUseCase = kessoku.Provide(todo2.NewUpdateUseCase).Fn()(repository)
+	updateUseCase = kessoku.Provide(todo2.NewUpdateUseCase).Fn()(repository, clock1)
 	deleteUseCase = kessoku.Provide(todo2.NewDeleteUseCase).Fn()(repository)
+	<-txManagerCh
+	createUseCase = kessoku.Provide(todo2.NewCreateUseCase).Fn()(repository, txManager, clock1)
 	listHandler = kessoku.Provide(todo1.NewListHandler).Fn()(listUseCase)
 	getHandler = kessoku.Provide(todo1.NewGetHandler).Fn()(getUseCase)
 	updateHandler = kessoku.Provide(todo1.NewUpdateHandler).Fn()(updateUseCase)
 	deleteHandler = kessoku.Provide(todo1.NewDeleteHandler).Fn()(deleteUseCase)
-	<-createHandlerCh
+	createHandler = kessoku.Provide(todo1.NewCreateHandler).Fn()(createUseCase)
 	handler2 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 	handler3 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler1, handler2)
 	engine = kessoku.Provide(http.NewRouter).Fn()(handler3)

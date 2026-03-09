@@ -5,6 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 
+	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
@@ -15,13 +16,15 @@ import (
 type CreateUseCase struct {
 	todoRepo  todorepository.TodoRepository
 	txManager tx.TxManager
+	clock     clock.Clock
 }
 
 // NewCreateUseCase は、CreateUseCaseを生成します。
-func NewCreateUseCase(todoRepo todorepository.TodoRepository, txManager tx.TxManager) *CreateUseCase {
+func NewCreateUseCase(todoRepo todorepository.TodoRepository, txManager tx.TxManager, clock clock.Clock) *CreateUseCase {
 	return &CreateUseCase{
 		todoRepo:  todoRepo,
 		txManager: txManager,
+		clock:     clock,
 	}
 }
 
@@ -51,7 +54,7 @@ func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*Crea
 
 		// ドメインモデルのファクトリを呼び出し、エンティティを生成します。
 		// この中でビジネスルール（タイトルの長さなど）が検証されます。
-		newTodo, err := entity.NewTodo(userID, input.Title, input.Description)
+		newTodo, err := entity.NewTodo(userID, input.Title, input.Description, uc.clock.Now(ctx))
 		if err != nil {
 			// ビジネスルール違反の場合、エラーを返す。
 			return nil, err

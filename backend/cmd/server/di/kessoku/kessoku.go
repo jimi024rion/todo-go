@@ -5,7 +5,9 @@ package di
 import (
 	"github.com/gin-gonic/gin"
 	// repository
+	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
 	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
+	clockimpl "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 
@@ -26,6 +28,8 @@ var _ = kessoku.Inject[*gin.Engine](
 	"InitializeServer",
 
 	// -- Infrastructure Layer --
+	// clock
+	kessoku.Bind[clock.Clock](kessoku.Provide(clockimpl.NewRealClock)),
 	// todo
 	kessoku.Bind[todorepo.TodoRepository](kessoku.Async(kessoku.Provide(todo.NewRepository))),
 

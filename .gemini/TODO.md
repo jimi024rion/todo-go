@@ -39,6 +39,12 @@ Geminiエージェントの`write_todos`ツールと連携して使用されま�
 
 ### ✔️ 完了リスト
 
+1. (T007) [x] テスト容易性向上のための `clock` パッケージを作成する (Pattern B: Now(ctx))
+   - [x] `Clock` インターフェースの定義 (`internal/domain/clock`)
+   - [x] Context用キーとタイムゾーン取得ヘルパーの定義
+   - [x] 実時間の `RealClock` 実装 (`internal/infrastructure/clock`)
+   - [x] タイムゾーン設定用ミドルウェアの作成 (`internal/presentation/http/middleware`)
+   - [x] `kessoku` への登録と既存コードへの適用
 1. (T001) [x] DIツール(wire)の代替を検討し、ADRを作成する
    - [x] DI候補の調査記録用ファイルを作成する (`backend/docs/adr/di-investigation-notes.md`)
    - [x] `mazrean/kessoku` (コンパイル時) の調査結果を記録する

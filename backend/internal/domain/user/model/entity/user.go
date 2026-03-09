@@ -16,9 +16,8 @@ type User struct {
 	updatedAt time.Time
 }
 
-func NewUser(ctx context.Context, id, name, email string) *User {
+func NewUser(ctx context.Context, id, name, email string, now time.Time) *User {
 	l := logger.NewLogger(ctx)
-	now := time.Now()
 	userID, err := valueobject.UserIDFromString(id)
 	if err != nil {
 		l.ErrorLog(err)
@@ -40,12 +39,12 @@ func (u *User) Email() string          { return u.email }
 func (u *User) CreatedAt() time.Time   { return u.createdAt }
 func (u *User) UpdatedAt() time.Time   { return u.updatedAt }
 
-func (u *User) UpdateName(name string) {
+func (u *User) UpdateName(name string, now time.Time) {
 	u.name = name
-	u.updatedAt = time.Now()
+	u.updatedAt = now
 }
 
-func (u *User) UpdateEmail(email string) {
+func (u *User) UpdateEmail(email string, now time.Time) {
 	u.email = email
-	u.updatedAt = time.Now()
+	u.updatedAt = now
 }

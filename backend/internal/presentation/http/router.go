@@ -14,6 +14,7 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(middleware.Logger())
 	r.Use(middleware.Trace())
+	r.Use(middleware.Timezone())
 
 	// Routes
 	r.GET("/health", h.Health.Check.Handle)

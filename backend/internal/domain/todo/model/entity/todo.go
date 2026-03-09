@@ -27,14 +27,13 @@ type Todo struct {
 // NewTodoは、新しいTodoエンティティを「新規作成」するためのファクトリ関数です。
 // ID、ステータス、タイムスタンプは自動的に設定されます。
 // 引数で受け取った値のビジネスルール検証もこの中で行います。
-func NewTodo(userID uservo.UserID, title, description string) (*Todo, error) {
+func NewTodo(userID uservo.UserID, title, description string, now time.Time) (*Todo, error) {
 	// 値オブジェクトを生成することで、ビジネスルールを検証する
 	validatedTitle, err := valueobject.NewTitle(title)
 	if err != nil {
 		return nil, err
 	}
 
-	now := time.Now()
 	return &Todo{
 		id:          valueobject.NewTodoID(),
 		userID:      userID,
@@ -122,37 +121,37 @@ func (t *Todo) IsCompleted() bool {
 
 // MarkAsCompletedは、Todoを「完了」状態に変更します。
 // 冪等性を保つため、すでに完了状態の場合は何もせず、updatedAtも更新しません。
-func (t *Todo) MarkAsCompleted() {
+func (t *Todo) MarkAsCompleted(now time.Time) {
 	if t.status == valueobject.StatusCompleted {
 		return
 	}
 	t.status = valueobject.StatusCompleted
-	t.updatedAt = time.Now()
+	t.updatedAt = now
 }
 
 // MarkAsInProgressは、Todoを「進行中」状態に変更します。
 // 冪等性を保つため、すでに進行中状態の場合は何もせず、updatedAtも更新しません。
-func (t *Todo) MarkAsInProgress() {
+func (t *Todo) MarkAsInProgress(now time.Time) {
 	if t.status == valueobject.StatusInProgress {
 		return
 	}
 	t.status = valueobject.StatusInProgress
-	t.updatedAt = time.Now()
+	t.updatedAt = now
 }
 
 // MarkAsPendingは、Todoを「未完了」状態に変更します。
 // 冪等性を保つため、すでに未完了状態の場合は何もせず、updatedAtも更新しません。
-func (t *Todo) MarkAsPending() {
+func (t *Todo) MarkAsPending(now time.Time) {
 	if t.status == valueobject.StatusPending {
 		return
 	}
 	t.status = valueobject.StatusPending
-	t.updatedAt = time.Now()
+	t.updatedAt = now
 }
 
 // ChangeTitleは、Todoのタイトルを変更します。
 // 内部でビジネスルールを検証します。
-func (t *Todo) ChangeTitle(newTitle string) error {
+func (t *Todo) ChangeTitle(newTitle string, now time.Time) error {
 	validatedTitle, err := valueobject.NewTitle(newTitle)
 	if err != nil {
 		return err
@@ -161,15 +160,15 @@ func (t *Todo) ChangeTitle(newTitle string) error {
 		return nil
 	}
 	t.title = validatedTitle
-	t.updatedAt = time.Now()
+	t.updatedAt = now
 	return nil
 }
 
 // ChangeDescriptionは、Todoの説明を変更します。
-func (t *Todo) ChangeDescription(newDescription string) {
+func (t *Todo) ChangeDescription(newDescription string, now time.Time) {
 	if t.description == newDescription {
 		return
 	}
 	t.description = newDescription
-	t.updatedAt = time.Now()
+	t.updatedAt = now
 }

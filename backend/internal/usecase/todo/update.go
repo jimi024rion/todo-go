@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
 	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
@@ -11,12 +12,14 @@ import (
 // UpdateUseCase は、Todoを更新するためのユースケースです。
 type UpdateUseCase struct {
 	todoRepo todorepository.TodoRepository
+	clock    clock.Clock
 }
 
 // NewUpdateUseCase は、UpdateUseCaseを生成します。
-func NewUpdateUseCase(todoRepo todorepository.TodoRepository) *UpdateUseCase {
+func NewUpdateUseCase(todoRepo todorepository.TodoRepository, clock clock.Clock) *UpdateUseCase {
 	return &UpdateUseCase{
 		todoRepo: todoRepo,
+		clock:    clock,
 	}
 }
 
@@ -54,19 +57,20 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 
 	// 3. エンティティの振る舞いメソッドを呼び出して状態を変更
 	//    このメソッドの中で、新しい値に対するビジネスルール検証が行われる
-	if err := targetTodo.ChangeTitle(input.Title); err != nil {
+	now := uc.clock.Now(ctx)
+	if err := targetTodo.ChangeTitle(input.Title, now); err != nil {
 		return nil, err
 	}
-	targetTodo.ChangeDescription(input.Description)
+	targetTodo.ChangeDescription(input.Description, now)
 
 	// Statusの更新
 	switch todovo.Status(input.Status) {
 	case todovo.StatusCompleted:
-		targetTodo.MarkAsCompleted()
+		targetTodo.MarkAsCompleted(now)
 	case todovo.StatusInProgress:
-		targetTodo.MarkAsInProgress()
+		targetTodo.MarkAsInProgress(now)
 	case todovo.StatusPending:
-		targetTodo.MarkAsPending()
+		targetTodo.MarkAsPending(now)
 	default:
 		// 不明なステータスが指定された場合は何もしないか、エラーを返す
 		// ここでは何もしないポリシーとする
