@@ -1,6 +1,6 @@
 module github.com/jimi024rion/todo-go/backend
 
-go 1.24.3
+go 1.25.0
 
 require (
 	github.com/aarondl/opt v0.0.0-20250607033636-982744e1bd65
@@ -20,7 +20,7 @@ require (
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.39.0
 	go.opentelemetry.io/otel/sdk v1.39.0
 	go.opentelemetry.io/otel/trace v1.39.0
-	golang.org/x/sync v0.19.0
+	golang.org/x/sync v0.20.0
 )
 
 require (
