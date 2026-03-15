@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )

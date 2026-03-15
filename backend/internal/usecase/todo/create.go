@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 
-	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"

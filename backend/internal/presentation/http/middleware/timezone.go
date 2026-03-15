@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 )
 
 // Timezone returns a middleware that sets the timezone location in the context

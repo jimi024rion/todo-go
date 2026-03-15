@@ -5,7 +5,7 @@ package di
 import (
 	"github.com/gin-gonic/gin"
 	// repository
-	"github.com/jimi024rion/todo-go/backend/internal/domain/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	clockimpl "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
