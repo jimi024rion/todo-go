@@ -2,13 +2,10 @@ package todo
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go.opentelemetry.io/otel"
 
-	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
-	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
 
@@ -48,11 +45,6 @@ func (uc *ListUseCase) Execute(ctx context.Context, input *ListInput) (*ListOutp
 	ctx, span := otel.Tracer("handler").Start(ctx, "Span2")
 	defer span.End()
 
-	l := logger.NewLogger(ctx)
-	// l.InfoLog("span2-1")
-	// l.InfoLog("span2-2")
-
-	l.ErrorLog(errs.NewErr(errs.CodeUnknownErr, errors.New("エラーだよ。スタックトレース出るかなあ")))
 	// リポジトリからTodoエンティティのリストを取得します。
 	todos, err := uc.todoRepo.List(ctx)
 	if err != nil {

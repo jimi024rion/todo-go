@@ -46,8 +46,9 @@ type UsersQuery = *psql.ViewQuery[*User, UserSlice]
 
 // userR is where relationships are stored.
 type userR struct {
-	Tags  TagSlice  // tags.fk_tags_user_id
-	Todos TodoSlice // todos.fk_todos_user_id
+	APIKeys APIKeySlice // api_keys.fk_api_keys_user_id
+	Tags    TagSlice    // tags.fk_tags_user_id
+	Todos   TodoSlice   // todos.fk_todos_user_id
 }
 
 func buildUserColumns(alias string) userColumns {
@@ -440,6 +441,30 @@ func (o UserSlice) ReloadAll(ctx context.Context, exec bob.Executor) error {
 	return nil
 }
 
+// APIKeys starts a query for related objects on api_keys
+func (o *User) APIKeys(mods ...bob.Mod[*dialect.SelectQuery]) APIKeysQuery {
+	return APIKeys.Query(append(mods,
+		sm.Where(APIKeys.Columns.UserID.EQ(psql.Arg(o.ID))),
+	)...)
+}
+
+func (os UserSlice) APIKeys(mods ...bob.Mod[*dialect.SelectQuery]) APIKeysQuery {
+	pkID := make(pgtypes.Array[uuid.UUID], 0, len(os))
+	for _, o := range os {
+		if o == nil {
+			continue
+		}
+		pkID = append(pkID, o.ID)
+	}
+	PKArgExpr := psql.Select(sm.Columns(
+		psql.F("unnest", psql.Cast(psql.Arg(pkID), "uuid[]")),
+	))
+
+	return APIKeys.Query(append(mods,
+		sm.Where(psql.Group(APIKeys.Columns.UserID).OP("IN", PKArgExpr)),
+	)...)
+}
+
 // Tags starts a query for related objects on tags
 func (o *User) Tags(mods ...bob.Mod[*dialect.SelectQuery]) TagsQuery {
 	return Tags.Query(append(mods,
@@ -486,6 +511,74 @@ func (os UserSlice) Todos(mods ...bob.Mod[*dialect.SelectQuery]) TodosQuery {
 	return Todos.Query(append(mods,
 		sm.Where(psql.Group(Todos.Columns.UserID).OP("IN", PKArgExpr)),
 	)...)
+}
+
+func insertUserAPIKeys0(ctx context.Context, exec bob.Executor, apiKeys1 []*APIKeySetter, user0 *User) (APIKeySlice, error) {
+	for i := range apiKeys1 {
+		apiKeys1[i].UserID = omit.From(user0.ID)
+	}
+
+	ret, err := APIKeys.Insert(bob.ToMods(apiKeys1...)).All(ctx, exec)
+	if err != nil {
+		return ret, fmt.Errorf("insertUserAPIKeys0: %w", err)
+	}
+
+	return ret, nil
+}
+
+func attachUserAPIKeys0(ctx context.Context, exec bob.Executor, count int, apiKeys1 APIKeySlice, user0 *User) (APIKeySlice, error) {
+	setter := &APIKeySetter{
+		UserID: omit.From(user0.ID),
+	}
+
+	err := apiKeys1.UpdateAll(ctx, exec, *setter)
+	if err != nil {
+		return nil, fmt.Errorf("attachUserAPIKeys0: %w", err)
+	}
+
+	return apiKeys1, nil
+}
+
+func (user0 *User) InsertAPIKeys(ctx context.Context, exec bob.Executor, related ...*APIKeySetter) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+
+	apiKeys1, err := insertUserAPIKeys0(ctx, exec, related, user0)
+	if err != nil {
+		return err
+	}
+
+	user0.R.APIKeys = append(user0.R.APIKeys, apiKeys1...)
+
+	for _, rel := range apiKeys1 {
+		rel.R.User = user0
+	}
+	return nil
+}
+
+func (user0 *User) AttachAPIKeys(ctx context.Context, exec bob.Executor, related ...*APIKey) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	apiKeys1 := APIKeySlice(related)
+
+	_, err = attachUserAPIKeys0(ctx, exec, len(related), apiKeys1, user0)
+	if err != nil {
+		return err
+	}
+
+	user0.R.APIKeys = append(user0.R.APIKeys, apiKeys1...)
+
+	for _, rel := range related {
+		rel.R.User = user0
+	}
+
+	return nil
 }
 
 func insertUserTags0(ctx context.Context, exec bob.Executor, tags1 []*TagSetter, user0 *User) (TagSlice, error) {
@@ -652,6 +745,20 @@ func (o *User) Preload(name string, retrieved any) error {
 	}
 
 	switch name {
+	case "APIKeys":
+		rels, ok := retrieved.(APIKeySlice)
+		if !ok {
+			return fmt.Errorf("user cannot load %T as %q", retrieved, name)
+		}
+
+		o.R.APIKeys = rels
+
+		for _, rel := range rels {
+			if rel != nil {
+				rel.R.User = o
+			}
+		}
+		return nil
 	case "Tags":
 		rels, ok := retrieved.(TagSlice)
 		if !ok {
@@ -692,11 +799,15 @@ func buildUserPreloader() userPreloader {
 }
 
 type userThenLoader[Q orm.Loadable] struct {
-	Tags  func(...bob.Mod[*dialect.SelectQuery]) orm.Loader[Q]
-	Todos func(...bob.Mod[*dialect.SelectQuery]) orm.Loader[Q]
+	APIKeys func(...bob.Mod[*dialect.SelectQuery]) orm.Loader[Q]
+	Tags    func(...bob.Mod[*dialect.SelectQuery]) orm.Loader[Q]
+	Todos   func(...bob.Mod[*dialect.SelectQuery]) orm.Loader[Q]
 }
 
 func buildUserThenLoader[Q orm.Loadable]() userThenLoader[Q] {
+	type APIKeysLoadInterface interface {
+		LoadAPIKeys(context.Context, bob.Executor, ...bob.Mod[*dialect.SelectQuery]) error
+	}
 	type TagsLoadInterface interface {
 		LoadTags(context.Context, bob.Executor, ...bob.Mod[*dialect.SelectQuery]) error
 	}
@@ -705,6 +816,12 @@ func buildUserThenLoader[Q orm.Loadable]() userThenLoader[Q] {
 	}
 
 	return userThenLoader[Q]{
+		APIKeys: thenLoadBuilder[Q](
+			"APIKeys",
+			func(ctx context.Context, exec bob.Executor, retrieved APIKeysLoadInterface, mods ...bob.Mod[*dialect.SelectQuery]) error {
+				return retrieved.LoadAPIKeys(ctx, exec, mods...)
+			},
+		),
 		Tags: thenLoadBuilder[Q](
 			"Tags",
 			func(ctx context.Context, exec bob.Executor, retrieved TagsLoadInterface, mods ...bob.Mod[*dialect.SelectQuery]) error {
@@ -718,6 +835,67 @@ func buildUserThenLoader[Q orm.Loadable]() userThenLoader[Q] {
 			},
 		),
 	}
+}
+
+// LoadAPIKeys loads the user's APIKeys into the .R struct
+func (o *User) LoadAPIKeys(ctx context.Context, exec bob.Executor, mods ...bob.Mod[*dialect.SelectQuery]) error {
+	if o == nil {
+		return nil
+	}
+
+	// Reset the relationship
+	o.R.APIKeys = nil
+
+	related, err := o.APIKeys(mods...).All(ctx, exec)
+	if err != nil {
+		return err
+	}
+
+	for _, rel := range related {
+		rel.R.User = o
+	}
+
+	o.R.APIKeys = related
+	return nil
+}
+
+// LoadAPIKeys loads the user's APIKeys into the .R struct
+func (os UserSlice) LoadAPIKeys(ctx context.Context, exec bob.Executor, mods ...bob.Mod[*dialect.SelectQuery]) error {
+	if len(os) == 0 {
+		return nil
+	}
+
+	apiKeys, err := os.APIKeys(mods...).All(ctx, exec)
+	if err != nil {
+		return err
+	}
+
+	for _, o := range os {
+		if o == nil {
+			continue
+		}
+
+		o.R.APIKeys = nil
+	}
+
+	for _, o := range os {
+		if o == nil {
+			continue
+		}
+
+		for _, rel := range apiKeys {
+
+			if !(o.ID == rel.UserID) {
+				continue
+			}
+
+			rel.R.User = o
+
+			o.R.APIKeys = append(o.R.APIKeys, rel)
+		}
+	}
+
+	return nil
 }
 
 // LoadTags loads the user's Tags into the .R struct
@@ -843,9 +1021,10 @@ func (os UserSlice) LoadTodos(ctx context.Context, exec bob.Executor, mods ...bo
 }
 
 type userJoins[Q dialect.Joinable] struct {
-	typ   string
-	Tags  modAs[Q, tagColumns]
-	Todos modAs[Q, todoColumns]
+	typ     string
+	APIKeys modAs[Q, apiKeyColumns]
+	Tags    modAs[Q, tagColumns]
+	Todos   modAs[Q, todoColumns]
 }
 
 func (j userJoins[Q]) aliasedAs(alias string) userJoins[Q] {
@@ -855,6 +1034,20 @@ func (j userJoins[Q]) aliasedAs(alias string) userJoins[Q] {
 func buildUserJoins[Q dialect.Joinable](cols userColumns, typ string) userJoins[Q] {
 	return userJoins[Q]{
 		typ: typ,
+		APIKeys: modAs[Q, apiKeyColumns]{
+			c: APIKeys.Columns,
+			f: func(to apiKeyColumns) bob.Mod[Q] {
+				mods := make(mods.QueryMods[Q], 0, 1)
+
+				{
+					mods = append(mods, dialect.Join[Q](typ, APIKeys.Name().As(to.Alias())).On(
+						to.UserID.EQ(cols.ID),
+					))
+				}
+
+				return mods
+			},
+		},
 		Tags: modAs[Q, tagColumns]{
 			c: Tags.Columns,
 			f: func(to tagColumns) bob.Mod[Q] {

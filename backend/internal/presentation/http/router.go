@@ -7,7 +7,7 @@ import (
 )
 
 // NewRouter creates and configures a new Gin router.
-func NewRouter(h *handler.Handler) *gin.Engine {
+func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 	r := gin.New()
 
 	// Global Middleware
@@ -22,14 +22,28 @@ func NewRouter(h *handler.Handler) *gin.Engine {
 	// API v1 group
 	v1 := r.Group("/v1")
 	{
+		// 認証不要: APIキー発行
+		v1.POST("/api-keys", h.APIKey.Create.Handle)
 
-		todos := v1.Group("/todos")
+		// 認証必須グループ
+		auth := v1.Group("")
+		auth.Use(mw.APIKeyAuth)
 		{
-			todos.GET("", h.Todo.List.Handle)
-			todos.POST("", h.Todo.Create.Handle)
-			todos.GET("/:id", h.Todo.Get.Handle)
-			todos.PUT("/:id", h.Todo.Update.Handle)
-			todos.DELETE("/:id", h.Todo.Delete.Handle)
+			auth.DELETE("/api-keys/:id", h.APIKey.Delete.Handle)
+
+			users := auth.Group("/users")
+			{
+				users.POST("", h.User.Create.Handle)
+			}
+
+			todos := auth.Group("/todos")
+			{
+				todos.GET("", h.Todo.List.Handle)
+				todos.POST("", h.Todo.Create.Handle)
+				todos.GET("/:id", h.Todo.Get.Handle)
+				todos.PUT("/:id", h.Todo.Update.Handle)
+				todos.DELETE("/:id", h.Todo.Delete.Handle)
+			}
 		}
 	}
 

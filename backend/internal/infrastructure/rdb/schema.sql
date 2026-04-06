@@ -31,7 +31,17 @@ CREATE TABLE "todo_tags" (
   PRIMARY KEY ("todo_id", "tag_id")
 );
 
+CREATE TABLE "api_keys" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" uuid NOT NULL CONSTRAINT "fk_api_keys_user_id" REFERENCES "users" ("id") ON DELETE CASCADE,
+  "key_hash"   varchar(64) NOT NULL UNIQUE,
+  "name" varchar(255) NOT NULL,
+  "created_at" timestamptz NOT NULL
+);
+CREATE INDEX "idx_api_keys_key_hash" ON "api_keys" ("key_hash");
+
 COMMENT ON TABLE "users" IS 'ユーザー情報';
+COMMENT ON TABLE "api_keys" IS 'APIキー';
 COMMENT ON TABLE "todos" IS 'ToDoタスク';
 COMMENT ON COLUMN "todos"."status" IS 'タスクの状態 (pending, in_progress, completed)';
 COMMENT ON TABLE "tags" IS 'タグ';

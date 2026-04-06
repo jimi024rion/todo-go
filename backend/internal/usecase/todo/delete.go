@@ -3,19 +3,23 @@ package todo
 import (
 	"context"
 
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
+	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
 )
 
 // DeleteUseCase は、Todoを削除するためのユースケースです。
 type DeleteUseCase struct {
-	todoRepo todorepository.TodoRepository
+	todoRepo  todorepository.TodoRepository
+	txManager tx.TxManager
 }
 
 // NewDeleteUseCase は、DeleteUseCaseを生成します。
-func NewDeleteUseCase(todoRepo todorepository.TodoRepository) *DeleteUseCase {
+func NewDeleteUseCase(todoRepo todorepository.TodoRepository, txManager tx.TxManager) *DeleteUseCase {
 	return &DeleteUseCase{
-		todoRepo: todoRepo,
+		todoRepo:  todoRepo,
+		txManager: txManager,
 	}
 }
 
@@ -33,11 +37,17 @@ func (uc *DeleteUseCase) Execute(ctx context.Context, input *DeleteInput) (*Dele
 	// 1. IDの検証
 	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewErr(errs.BadRequest, err)
 	}
 
-	// 2. リポジトリに削除を依頼
-	if err := uc.todoRepo.Delete(ctx, todoID); err != nil {
+	_, err = uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {
+		// 2. リポジトリに削除を依頼
+		if err := uc.todoRepo.Delete(txCtx, todoID); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	if err != nil {
 		return nil, err
 	}
 

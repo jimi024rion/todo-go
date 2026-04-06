@@ -17,17 +17,20 @@ var (
 )
 
 func Where[Q psql.Filterable]() struct {
+	APIKeys  apiKeyWhere[Q]
 	Tags     tagWhere[Q]
 	TodoTags todoTagWhere[Q]
 	Todos    todoWhere[Q]
 	Users    userWhere[Q]
 } {
 	return struct {
+		APIKeys  apiKeyWhere[Q]
 		Tags     tagWhere[Q]
 		TodoTags todoTagWhere[Q]
 		Todos    todoWhere[Q]
 		Users    userWhere[Q]
 	}{
+		APIKeys:  buildAPIKeyWhere[Q](APIKeys.Columns),
 		Tags:     buildTagWhere[Q](Tags.Columns),
 		TodoTags: buildTodoTagWhere[Q](TodoTags.Columns),
 		Todos:    buildTodoWhere[Q](Todos.Columns),

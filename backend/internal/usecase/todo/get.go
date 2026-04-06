@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 )
@@ -42,7 +43,7 @@ func (uc *GetUseCase) Execute(ctx context.Context, input *GetInput) (*GetOutput,
 	// これにより、IDのフォーマットが不正な場合はこの時点でエラーとして扱えます。
 	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewErr(errs.BadRequest, err)
 	}
 
 	// リポジトリからTodoエンティティを検索します。

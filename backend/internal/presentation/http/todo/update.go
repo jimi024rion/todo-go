@@ -1,12 +1,10 @@
 package todo
 
 import (
-	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
@@ -50,18 +48,14 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 	// ユースケースを実行
 	output, err := h.usecase.Execute(c.Request.Context(), input)
 	if err != nil {
-		// ビジネスルール違反
-		if errors.Is(err, todovo.ErrTitleIsEmpty) || errors.Is(err, todovo.ErrTitleTooLong) {
+		if errs.IsBadRequest(err) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		// IDフォーマット不正
-		if strings.Contains(err.Error(), "failed to parse todo id") {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if errs.IsNotFound(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-
-		// 本来はErrNotFoundを判定して404を返すべきだが、暫定的に500とする
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}

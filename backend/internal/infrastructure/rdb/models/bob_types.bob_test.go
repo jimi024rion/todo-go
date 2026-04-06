@@ -14,6 +14,9 @@ import (
 // Set the testDB to enable tests that use the database
 var testDB bob.Transactor[bob.Tx]
 
+// Make sure the type APIKey runs hooks after queries
+var _ bob.HookableType = &APIKey{}
+
 // Make sure the type Tag runs hooks after queries
 var _ bob.HookableType = &Tag{}
 

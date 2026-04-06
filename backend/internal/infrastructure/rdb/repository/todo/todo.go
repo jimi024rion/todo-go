@@ -2,6 +2,8 @@ package todo
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/aarondl/opt/null"
@@ -13,6 +15,7 @@ import (
 	"github.com/stephenafamo/bob/dialect/psql/dm"
 	"github.com/stephenafamo/bob/dialect/psql/um"
 
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
@@ -82,7 +85,9 @@ func (r *Repository) FindByID(ctx context.Context, id valueobject.TodoID) (*enti
 	// bobが生成したFindTodoヘルパー関数を利用
 	todoModel, err := models.FindTodo(ctx, r.getExecutor(ctx), uid)
 	if err != nil {
-		// TODO: エラーの種類に応じてドメイン層で定義したエラーを返す
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.NewErr(errs.IsNotFoundRequest, fmt.Errorf("todo not found: %s", id.String()))
+		}
 		return nil, fmt.Errorf("failed to find todo by id: %w", err)
 	}
 

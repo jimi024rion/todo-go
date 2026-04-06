@@ -17,6 +17,7 @@ import (
 var Preload = getPreloaders()
 
 type preloaders struct {
+	APIKey  apiKeyPreloader
 	Tag     tagPreloader
 	TodoTag todoTagPreloader
 	Todo    todoPreloader
@@ -25,6 +26,7 @@ type preloaders struct {
 
 func getPreloaders() preloaders {
 	return preloaders{
+		APIKey:  buildAPIKeyPreloader(),
 		Tag:     buildTagPreloader(),
 		TodoTag: buildTodoTagPreloader(),
 		Todo:    buildTodoPreloader(),
@@ -39,6 +41,7 @@ var (
 )
 
 type thenLoaders[Q orm.Loadable] struct {
+	APIKey  apiKeyThenLoader[Q]
 	Tag     tagThenLoader[Q]
 	TodoTag todoTagThenLoader[Q]
 	Todo    todoThenLoader[Q]
@@ -47,6 +50,7 @@ type thenLoaders[Q orm.Loadable] struct {
 
 func getThenLoaders[Q orm.Loadable]() thenLoaders[Q] {
 	return thenLoaders[Q]{
+		APIKey:  buildAPIKeyThenLoader[Q](),
 		Tag:     buildTagThenLoader[Q](),
 		TodoTag: buildTodoTagThenLoader[Q](),
 		Todo:    buildTodoThenLoader[Q](),

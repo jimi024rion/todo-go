@@ -32,6 +32,7 @@ func (j joinSet[Q]) AliasedAs(alias string) joinSet[Q] {
 }
 
 type joins[Q dialect.Joinable] struct {
+	APIKeys  joinSet[apiKeyJoins[Q]]
 	Tags     joinSet[tagJoins[Q]]
 	TodoTags joinSet[todoTagJoins[Q]]
 	Todos    joinSet[todoJoins[Q]]
@@ -48,6 +49,7 @@ func buildJoinSet[Q interface{ aliasedAs(string) Q }, C any, F func(C, string) Q
 
 func getJoins[Q dialect.Joinable]() joins[Q] {
 	return joins[Q]{
+		APIKeys:  buildJoinSet[apiKeyJoins[Q]](APIKeys.Columns, buildAPIKeyJoins),
 		Tags:     buildJoinSet[tagJoins[Q]](Tags.Columns, buildTagJoins),
 		TodoTags: buildJoinSet[todoTagJoins[Q]](TodoTags.Columns, buildTodoTagJoins),
 		Todos:    buildJoinSet[todoJoins[Q]](Todos.Columns, buildTodoJoins),

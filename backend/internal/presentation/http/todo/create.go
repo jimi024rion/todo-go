@@ -26,10 +26,14 @@ type requestBody struct {
 	Description string `json:"description"`
 }
 
-const dummyUserID = "4D029D7A-E711-4390-AD84-E6E48B184E1C"
-
 // Handle はTodo作成リクエストを処理します。
 func (h *CreateHandler) Handle(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	// リクエストボディをバインド
 	var req requestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -39,7 +43,7 @@ func (h *CreateHandler) Handle(c *gin.Context) {
 
 	// ユースケースの入力DTOを作成
 	input := &todousecase.CreateInput{
-		UserID:      dummyUserID, // FIXME: 将来的に認証から取得した実際のUserIDに置き換える
+		UserID:      userID.(string),
 		Title:       req.Title,
 		Description: req.Description,
 	}

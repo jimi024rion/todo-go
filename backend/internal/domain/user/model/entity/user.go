@@ -1,10 +1,9 @@
 package entity
 
 import (
-	"context"
+	"fmt"
 	"time"
 
-	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/user/model/valueobject"
 )
 
@@ -16,11 +15,10 @@ type User struct {
 	updatedAt time.Time
 }
 
-func NewUser(ctx context.Context, id, name, email string, now time.Time) *User {
-	l := logger.NewLogger(ctx)
+func NewUser(id, name, email string, now time.Time) (*User, error) {
 	userID, err := valueobject.UserIDFromString(id)
 	if err != nil {
-		l.ErrorLog(err)
+		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
 
 	return &User{
@@ -29,7 +27,7 @@ func NewUser(ctx context.Context, id, name, email string, now time.Time) *User {
 		email:     email,
 		createdAt: now,
 		updatedAt: now,
-	}
+	}, nil
 }
 
 // Getter
