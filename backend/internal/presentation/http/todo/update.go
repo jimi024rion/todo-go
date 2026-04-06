@@ -20,12 +20,26 @@ func NewUpdateHandler(u *todousecase.UpdateUseCase) *UpdateHandler {
 
 // updateRequestBody is the request body for updating a todo.
 type updateRequestBody struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Status      string `json:"status"`
+	Title       string `json:"title"       example:"買い物リストを作る"`
+	Description string `json:"description" example:"牛乳、卵、パンを買う"`
+	Status      string `json:"status"      example:"in_progress" enums:"pending,in_progress,completed"`
 }
 
 // Handle handles the request to update an existing todo.
+//
+// @Summary     タスク更新
+// @Description 指定されたIDのタスクを更新します
+// @Tags        todos
+// @Accept      json
+// @Produce     json
+// @Param       id      path     string            true "タスクID" example("01234567-89ab-cdef-0123-456789abcdef")
+// @Param       request body     updateRequestBody true "タスク更新リクエスト"
+// @Success     200     {object} TodoResponse
+// @Failure     400     {object} response.ErrorResponse
+// @Failure     404     {object} response.ErrorResponse
+// @Failure     500     {object} response.ErrorResponse
+// @Security    ApiKeyAuth
+// @Router      /v1/todos/{id} [put]
 func (h *UpdateHandler) Handle(c *gin.Context) {
 	// URLパラメータからIDを取得
 	id := c.Param("id")

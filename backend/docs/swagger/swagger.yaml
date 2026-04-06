@@ -1,0 +1,400 @@
+basePath: /
+definitions:
+  internal_presentation_http_apikey.createRequest:
+    properties:
+      name:
+        example: My API Key
+        type: string
+      user_id:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+    required:
+    - name
+    - user_id
+    type: object
+  internal_presentation_http_apikey.createResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+      key:
+        example: todo_abc123...
+        type: string
+      name:
+        example: My API Key
+        type: string
+      user_id:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+    type: object
+  internal_presentation_http_health.HealthCheckResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  internal_presentation_http_todo.CreateTodoResponse:
+    properties:
+      id:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+    type: object
+  internal_presentation_http_todo.TodoResponse:
+    properties:
+      CreatedAt:
+        type: string
+      Description:
+        example: 牛乳、卵、パンを買う
+        type: string
+      ID:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+      Status:
+        example: pending
+        type: string
+      Title:
+        example: 買い物リストを作る
+        type: string
+      UpdatedAt:
+        type: string
+    type: object
+  internal_presentation_http_todo.requestBody:
+    properties:
+      description:
+        example: 牛乳、卵、パンを買う
+        type: string
+      title:
+        example: 買い物リストを作る
+        type: string
+    type: object
+  internal_presentation_http_todo.updateRequestBody:
+    properties:
+      description:
+        example: 牛乳、卵、パンを買う
+        type: string
+      status:
+        enum:
+        - pending
+        - in_progress
+        - completed
+        example: in_progress
+        type: string
+      title:
+        example: 買い物リストを作る
+        type: string
+    type: object
+  internal_presentation_http_user.createUserRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  internal_presentation_http_user.createUserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        example: john@example.com
+        type: string
+      id:
+        example: 01234567-89ab-cdef-0123-456789abcdef
+        type: string
+      name:
+        example: John Doe
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        example: invalid request body
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Todo管理アプリケーションのREST API
+  title: Todo API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: サーバーの稼働状況を確認します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_presentation_http_health.HealthCheckResponse'
+      summary: ヘルスチェック
+      tags:
+      - health
+  /v1/api-keys:
+    post:
+      consumes:
+      - application/json
+      description: 新しいAPIキーを発行します（認証不要）
+      parameters:
+      - description: APIキー作成リクエスト
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_presentation_http_apikey.createRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_presentation_http_apikey.createResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: APIキー作成
+      tags:
+      - api-keys
+  /v1/api-keys/{id}:
+    delete:
+      description: 指定されたIDのAPIキーを削除します
+      parameters:
+      - description: APIキーID
+        example: '"01234567-89ab-cdef-0123-456789abcdef"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: APIキー削除
+      tags:
+      - api-keys
+  /v1/todos:
+    get:
+      description: すべてのタスクを一覧で取得します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: タスク一覧取得
+      tags:
+      - todos
+    post:
+      consumes:
+      - application/json
+      description: 新しいタスクを作成します
+      parameters:
+      - description: タスク作成リクエスト
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_presentation_http_todo.requestBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_presentation_http_todo.CreateTodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: タスク作成
+      tags:
+      - todos
+  /v1/todos/{id}:
+    delete:
+      description: 指定されたIDのタスクを削除します
+      parameters:
+      - description: タスクID
+        example: '"01234567-89ab-cdef-0123-456789abcdef"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: タスク削除
+      tags:
+      - todos
+    get:
+      description: 指定されたIDのタスクを取得します
+      parameters:
+      - description: タスクID
+        example: '"01234567-89ab-cdef-0123-456789abcdef"'
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: タスク詳細取得
+      tags:
+      - todos
+    put:
+      consumes:
+      - application/json
+      description: 指定されたIDのタスクを更新します
+      parameters:
+      - description: タスクID
+        example: '"01234567-89ab-cdef-0123-456789abcdef"'
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: タスク更新リクエスト
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_presentation_http_todo.updateRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: タスク更新
+      tags:
+      - todos
+  /v1/users:
+    post:
+      consumes:
+      - application/json
+      description: 新しいユーザーを作成します
+      parameters:
+      - description: ユーザー作成リクエスト
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_presentation_http_user.createUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_presentation_http_user.createUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: ユーザー作成
+      tags:
+      - users
+securityDefinitions:
+  ApiKeyAuth:
+    description: X-API-Keyヘッダーにトークンを設定してください
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"

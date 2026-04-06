@@ -21,18 +21,31 @@ func NewCreateUserHandler(createUserUsecase *useruc.CreateUserUsecase) *CreateUs
 }
 
 type createUserRequest struct {
-	Name  string `json:"name"  binding:"required"`
-	Email string `json:"email" binding:"required"`
+	Name  string `json:"name"  binding:"required" example:"John Doe"`
+	Email string `json:"email" binding:"required" example:"john@example.com"`
 }
 
 type createUserResponse struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
+	ID        string    `json:"id"         example:"01234567-89ab-cdef-0123-456789abcdef"`
+	Name      string    `json:"name"       example:"John Doe"`
+	Email     string    `json:"email"      example:"john@example.com"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Handle は POST /v1/users のリクエストを処理します。
+//
+// @Summary     ユーザー作成
+// @Description 新しいユーザーを作成します
+// @Tags        users
+// @Accept      json
+// @Produce     json
+// @Param       request body     createUserRequest true "ユーザー作成リクエスト"
+// @Success     201     {object} createUserResponse
+// @Failure     400     {object} response.ErrorResponse
+// @Failure     500     {object} response.ErrorResponse
+// @Security    ApiKeyAuth
+// @Router      /v1/users [post]
 func (h *CreateUserHandler) Handle(c *gin.Context) {
 	var req createUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

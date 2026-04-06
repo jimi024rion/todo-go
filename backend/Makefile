@@ -97,7 +97,12 @@ gen-bob: ## Generate Bob ORM code
 
 gen-swagger: ## Generate Swagger API documentation
 	@echo "Generating Swagger docs..."
-	@echo "swag init will be configured here later"
+	@go tool swag init \
+		--generalInfo cmd/server/main.go \
+		--output docs/swagger \
+		--outputTypes go,json,yaml \
+		--parseDependency \
+		--parseInternal
 
 # ==============================================================================
 # DATABASE COMMANDS

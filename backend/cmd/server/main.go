@@ -6,12 +6,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 	di "github.com/jimi024rion/todo-go/backend/cmd/server/di/kessoku"
+	_ "github.com/jimi024rion/todo-go/backend/docs/swagger"
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/config/logger"
 	"github.com/jimi024rion/todo-go/backend/internal/config/trace"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 )
 
+// @title           Todo API
+// @version         1.0
+// @description     Todo管理アプリケーションのREST API
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey  ApiKeyAuth
+// @in                          header
+// @name                        X-API-Key
+// @description                 X-API-Keyヘッダーにトークンを設定してください
 func main() {
 	ctx := context.Background()
 

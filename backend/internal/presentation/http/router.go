@@ -2,6 +2,10 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/middleware"
 )
@@ -45,6 +49,11 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 				todos.DELETE("/:id", h.Todo.Delete.Handle)
 			}
 		}
+	}
+
+	// Swagger UI (production以外でのみ公開)
+	if env.Cfg.AppEnv != "production" {
+		r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
 	return r

@@ -19,6 +19,18 @@ func NewGetHandler(u *todousecase.GetUseCase) *GetHandler {
 }
 
 // Handle handles the request to get a single todo by ID.
+//
+// @Summary     タスク詳細取得
+// @Description 指定されたIDのタスクを取得します
+// @Tags        todos
+// @Produce     json
+// @Param       id  path     string true "タスクID" example("01234567-89ab-cdef-0123-456789abcdef")
+// @Success     200 {object} TodoResponse
+// @Failure     400 {object} response.ErrorResponse
+// @Failure     404 {object} response.ErrorResponse
+// @Failure     500 {object} response.ErrorResponse
+// @Security    ApiKeyAuth
+// @Router      /v1/todos/{id} [get]
 func (h *GetHandler) Handle(c *gin.Context) {
 	id := c.Param("id")
 

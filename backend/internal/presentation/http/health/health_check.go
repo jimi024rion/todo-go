@@ -14,7 +14,19 @@ func NewHealthCheckHandler() *HealthCheckHandler {
 	return &HealthCheckHandler{}
 }
 
+// HealthCheckResponse はヘルスチェックのレスポンス。
+type HealthCheckResponse struct {
+	Status string `json:"status" example:"ok"`
+}
+
 // Handle は GET /health のリクエストを処理します。
+//
+// @Summary     ヘルスチェック
+// @Description サーバーの稼働状況を確認します
+// @Tags        health
+// @Produce     json
+// @Success     200 {object} HealthCheckResponse
+// @Router      /health [get]
 func (h *HealthCheckHandler) Handle(c *gin.Context) {
 	l := logger.NewLogger(c)
 	l.InfoLog("Health check endpoint accessed")

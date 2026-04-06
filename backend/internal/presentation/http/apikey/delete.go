@@ -17,6 +17,18 @@ func NewDeleteHandler(u *apikeyuc.DeleteUseCase) *DeleteHandler {
 	return &DeleteHandler{u: u}
 }
 
+// Handle は DELETE /v1/api-keys/:id のリクエストを処理します。
+//
+// @Summary     APIキー削除
+// @Description 指定されたIDのAPIキーを削除します
+// @Tags        api-keys
+// @Produce     json
+// @Param       id  path string true "APIキーID" example("01234567-89ab-cdef-0123-456789abcdef")
+// @Success     204
+// @Failure     400 {object} response.ErrorResponse
+// @Failure     500 {object} response.ErrorResponse
+// @Security    ApiKeyAuth
+// @Router      /v1/api-keys/{id} [delete]
 func (h *DeleteHandler) Handle(c *gin.Context) {
 	id := c.Param("id")
 
