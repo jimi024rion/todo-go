@@ -21,8 +21,8 @@ func NewCreateUserHandler(createUserUsecase *useruc.CreateUserUsecase) *CreateUs
 }
 
 type createUserRequest struct {
-	Name  string `json:"name"  binding:"required" example:"John Doe"`
-	Email string `json:"email" binding:"required" example:"john@example.com"`
+	Name  string `json:"name"  validate:"required" minLength:"1" maxLength:"100"  example:"John Doe"`
+	Email string `json:"email" validate:"required" format:"email"                  example:"john@example.com"`
 }
 
 type createUserResponse struct {

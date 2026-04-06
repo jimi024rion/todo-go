@@ -20,9 +20,9 @@ func NewUpdateHandler(u *todousecase.UpdateUseCase) *UpdateHandler {
 
 // updateRequestBody is the request body for updating a todo.
 type updateRequestBody struct {
-	Title       string `json:"title"       example:"買い物リストを作る"`
-	Description string `json:"description" example:"牛乳、卵、パンを買う"`
-	Status      string `json:"status"      example:"in_progress" enums:"pending,in_progress,completed"`
+	Title       string `json:"title"       maxLength:"100"                                    example:"買い物リストを作る"`
+	Description string `json:"description" maxLength:"1000"                                   example:"牛乳、卵、パンを買う"`
+	Status      string `json:"status"      enums:"pending,in_progress,completed"              example:"in_progress"`
 }
 
 // Handle handles the request to update an existing todo.

@@ -440,10 +440,13 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1,
                     "example": "My API Key"
                 },
                 "user_id": {
                     "type": "string",
+                    "format": "uuid",
                     "example": "01234567-89ab-cdef-0123-456789abcdef"
                 }
             }
@@ -519,13 +522,19 @@ const docTemplate = `{
         },
         "internal_presentation_http_todo.requestBody": {
             "type": "object",
+            "required": [
+                "title"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
+                    "maxLength": 1000,
                     "example": "牛乳、卵、パンを買う"
                 },
                 "title": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "買い物リストを作る"
                 }
             }
@@ -535,6 +544,7 @@ const docTemplate = `{
             "properties": {
                 "description": {
                     "type": "string",
+                    "maxLength": 1000,
                     "example": "牛乳、卵、パンを買う"
                 },
                 "status": {
@@ -548,6 +558,7 @@ const docTemplate = `{
                 },
                 "title": {
                     "type": "string",
+                    "maxLength": 100,
                     "example": "買い物リストを作る"
                 }
             }
@@ -561,10 +572,13 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string",
+                    "format": "email",
                     "example": "john@example.com"
                 },
                 "name": {
                     "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
                     "example": "John Doe"
                 }
             }

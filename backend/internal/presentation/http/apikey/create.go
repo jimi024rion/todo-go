@@ -18,8 +18,8 @@ func NewCreateHandler(u *apikeyuc.CreateUseCase) *CreateHandler {
 }
 
 type createRequest struct {
-	UserID string `json:"user_id" binding:"required" example:"01234567-89ab-cdef-0123-456789abcdef"`
-	Name   string `json:"name"    binding:"required" example:"My API Key"`
+	UserID string `json:"user_id" validate:"required" format:"uuid"                        example:"01234567-89ab-cdef-0123-456789abcdef"`
+	Name   string `json:"name"    validate:"required" minLength:"1" maxLength:"50"           example:"My API Key"`
 }
 
 type createResponse struct {

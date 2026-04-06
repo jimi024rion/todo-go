@@ -22,8 +22,8 @@ func NewCreateHandler(u *todousecase.CreateUseCase) *CreateHandler {
 
 // requestBody はTodo作成リクエストのボディを表します。
 type requestBody struct {
-	Title       string `json:"title"       example:"買い物リストを作る"`
-	Description string `json:"description" example:"牛乳、卵、パンを買う"`
+	Title       string `json:"title"       validate:"required" minLength:"1" maxLength:"100"  example:"買い物リストを作る"`
+	Description string `json:"description"                     maxLength:"1000"               example:"牛乳、卵、パンを買う"`
 }
 
 // CreateTodoResponse はタスク作成のレスポンス。

@@ -4,9 +4,12 @@ definitions:
     properties:
       name:
         example: My API Key
+        maxLength: 50
+        minLength: 1
         type: string
       user_id:
         example: 01234567-89ab-cdef-0123-456789abcdef
+        format: uuid
         type: string
     required:
     - name
@@ -64,15 +67,21 @@ definitions:
     properties:
       description:
         example: 牛乳、卵、パンを買う
+        maxLength: 1000
         type: string
       title:
         example: 買い物リストを作る
+        maxLength: 100
+        minLength: 1
         type: string
+    required:
+    - title
     type: object
   internal_presentation_http_todo.updateRequestBody:
     properties:
       description:
         example: 牛乳、卵、パンを買う
+        maxLength: 1000
         type: string
       status:
         enum:
@@ -83,15 +92,19 @@ definitions:
         type: string
       title:
         example: 買い物リストを作る
+        maxLength: 100
         type: string
     type: object
   internal_presentation_http_user.createUserRequest:
     properties:
       email:
         example: john@example.com
+        format: email
         type: string
       name:
         example: John Doe
+        maxLength: 100
+        minLength: 1
         type: string
     required:
     - email
