@@ -40,7 +40,7 @@ func main() {
 	l := logger.NewLogger(ctx)
 
 	// Initialize tracer
-	shutdownTracer, err := trace.InitializeTracer()
+	shutdownTracer, err := trace.InitializeTracer(ctx)
 	if err != nil {
 		l.FatalLog(err)
 	}
