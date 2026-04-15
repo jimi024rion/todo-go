@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -16,6 +17,11 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 
 	// Global Middleware
 	r.Use(gin.Recovery())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Content-Type", "X-API-Key"},
+	}))
 	r.Use(middleware.Logger())
 	r.Use(middleware.Trace())
 	r.Use(middleware.Timezone())

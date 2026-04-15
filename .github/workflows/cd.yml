@@ -1,0 +1,138 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+# ──────────────────────────────────────────
+# 必要な GitHub Variables (Settings > Variables)
+#   GCP_PROJECT_ID        : GCPプロジェクトID
+#   GCP_REGION            : Cloud Runリージョン (例: asia-northeast1)
+#   AR_REPO               : Artifact Registryリポジトリ名
+#   CLOUD_RUN_SERVICE     : Cloud Runサービス名
+#   WIF_PROVIDER          : Workload Identity Federationプロバイダ
+#                           例: projects/123/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+#   WIF_SERVICE_ACCOUNT   : デプロイ用サービスアカウント
+#                           例: deployer@my-project.iam.gserviceaccount.com
+#
+# 必要な GitHub Secrets (Settings > Secrets)
+#   DATABASE_URL          : NeonのPostgreSQL URL (Atlas migration用)
+#                           例: postgres://user:pass@ep-xxx.neon.tech/neondb?sslmode=require
+#   DB_HOST               : Cloud Runに渡すDBホスト
+#   DB_USER               : DBユーザー名
+#   DB_PASSWORD           : DBパスワード
+#   DB_NAME               : DB名
+#
+# ──────────────────────────────────────────
+# GCP側セットアップ手順
+#
+# 1. Artifact Registry リポジトリ作成
+#    gcloud artifacts repositories create $AR_REPO \
+#      --repository-format=docker \
+#      --location=$GCP_REGION
+#
+# 2. サービスアカウント作成
+#    gcloud iam service-accounts create deployer \
+#      --display-name="GitHub Actions Deployer"
+#
+# 3. 必要なロールを付与
+#    SA="deployer@$PROJECT_ID.iam.gserviceaccount.com"
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA" --role="roles/run.admin"
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA" --role="roles/artifactregistry.writer"
+#    gcloud projects add-iam-policy-binding $PROJECT_ID \
+#      --member="serviceAccount:$SA" --role="roles/secretmanager.admin"
+#    gcloud iam service-accounts add-iam-policy-binding $SA \
+#      --member="serviceAccount:$SA" --role="roles/iam.serviceAccountUser"
+#
+# 4. Secret Manager にDB認証情報を登録
+#    echo -n "your-db-host" | gcloud secrets create DB_HOST --data-file=-
+#    echo -n "your-db-user" | gcloud secrets create DB_USER --data-file=-
+#    echo -n "your-db-password" | gcloud secrets create DB_PASSWORD --data-file=-
+#    echo -n "your-db-name" | gcloud secrets create DB_NAME --data-file=-
+#
+#    # Cloud Run のデフォルトサービスアカウントにアクセス権を付与
+#    PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+#    CR_SA="$PROJECT_NUMBER-compute@developer.gserviceaccount.com"
+#    for secret in DB_HOST DB_USER DB_PASSWORD DB_NAME; do
+#      gcloud secrets add-iam-policy-binding $secret \
+#        --member="serviceAccount:$CR_SA" --role="roles/secretmanager.secretAccessor"
+#    done
+#
+# 4. Workload Identity Federation 設定
+#    gcloud iam workload-identity-pools create "github-pool" \
+#      --location="global"
+#    gcloud iam workload-identity-pools providers create-oidc "github-provider" \
+#      --location="global" \
+#      --workload-identity-pool="github-pool" \
+#      --issuer-uri="https://token.actions.githubusercontent.com" \
+#      --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository"
+#    gcloud iam service-accounts add-iam-policy-binding deployer@$PROJECT_ID.iam.gserviceaccount.com \
+#      --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/OWNER/REPO" \
+#      --role="roles/iam.workloadIdentityUser"
+# ──────────────────────────────────────────
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend → Cloud Run
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write  # Workload Identity Federation に必要
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── GCP認証 (Workload Identity Federation / keyless) ──
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # ── Docker → Artifact Registry ──
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        id: build
+        run: |
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.AR_REPO }}/backend:${{ github.sha }}"
+          docker build -t "$IMAGE" ./backend
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      # ── DB migration (Atlas) ──
+      - uses: ariga/setup-atlas@v0
+        with:
+          cloud-token: ""  # セルフホスト利用のためトークン不要
+
+      - name: Run database migrations
+        run: |
+          atlas migrate apply \
+            --dir "file://backend/internal/infrastructure/rdb/migrations" \
+            --url "${{ secrets.DATABASE_URL }}"
+
+      # ── Cloud Run デプロイ ──
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ steps.build.outputs.image }}
+          flags: --allow-unauthenticated
+          env_vars: |
+            APP_ENV=production
+            PORT=8080
+            LOG_LEVEL=info
+            DB_PORT=5432
+          secrets: |
+            DB_HOST=DB_HOST:latest
+            DB_USER=DB_USER:latest
+            DB_PASSWORD=DB_PASSWORD:latest
+            DB_NAME=DB_NAME:latest
