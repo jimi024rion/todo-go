@@ -13,7 +13,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mazrean/kessoku v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.0
 	github.com/stephenafamo/bob v0.42.0
 	github.com/stephenafamo/scan v0.7.0
 	github.com/stretchr/testify v1.11.1
@@ -74,7 +74,7 @@ require (
 	github.com/knadh/koanf/v2 v2.1.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
