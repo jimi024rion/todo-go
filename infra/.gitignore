@@ -1,0 +1,15 @@
+# 機密情報を含む変数ファイル（絶対にコミットしない）
+terraform.tfvars
+*.tfvars
+!terraform.tfvars.example
+
+# Terraform の作業ディレクトリ（ダウンロードしたプロバイダーなど）
+.terraform/
+.terraform.lock.hcl
+
+# ローカルステートファイル（GCS バックエンド利用時は不要になる）
+terraform.tfstate
+terraform.tfstate.backup
+
+# プラン出力ファイル
+*.tfplan

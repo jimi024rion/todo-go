@@ -1,0 +1,24 @@
+# このファイルをコピーして terraform.tfvars を作成してください:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# terraform.tfvars は機密情報を含むため .gitignore に追加されています。
+# 絶対に git commit しないでください。
+
+# ── GCP ─────────────────────────────────────────────────
+gcp_project_id = "your-gcp-project-id"
+gcp_region     = "asia-northeast1"
+
+# ── GitHub ───────────────────────────────────────────────
+github_repo = "your-github-username/todo-go"
+
+# ── Neon ─────────────────────────────────────────────────
+# https://console.neon.tech/app/settings/api-keys で発行
+neon_api_key = "your-neon-api-key"
+
+# ── Vercel ───────────────────────────────────────────────
+# https://vercel.com/account/tokens で発行
+vercel_token = "your-vercel-api-token"
+
+# 個人アカウントの場合は空文字列のまま
+# チームアカウントの場合は Team ID を設定
+vercel_team_id = ""

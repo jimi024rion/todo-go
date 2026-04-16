@@ -5,72 +5,9 @@ on:
     branches: [main]
 
 # ──────────────────────────────────────────
-# 必要な GitHub Variables (Settings > Variables)
-#   GCP_PROJECT_ID        : GCPプロジェクトID
-#   GCP_REGION            : Cloud Runリージョン (例: asia-northeast1)
-#   AR_REPO               : Artifact Registryリポジトリ名
-#   CLOUD_RUN_SERVICE     : Cloud Runサービス名
-#   WIF_PROVIDER          : Workload Identity Federationプロバイダ
-#                           例: projects/123/locations/global/workloadIdentityPools/my-pool/providers/my-provider
-#   WIF_SERVICE_ACCOUNT   : デプロイ用サービスアカウント
-#                           例: deployer@my-project.iam.gserviceaccount.com
-#
-# 必要な GitHub Secrets (Settings > Secrets)
-#   DATABASE_URL          : NeonのPostgreSQL URL (Atlas migration用)
-#                           例: postgres://user:pass@ep-xxx.neon.tech/neondb?sslmode=require
-#   DB_HOST               : Cloud Runに渡すDBホスト
-#   DB_USER               : DBユーザー名
-#   DB_PASSWORD           : DBパスワード
-#   DB_NAME               : DB名
-#
-# ──────────────────────────────────────────
-# GCP側セットアップ手順
-#
-# 1. Artifact Registry リポジトリ作成
-#    gcloud artifacts repositories create $AR_REPO \
-#      --repository-format=docker \
-#      --location=$GCP_REGION
-#
-# 2. サービスアカウント作成
-#    gcloud iam service-accounts create deployer \
-#      --display-name="GitHub Actions Deployer"
-#
-# 3. 必要なロールを付与
-#    SA="deployer@$PROJECT_ID.iam.gserviceaccount.com"
-#    gcloud projects add-iam-policy-binding $PROJECT_ID \
-#      --member="serviceAccount:$SA" --role="roles/run.admin"
-#    gcloud projects add-iam-policy-binding $PROJECT_ID \
-#      --member="serviceAccount:$SA" --role="roles/artifactregistry.writer"
-#    gcloud projects add-iam-policy-binding $PROJECT_ID \
-#      --member="serviceAccount:$SA" --role="roles/secretmanager.admin"
-#    gcloud iam service-accounts add-iam-policy-binding $SA \
-#      --member="serviceAccount:$SA" --role="roles/iam.serviceAccountUser"
-#
-# 4. Secret Manager にDB認証情報を登録
-#    echo -n "your-db-host" | gcloud secrets create DB_HOST --data-file=-
-#    echo -n "your-db-user" | gcloud secrets create DB_USER --data-file=-
-#    echo -n "your-db-password" | gcloud secrets create DB_PASSWORD --data-file=-
-#    echo -n "your-db-name" | gcloud secrets create DB_NAME --data-file=-
-#
-#    # Cloud Run のデフォルトサービスアカウントにアクセス権を付与
-#    PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
-#    CR_SA="$PROJECT_NUMBER-compute@developer.gserviceaccount.com"
-#    for secret in DB_HOST DB_USER DB_PASSWORD DB_NAME; do
-#      gcloud secrets add-iam-policy-binding $secret \
-#        --member="serviceAccount:$CR_SA" --role="roles/secretmanager.secretAccessor"
-#    done
-#
-# 4. Workload Identity Federation 設定
-#    gcloud iam workload-identity-pools create "github-pool" \
-#      --location="global"
-#    gcloud iam workload-identity-pools providers create-oidc "github-provider" \
-#      --location="global" \
-#      --workload-identity-pool="github-pool" \
-#      --issuer-uri="https://token.actions.githubusercontent.com" \
-#      --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository"
-#    gcloud iam service-accounts add-iam-policy-binding deployer@$PROJECT_ID.iam.gserviceaccount.com \
-#      --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/OWNER/REPO" \
-#      --role="roles/iam.workloadIdentityUser"
+# インフラは infra/ ディレクトリの Terraform で管理しています。
+# 初回セットアップ: cd infra && cp terraform.tfvars.example terraform.tfvars && terraform init && terraform apply
+# GitHub Variables / Secrets に設定する値は terraform output で確認できます。
 # ──────────────────────────────────────────
 
 jobs:
