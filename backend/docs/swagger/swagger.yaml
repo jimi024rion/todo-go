@@ -1,6 +1,13 @@
 basePath: /
 definitions:
-  internal_presentation_http_apikey.createRequest:
+  ApiKeyCreateErrorResponse:
+    properties:
+      resultBody:
+        $ref: '#/definitions/ApiKeyItemErr'
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  ApiKeyCreateRequest:
     properties:
       name:
         example: My API Key
@@ -15,7 +22,14 @@ definitions:
     - name
     - user_id
     type: object
-  internal_presentation_http_apikey.createResponse:
+  ApiKeyCreateResponse:
+    properties:
+      resultBody:
+        $ref: '#/definitions/ApiKeyItem'
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  ApiKeyItem:
     properties:
       created_at:
         type: string
@@ -32,19 +46,78 @@ definitions:
         example: 01234567-89ab-cdef-0123-456789abcdef
         type: string
     type: object
-  internal_presentation_http_health.HealthCheckResponse:
+  ApiKeyItemErr:
+    properties:
+      created_at:
+        example: ""
+        type: string
+      id:
+        example: ""
+        type: string
+      key:
+        example: ""
+        type: string
+      name:
+        example: ""
+        type: string
+      user_id:
+        example: ""
+        type: string
+    type: object
+  ErrorNullResponse:
+    properties:
+      resultBody:
+        type: object
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  HealthCheckResponse:
     properties:
       status:
         example: ok
         type: string
     type: object
-  internal_presentation_http_todo.CreateTodoResponse:
+  ResultHeader:
+    properties:
+      resultCode:
+        example: 0
+        type: integer
+    type: object
+  TodoCreateBody:
     properties:
       id:
         example: 01234567-89ab-cdef-0123-456789abcdef
         type: string
     type: object
-  internal_presentation_http_todo.TodoResponse:
+  TodoCreateRequest:
+    properties:
+      description:
+        example: 牛乳、卵、パンを買う
+        maxLength: 1000
+        type: string
+      title:
+        example: 買い物リストを作る
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - title
+    type: object
+  TodoCreateResponse:
+    properties:
+      resultBody:
+        $ref: '#/definitions/TodoCreateBody'
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  TodoGetResponse:
+    properties:
+      resultBody:
+        $ref: '#/definitions/TodoItem'
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  TodoItem:
     properties:
       CreatedAt:
         type: string
@@ -63,21 +136,16 @@ definitions:
       UpdatedAt:
         type: string
     type: object
-  internal_presentation_http_todo.requestBody:
+  TodoListResponse:
     properties:
-      description:
-        example: 牛乳、卵、パンを買う
-        maxLength: 1000
-        type: string
-      title:
-        example: 買い物リストを作る
-        maxLength: 100
-        minLength: 1
-        type: string
-    required:
-    - title
+      resultBody:
+        items:
+          $ref: '#/definitions/TodoItem'
+        type: array
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
     type: object
-  internal_presentation_http_todo.updateRequestBody:
+  TodoUpdateRequest:
     properties:
       description:
         example: 牛乳、卵、パンを買う
@@ -95,7 +163,7 @@ definitions:
         maxLength: 100
         type: string
     type: object
-  internal_presentation_http_user.createUserRequest:
+  UserCreateRequest:
     properties:
       email:
         example: john@example.com
@@ -110,7 +178,14 @@ definitions:
     - email
     - name
     type: object
-  internal_presentation_http_user.createUserResponse:
+  UserCreateResponse:
+    properties:
+      resultBody:
+        $ref: '#/definitions/UserItem'
+      resultHeader:
+        $ref: '#/definitions/ResultHeader'
+    type: object
+  UserItem:
     properties:
       created_at:
         type: string
@@ -124,12 +199,6 @@ definitions:
         example: John Doe
         type: string
       updated_at:
-        type: string
-    type: object
-  response.ErrorResponse:
-    properties:
-      error:
-        example: invalid request body
         type: string
     type: object
 host: localhost:8080
@@ -148,7 +217,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_presentation_http_health.HealthCheckResponse'
+            $ref: '#/definitions/HealthCheckResponse'
       summary: ヘルスチェック
       tags:
       - health
@@ -163,22 +232,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_presentation_http_apikey.createRequest'
+          $ref: '#/definitions/ApiKeyCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_presentation_http_apikey.createResponse'
+            $ref: '#/definitions/ApiKeyCreateResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ApiKeyCreateErrorResponse'
       summary: APIキー作成
       tags:
       - api-keys
@@ -200,11 +269,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: APIキー削除
@@ -219,13 +288,11 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
-            type: array
+            $ref: '#/definitions/TodoListResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク一覧取得
@@ -241,26 +308,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_presentation_http_todo.requestBody'
+          $ref: '#/definitions/TodoCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_presentation_http_todo.CreateTodoResponse'
+            $ref: '#/definitions/TodoCreateResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク作成
@@ -284,15 +351,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク削除
@@ -313,19 +380,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
+            $ref: '#/definitions/TodoGetResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク詳細取得
@@ -347,26 +414,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_presentation_http_todo.updateRequestBody'
+          $ref: '#/definitions/TodoUpdateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_presentation_http_todo.TodoResponse'
+            $ref: '#/definitions/TodoGetResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク更新
@@ -383,22 +450,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_presentation_http_user.createUserRequest'
+          $ref: '#/definitions/UserCreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/internal_presentation_http_user.createUserResponse'
+            $ref: '#/definitions/UserCreateResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/response.ErrorResponse'
+            $ref: '#/definitions/ErrorNullResponse'
       security:
       - ApiKeyAuth: []
       summary: ユーザー作成

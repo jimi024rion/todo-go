@@ -2,6 +2,7 @@ package todo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
@@ -50,7 +51,7 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 	// 1. IDの検証
 	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
-		return nil, errs.NewErr(errs.BadRequest, err)
+		return nil, errs.NewErr(errs.InternalCodeInvalidID, err)
 	}
 
 	result, err := uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {
@@ -64,7 +65,14 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 		//    このメソッドの中で、新しい値に対するビジネスルール検証が行われる
 		now := uc.clock.Now(txCtx)
 		if err := targetTodo.ChangeTitle(input.Title, now); err != nil {
-			return nil, errs.NewErr(errs.BadRequest, err)
+			switch {
+			case errors.Is(err, todovo.ErrTitleIsEmpty):
+				return nil, errs.NewErr(errs.InternalCodeTitleEmpty, err)
+			case errors.Is(err, todovo.ErrTitleTooLong):
+				return nil, errs.NewErr(errs.InternalCodeTitleTooLong, err)
+			default:
+				return nil, errs.NewErr(errs.InternalCodeInternal, err)
+			}
 		}
 		targetTodo.ChangeDescription(input.Description, now)
 

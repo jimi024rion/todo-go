@@ -43,7 +43,7 @@ func (uc *GetUseCase) Execute(ctx context.Context, input *GetInput) (*GetOutput,
 	// これにより、IDのフォーマットが不正な場合はこの時点でエラーとして扱えます。
 	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
-		return nil, errs.NewErr(errs.BadRequest, err)
+		return nil, errs.NewErr(errs.InternalCodeInvalidID, err)
 	}
 
 	// リポジトリからTodoエンティティを検索します。

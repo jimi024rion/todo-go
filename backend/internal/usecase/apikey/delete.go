@@ -30,7 +30,7 @@ type DeleteOutput struct{}
 func (uc *DeleteUseCase) Execute(ctx context.Context, input *DeleteInput) (*DeleteOutput, error) {
 	apiKeyID, err := apikeyvo.APIKeyIDFromString(input.ID)
 	if err != nil {
-		return nil, errs.NewErr(errs.BadRequest, err)
+		return nil, errs.NewErr(errs.InternalCodeInvalidID, err)
 	}
 
 	_, err = uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {

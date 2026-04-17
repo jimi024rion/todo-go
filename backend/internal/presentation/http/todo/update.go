@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/response"
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
@@ -20,10 +21,10 @@ func NewUpdateHandler(u *todousecase.UpdateUseCase) *UpdateHandler {
 
 // updateRequestBody is the request body for updating a todo.
 type updateRequestBody struct {
-	Title       string `json:"title"       maxLength:"100"                                    example:"買い物リストを作る"`
-	Description string `json:"description" maxLength:"1000"                                   example:"牛乳、卵、パンを買う"`
-	Status      string `json:"status"      enums:"pending,in_progress,completed"              example:"in_progress"`
-}
+	Title       string `json:"title"       maxLength:"100"                       example:"買い物リストを作る"`
+	Description string `json:"description" maxLength:"1000"                      example:"牛乳、卵、パンを買う"`
+	Status      string `json:"status"      enums:"pending,in_progress,completed" example:"in_progress"`
+} // @name TodoUpdateRequest
 
 // Handle handles the request to update an existing todo.
 //
@@ -34,46 +35,42 @@ type updateRequestBody struct {
 // @Produce     json
 // @Param       id      path     string            true "タスクID" example("01234567-89ab-cdef-0123-456789abcdef")
 // @Param       request body     updateRequestBody true "タスク更新リクエスト"
-// @Success     200     {object} TodoResponse
-// @Failure     400     {object} response.ErrorResponse
-// @Failure     404     {object} response.ErrorResponse
-// @Failure     500     {object} response.ErrorResponse
+// @Success     200     {object} todoGetResponse
+// @Failure     400     {object} response.ErrorNullResponse
+// @Failure     404     {object} response.ErrorNullResponse
+// @Failure     500     {object} response.ErrorNullResponse
 // @Security    ApiKeyAuth
 // @Router      /v1/todos/{id} [put]
 func (h *UpdateHandler) Handle(c *gin.Context) {
-	// URLパラメータからIDを取得
 	id := c.Param("id")
 
-	// リクエストボディをバインド
 	var req updateRequestBody
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body: " + err.Error()})
+		c.JSON(errs.BadRequest.HTTPStatus(), response.FailNull(errs.BadRequest))
 		return
 	}
 
-	// ユースケースの入力DTOを作成
-	input := &todousecase.UpdateInput{
+	output, err := h.usecase.Execute(c.Request.Context(), &todousecase.UpdateInput{
 		ID:          id,
 		Title:       req.Title,
 		Description: req.Description,
 		Status:      req.Status,
-	}
-
-	// ユースケースを実行
-	output, err := h.usecase.Execute(c.Request.Context(), input)
+	})
 	if err != nil {
-		if errs.IsBadRequest(err) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if errs.IsNotFound(err) {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		rc := errs.ResultCodeFrom(err)
+		c.JSON(rc.HTTPStatus(), response.FailNull(rc))
 		return
 	}
 
-	// 成功レスポンス
-	c.JSON(http.StatusOK, output)
+	c.JSON(http.StatusOK, todoGetResponse{
+		ResultHeader: response.OKHeader(),
+		ResultBody: todoItem{
+			ID:          output.ID,
+			Title:       output.Title,
+			Description: output.Description,
+			Status:      output.Status,
+			CreatedAt:   output.CreatedAt,
+			UpdatedAt:   output.UpdatedAt,
+		},
+	})
 }

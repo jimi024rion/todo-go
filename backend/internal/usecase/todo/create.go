@@ -2,11 +2,14 @@ package todo
 
 import (
 	"context"
+	"errors"
 
 	"go.opentelemetry.io/otel"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
+	todovo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/valueobject"
 	todorepository "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
 	uservo "github.com/jimi024rion/todo-go/backend/internal/domain/user/model/valueobject"
@@ -49,15 +52,21 @@ func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*Crea
 	result, err := uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {
 		userID, err := uservo.UserIDFromString(input.UserID)
 		if err != nil {
-			return nil, err
+			return nil, errs.NewErr(errs.InternalCodeInvalidID, err)
 		}
 
 		// ドメインモデルのファクトリを呼び出し、エンティティを生成します。
 		// この中でビジネスルール（タイトルの長さなど）が検証されます。
 		newTodo, err := entity.NewTodo(userID, input.Title, input.Description, uc.clock.Now(ctx))
 		if err != nil {
-			// ビジネスルール違反の場合、エラーを返す。
-			return nil, err
+			switch {
+			case errors.Is(err, todovo.ErrTitleIsEmpty):
+				return nil, errs.NewErr(errs.InternalCodeTitleEmpty, err)
+			case errors.Is(err, todovo.ErrTitleTooLong):
+				return nil, errs.NewErr(errs.InternalCodeTitleTooLong, err)
+			default:
+				return nil, errs.NewErr(errs.InternalCodeInternal, err)
+			}
 		}
 
 		// リポジトリにエンティティの永続化を依頼します。

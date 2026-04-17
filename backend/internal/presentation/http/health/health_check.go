@@ -17,7 +17,7 @@ func NewHealthCheckHandler() *HealthCheckHandler {
 // HealthCheckResponse はヘルスチェックのレスポンス。
 type HealthCheckResponse struct {
 	Status string `json:"status" example:"ok"`
-}
+} // @name HealthCheckResponse
 
 // Handle は GET /health のリクエストを処理します。
 //

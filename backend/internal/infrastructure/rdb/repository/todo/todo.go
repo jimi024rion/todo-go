@@ -86,7 +86,7 @@ func (r *Repository) FindByID(ctx context.Context, id valueobject.TodoID) (*enti
 	todoModel, err := models.FindTodo(ctx, r.getExecutor(ctx), uid)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.NewErr(errs.IsNotFoundRequest, fmt.Errorf("todo not found: %s", id.String()))
+			return nil, errs.NewErr(errs.InternalCodeNotFound, fmt.Errorf("todo not found: %s", id.String()))
 		}
 		return nil, fmt.Errorf("failed to find todo by id: %w", err)
 	}

@@ -37,7 +37,7 @@ func (uc *DeleteUseCase) Execute(ctx context.Context, input *DeleteInput) (*Dele
 	// 1. IDの検証
 	todoID, err := todovo.TodoIDFromString(input.ID)
 	if err != nil {
-		return nil, errs.NewErr(errs.BadRequest, err)
+		return nil, errs.NewErr(errs.InternalCodeInvalidID, err)
 	}
 
 	_, err = uc.txManager.Do(ctx, func(txCtx context.Context) (any, error) {

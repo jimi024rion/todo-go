@@ -29,7 +29,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_health.HealthCheckResponse"
+                            "$ref": "#/definitions/HealthCheckResponse"
                         }
                     }
                 }
@@ -55,7 +55,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_apikey.createRequest"
+                            "$ref": "#/definitions/ApiKeyCreateRequest"
                         }
                     }
                 ],
@@ -63,19 +63,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_apikey.createResponse"
+                            "$ref": "#/definitions/ApiKeyCreateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ApiKeyCreateErrorResponse"
                         }
                     }
                 }
@@ -113,13 +113,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -144,16 +144,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/internal_presentation_http_todo.TodoResponse"
-                            }
+                            "$ref": "#/definitions/TodoListResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -182,7 +179,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_todo.requestBody"
+                            "$ref": "#/definitions/TodoCreateRequest"
                         }
                     }
                 ],
@@ -190,25 +187,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_todo.CreateTodoResponse"
+                            "$ref": "#/definitions/TodoCreateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -243,25 +240,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_todo.TodoResponse"
+                            "$ref": "#/definitions/TodoGetResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -298,7 +295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_todo.updateRequestBody"
+                            "$ref": "#/definitions/TodoUpdateRequest"
                         }
                     }
                 ],
@@ -306,25 +303,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_todo.TodoResponse"
+                            "$ref": "#/definitions/TodoGetResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -360,19 +357,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -403,7 +400,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_user.createUserRequest"
+                            "$ref": "#/definitions/UserCreateRequest"
                         }
                     }
                 ],
@@ -411,19 +408,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/internal_presentation_http_user.createUserResponse"
+                            "$ref": "#/definitions/UserCreateResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
+                            "$ref": "#/definitions/ErrorNullResponse"
                         }
                     }
                 }
@@ -431,7 +428,18 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "internal_presentation_http_apikey.createRequest": {
+        "ApiKeyCreateErrorResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "$ref": "#/definitions/ApiKeyItemErr"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "ApiKeyCreateRequest": {
             "type": "object",
             "required": [
                 "name",
@@ -451,7 +459,18 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_apikey.createResponse": {
+        "ApiKeyCreateResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "$ref": "#/definitions/ApiKeyItem"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "ApiKeyItem": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -475,7 +494,43 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_health.HealthCheckResponse": {
+        "ApiKeyItemErr": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": ""
+                },
+                "id": {
+                    "type": "string",
+                    "example": ""
+                },
+                "key": {
+                    "type": "string",
+                    "example": ""
+                },
+                "name": {
+                    "type": "string",
+                    "example": ""
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": ""
+                }
+            }
+        },
+        "ErrorNullResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "type": "object"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "HealthCheckResponse": {
             "type": "object",
             "properties": {
                 "status": {
@@ -484,7 +539,16 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_todo.CreateTodoResponse": {
+        "ResultHeader": {
+            "type": "object",
+            "properties": {
+                "resultCode": {
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "TodoCreateBody": {
             "type": "object",
             "properties": {
                 "id": {
@@ -493,7 +557,48 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_todo.TodoResponse": {
+        "TodoCreateRequest": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "牛乳、卵、パンを買う"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "買い物リストを作る"
+                }
+            }
+        },
+        "TodoCreateResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "$ref": "#/definitions/TodoCreateBody"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "TodoGetResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "$ref": "#/definitions/TodoItem"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "TodoItem": {
             "type": "object",
             "properties": {
                 "CreatedAt": {
@@ -520,26 +625,21 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_todo.requestBody": {
+        "TodoListResponse": {
             "type": "object",
-            "required": [
-                "title"
-            ],
             "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 1000,
-                    "example": "牛乳、卵、パンを買う"
+                "resultBody": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/TodoItem"
+                    }
                 },
-                "title": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1,
-                    "example": "買い物リストを作る"
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
                 }
             }
         },
-        "internal_presentation_http_todo.updateRequestBody": {
+        "TodoUpdateRequest": {
             "type": "object",
             "properties": {
                 "description": {
@@ -563,7 +663,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_user.createUserRequest": {
+        "UserCreateRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -583,7 +683,18 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_presentation_http_user.createUserResponse": {
+        "UserCreateResponse": {
+            "type": "object",
+            "properties": {
+                "resultBody": {
+                    "$ref": "#/definitions/UserItem"
+                },
+                "resultHeader": {
+                    "$ref": "#/definitions/ResultHeader"
+                }
+            }
+        },
+        "UserItem": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -603,15 +714,6 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "response.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "invalid request body"
                 }
             }
         }
