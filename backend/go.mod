@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/XSAM/otelsql v0.42.0
 	github.com/aarondl/opt v0.0.0-20250607033636-982744e1bd65
-	github.com/caarlos0/env/v11 v11.3.1
+	github.com/caarlos0/env/v11 v11.4.0
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/gofrs/uuid/v5 v5.4.0
