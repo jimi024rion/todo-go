@@ -1,0 +1,23 @@
+runners:
+  db: 'postgres://user:P@ssw0rd@localhost:5432/todo-go?sslmode=disable'
+vars:
+  test_user_id: "00000000-0000-0000-0000-000000000001"
+steps:
+  seed_user:
+    db:
+      query: |
+        INSERT INTO users (id, name, email, created_at, updated_at)
+        VALUES ('{{ vars.test_user_id }}', 'Test User', 'test@example.com', NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+  seed_apikey:
+    db:
+      query: |
+        INSERT INTO api_keys (id, user_id, name, created_at, key_hash)
+        VALUES (
+          '00000000-0000-0000-0000-000000000002',
+          '{{ vars.test_user_id }}',
+          'test-key',
+          NOW(),
+          '2f0c174eaa0fdbdaba74a211f2d4c426d741749c26ebadd40a585d7fad748dc9'
+        )
+        ON CONFLICT (id) DO NOTHING

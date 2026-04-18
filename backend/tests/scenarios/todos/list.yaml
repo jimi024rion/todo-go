@@ -1,0 +1,26 @@
+runners:
+  req: http://localhost:8080
+vars:
+  test_api_key: "test-api-key-for-scenario"
+steps:
+  setup:
+    include:
+      path: ../shared/bootstrap.yaml
+  create_todo:
+    req:
+      /v1/todos:
+        post:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+          body:
+            application/json:
+              title: "一覧確認用タスク"
+              description: "一覧テスト用"
+    test: current.res.status == 201
+  list_todos:
+    req:
+      /v1/todos:
+        get:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+    test: current.res.status == 200 && current.res.body.resultHeader.resultCode == 0 && len(current.res.body.resultBody) > 0

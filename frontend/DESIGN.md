@@ -1,58 +1,63 @@
 # Design System — Todo App
 
-A clean, focused task management UI. The design philosophy prioritizes legibility and calm focus: every visual decision removes friction from the act of managing tasks, not adding to it.
+A clean, modern task management UI with a warm, calm aesthetic. The design philosophy prioritizes legibility and focus: every visual decision removes friction from the act of managing tasks.
 
 ## 1. Visual Theme & Atmosphere
 
-The interface is built on pure white surfaces with a single indigo accent — there are no competing colors, no gradients, no decorative noise. The aesthetic is closer to a well-designed notebook than a feature-rich dashboard. Surfaces feel flat and airy; interactions are signaled through subtle shadows and understated color transitions rather than bold animations.
+The interface uses a warm off-white background with white card surfaces and a single orange accent. The palette is warm and calm — not clinical white, not flashy. Think of a well-crafted analog notebook: structured, purposeful, with just enough warmth to feel human.
 
-Status colors are the only chromatic elements allowed: a muted slate for pending tasks, a calm blue for in-progress, and a soft green for completed. These colors are desaturated enough to read as data, not decoration.
+Status colors are the only additional chromatic elements: amber for pending, blue for in-progress, and emerald for completed. Cards use a left border strip (4px) to communicate status at a glance without relying solely on badges.
 
-Typography is system-native (`Inter`), leaning on weight and size contrast rather than font variety. Body text is dark but not pure black — `#111827` — giving a slightly warmer, less clinical feel on white. All spacing uses an 8px grid, creating consistent visual rhythm without rigidity.
+Typography is Inter — leaning on weight and size contrast rather than font variety. All spacing uses an 8px grid.
 
 **Key Characteristics:**
-- Single accent color: Indigo (`#4F46E5`) used exclusively for primary actions and focus states
-- Flat surfaces: no decorative shadows, depth only on interactive overlays and modals
-- Status palette: slate / blue / green — muted, not saturated
+- Single accent color: Orange (`#F97316`) used exclusively for primary actions and focus states
+- Warm off-white page background (`#F7F6F2`) — not pure white
+- White card surfaces with subtle shadow
+- Status palette: amber / blue / emerald — used in badges and card left borders
 - Inter font, system-native fallback chain
-- `#111827` near-black text instead of pure black
+- `#1C1917` near-black (stone-950) for text — warm, not cool
 - 8px spacing base unit
-- 6px button radius for a slightly rounded but functional feel
-- Borders: `1px solid #E5E7EB` — light gray, not whisper-weight
+- 6px button radius, 8px card radius, 12px modal radius
 
 ---
 
 ## 2. Color Palette & Roles
 
 ### Primary
-- **Indigo 600** (`#4F46E5`): Primary CTA, active state, focus ring, interactive accent. The only saturated color in the UI.
-- **Indigo 700** (`#4338CA`): Button hover / pressed state.
-- **Indigo 50** (`#EEF2FF`): Subtle indigo tint for selected backgrounds.
-- **White** (`#FFFFFF`): Page background, card surfaces, button text on indigo.
+- **Orange 500** (`#F97316`): Primary CTA, active tab, focus ring, interactive accent. The only saturated non-status color in the UI.
+- **Orange 600** (`#EA580C`): Button hover / pressed state.
+- **Orange 50** (`#FFF7ED`): Subtle orange tint for selected/hover backgrounds.
+
+### Background & Surface
+- **Page Background** (`#F7F6F2`): Warm off-white. The main canvas.
+- **Surface / Card** (`#FFFFFF`): White cards on the warm background.
 
 ### Text
-- **Gray 900** (`#111827`): Headings, primary body text.
-- **Gray 600** (`#4B5563`): Secondary text, descriptions, metadata.
-- **Gray 400** (`#9CA3AF`): Placeholder text, disabled states, empty states.
+- **Stone 950** (`#1C1917`): Headings, primary body text.
+- **Stone 500** (`#78716C`): Secondary text, descriptions, metadata.
+- **Stone 400** (`#A8A29E`): Placeholder text, disabled states, empty states.
 
-### Surface & Border
-- **Gray 50** (`#F9FAFB`): Page background tint, input backgrounds.
-- **Gray 100** (`#F3F4F6`): Hover backgrounds on list items, subtle section fills.
-- **Gray 200** (`#E5E7EB`): Standard borders — cards, inputs, dividers.
-- **Gray 300** (`#D1D5DB`): Stronger borders, focus-adjacent outlines.
+### Border
+- **Stone 200** (`#E7E5E0`): Standard borders — cards, inputs, dividers.
+- **Stone 300** (`#D6D3D1`): Stronger borders, focus-adjacent outlines.
 
 ### Status Colors
-- **Pending** — Background: `#F3F4F6`, Text: `#4B5563`, Dot: `#9CA3AF`
-- **In Progress** — Background: `#DBEAFE`, Text: `#1D4ED8`, Dot: `#3B82F6`
-- **Completed** — Background: `#DCFCE7`, Text: `#15803D`, Dot: `#22C55E`
+
+| Status | Badge BG | Badge Text | Card Left Border |
+|--------|----------|------------|-----------------|
+| `pending` | `#FEF3C7` amber-100 | `#92400E` amber-800 | `#FCD34D` amber-300 |
+| `in_progress` | `#DBEAFE` blue-100 | `#1D4ED8` blue-700 | `#60A5FA` blue-400 |
+| `completed` | `#D1FAE5` emerald-100 | `#065F46` emerald-800 | `#34D399` emerald-400 |
 
 ### Semantic
 - **Red 500** (`#EF4444`): Destructive actions (delete button hover, error messages).
 - **Red 50** (`#FEF2F2`): Destructive hover background.
 
 ### Shadows
-- **Overlay Shadow** (`0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)`): Modals, dropdowns.
-- **Card Lift** (`0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.06)`): Hover state on cards.
+- **Card Default**: `0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)`
+- **Card Hover / Lifted**: `0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.06)`
+- **Modal**: `0 20px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.08)`
 
 ---
 
@@ -63,21 +68,20 @@ Typography is system-native (`Inter`), leaning on weight and size contrast rathe
 
 ### Hierarchy
 
-| Role | Size | Weight | Line Height | Letter Spacing | Color |
-|------|------|--------|-------------|----------------|-------|
-| Page Title | 24px (1.5rem) | 700 | 1.25 | -0.025em | `#111827` |
-| Section Heading | 18px (1.125rem) | 600 | 1.4 | -0.015em | `#111827` |
-| Todo Title | 16px (1rem) | 500 | 1.5 | normal | `#111827` |
-| Body / Description | 14px (0.875rem) | 400 | 1.6 | normal | `#4B5563` |
-| Label / Badge | 12px (0.75rem) | 500 | 1.33 | 0.025em | Varies by status |
-| Caption / Meta | 12px (0.75rem) | 400 | 1.33 | normal | `#9CA3AF` |
-| Button | 14px (0.875rem) | 500 | 1 | normal | `#FFFFFF` / `#111827` |
-| Input | 14px (0.875rem) | 400 | 1.5 | normal | `#111827` |
+| Role | Size | Weight | Line Height | Color |
+|------|------|--------|-------------|-------|
+| Page Title | 24px (1.5rem) | 700 | 1.25 | `#1C1917` |
+| Section Heading | 18px (1.125rem) | 600 | 1.4 | `#1C1917` |
+| Todo Title | 16px (1rem) | 500 | 1.5 | `#1C1917` |
+| Body / Description | 14px (0.875rem) | 400 | 1.6 | `#78716C` |
+| Label / Badge | 12px (0.75rem) | 500 | 1.33 | Varies by status |
+| Caption / Meta | 12px (0.75rem) | 400 | 1.33 | `#A8A29E` |
+| Button | 14px (0.875rem) | 500 | 1 | `#FFFFFF` / `#1C1917` |
+| Input | 14px (0.875rem) | 400 | 1.5 | `#1C1917` |
 
 ### Principles
-- **Weight over variety**: Use weight (400/500/600/700) to create hierarchy. Never use more than two font sizes in a single component.
-- **Negative tracking on headings only**: Page title at -0.025em, section heading at -0.015em. Body text always at normal tracking.
-- **Completed todo treatment**: strike-through (`line-through`) + color shift to `#9CA3AF`. Weight stays the same.
+- **Weight over variety**: Use weight (400/500/600/700) to create hierarchy.
+- **Completed todo treatment**: strike-through (`line-through`) + color shift to `#A8A29E`. Weight stays the same.
 
 ---
 
@@ -85,62 +89,72 @@ Typography is system-native (`Inter`), leaning on weight and size contrast rathe
 
 ### Buttons
 
-**Primary (Indigo)**
-- Background: `#4F46E5`
-- Hover: `#4338CA`
-- Active: `#3730A3`
+**Primary (Orange)**
+- Background: `#F97316`
+- Hover: `#EA580C`
+- Active: `#C2410C`
 - Text: `#FFFFFF`, 14px weight 500
 - Padding: `8px 16px`
 - Radius: `6px`
-- Focus: `2px solid #4F46E5` outline + `2px` offset
+- Focus: `2px solid #F97316` outline + `2px` offset
 
 **Secondary (Outline)**
 - Background: `#FFFFFF`
-- Border: `1px solid #E5E7EB`
-- Hover bg: `#F9FAFB`
-- Text: `#374151`, 14px weight 500
+- Border: `1px solid #E7E5E0`
+- Hover bg: `#F7F6F2`
+- Text: `#1C1917`, 14px weight 500
 - Padding: `8px 16px`
 - Radius: `6px`
 
 **Ghost (Icon Button)**
 - Background: transparent
-- Hover bg: `#F3F4F6`
-- Icon color: `#9CA3AF` → hover `#4B5563`
+- Hover bg: `#F5F5F4` (stone-100)
+- Icon color: `#A8A29E` → hover `#78716C`
 - Padding: `6px`
 - Radius: `6px`
-- Use: Delete icon button, settings
+- Use: Edit icon button, settings
 
 **Destructive Ghost**
 - Same as Ghost, but hover: bg `#FEF2F2`, icon `#EF4444`
-- Use: Delete action in confirmed context
+- Use: Delete action
 
 ### Cards & Containers
 
 **Todo Card**
 - Background: `#FFFFFF`
-- Border: `1px solid #E5E7EB`
+- Border: `1px solid #E7E5E0`
+- Border left: `4px solid <status-color>` (amber-300 / blue-400 / emerald-400)
 - Radius: `8px`
 - Padding: `16px`
-- Hover: border `#D1D5DB` + shadow `0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.06)`
-- Completed state: bg `#F9FAFB`
+- Shadow: `0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)`
+- Hover: shadow lifted + border `#D6D3D1`
+- Completed state: opacity-75, title with line-through
 
 **Form Container**
 - Background: `#FFFFFF`
-- Border: `1px solid #E5E7EB`
+- Border: `1px solid #E7E5E0`
+- Shadow: same as Todo Card
 - Radius: `8px`
 - Padding: `20px`
+
+**Register / Setup Card**
+- Background: `#FFFFFF`
+- Shadow: `0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.06)`
+- Radius: `16px`
+- Padding: `32px`
+- Max-width: `400px`
 
 ### Inputs & Forms
 
 **Text Input / Textarea**
 - Background: `#FFFFFF`
-- Border: `1px solid #D1D5DB`
+- Border: `1px solid #D6D3D1`
 - Radius: `6px`
 - Padding: `8px 12px`
-- Text: 14px `#111827`
-- Placeholder: `#9CA3AF`
-- Focus: border `#4F46E5` + `0 0 0 2px rgba(79,70,229,0.15)` ring
-- Disabled: bg `#F9FAFB`, text `#9CA3AF`
+- Text: 14px `#1C1917`
+- Placeholder: `#A8A29E`
+- Focus: border `#F97316` + `0 0 0 2px rgba(249,115,22,0.15)` ring
+- Disabled: bg `#F5F5F4`, text `#A8A29E`
 
 ### Status Badge
 
@@ -148,66 +162,103 @@ Typography is system-native (`Inter`), leaning on weight and size contrast rathe
 
 | Status | Background | Text | Dot |
 |--------|-----------|------|-----|
-| `pending` | `#F3F4F6` | `#4B5563` | `#9CA3AF` |
-| `in_progress` | `#DBEAFE` | `#1D4ED8` | `#3B82F6` |
-| `completed` | `#DCFCE7` | `#15803D` | `#22C55E` |
+| `pending` | `#FEF3C7` | `#92400E` | `#FCD34D` |
+| `in_progress` | `#DBEAFE` | `#1D4ED8` | `#60A5FA` |
+| `completed` | `#D1FAE5` | `#065F46` | `#34D399` |
 
 Structure: `● label` — 6px dot (●) + space + text at 12px weight 500
 
-### Modal (API Key Setup)
+### Filter Tabs
+
+Horizontal tab bar below the page header. Tabs: **すべて** / **未着手** / **進行中**
+
+- Container: `border-b border-stone-200 bg-[#F7F6F2]`
+- Tab item padding: `8px 16px`
+- **Active**: `border-b-2 border-orange-500 text-orange-600 font-semibold` — no bg change
+- **Inactive**: `text-stone-500 hover:text-stone-700`
+- Tab font: 14px weight 400 (500 when active)
+
+### Edit Modal
+
+Triggered by the edit icon button on a Todo Card.
 
 - Overlay: `rgba(0,0,0,0.4)` backdrop, `backdrop-filter: blur(2px)`
-- Panel: `#FFFFFF`, radius `12px`, padding `32px`, max-width `400px`
-- Shadow: `0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)`
-- Title: 20px weight 700 `#111827`
-- Description: 14px weight 400 `#4B5563`
+- Panel: `#FFFFFF`, radius `12px`, padding `24px`, max-width `480px`
+- Shadow: `0 20px 25px -5px rgba(0,0,0,0.12), 0 8px 10px -6px rgba(0,0,0,0.08)`
+- Title: 18px weight 600 `#1C1917`
+- Fields: title input + description textarea
+- Buttons: [キャンセル] secondary + [保存] primary, right-aligned
+
+### Completed Section
+
+Appears below the active todo list when there are completed tasks.
+
+- Header: `border-t border-stone-200 pt-4 mt-4`
+- Toggle text: `text-stone-500 text-sm font-medium` + chevron icon
+- Collapsed by default (show count in header)
+- Inner cards: same card style but with `opacity-75`
 
 ### Divider
-- `1px solid #F3F4F6`
-- Use to separate todo list from form, or group sections
+- `1px solid #E7E5E0`
+- Use to separate sections
 
 ---
 
 ## 5. Layout Principles
 
 ### Spacing System (8px base)
-- `4px` — tight spacing, icon gaps, badge padding vertical
-- `8px` — component-level internal spacing (input padding)
-- `12px` — card padding tight, gap between form elements
-- `16px` — card padding standard, section gap
+- `4px` — tight spacing, badge padding vertical
+- `8px` — internal component spacing
+- `12px` — gap between form elements
+- `16px` — card padding, section gap, tab padding
 - `20px` — form container padding
-- `24px` — between cards in list
-- `32px` — section vertical margin, modal padding
+- `24px` — modal padding, between cards in list
+- `32px` — section vertical margin, register card padding
 - `48px` — page top padding
 
 ### Page Layout
-- Max content width: `640px` (single-column, task-focused)
+- Max content width: `640px` (single-column)
 - Centered with horizontal auto margins
 - Horizontal padding: `16px` on mobile, `24px` on tablet+
-- No sidebars, no multi-column — task management is a focused activity
+- Page background: `#F7F6F2`
 
 ### Component Arrangement
 ```
-[Page Header: "Todo" title + API key reset button]
-─────────────────────────────────────────
+[Page Header: "Todo" title + ResetKey button]
+─────────────────────────────────────────────
+[Filter Tabs: すべて | 未着手 | 進行中]
+─────────────────────────────────────────────
 [TodoForm: input fields + submit button]
-─────────────────────────────────────────
-[TodoList]
+─────────────────────────────────────────────
+[Active TodoList]
+  [TodoCard] ← left border: status color
   [TodoCard]
-  [TodoCard]
+  ...
+─────────────────────────────────────────────
+[完了済み (N) ▶]  ← collapsible section
+  [TodoCard (completed)]
   ...
 ```
 
+### Register Page Layout
+```
+[Full screen: bg #F7F6F2]
+  [Centered card: white, 400px, rounded-2xl, shadow-lg]
+    [App title]
+    [RegisterForm: name + email + submit]
+```
+
 ### Whitespace Philosophy
-- List items have `8px` gap — dense enough to see many tasks, loose enough to distinguish them.
-- The form and list are separated by a `32px` margin.
-- Empty state uses center-aligned text with `48px` top margin.
+- List items have `8px` gap.
+- Form and list separated by `24px` margin.
+- Empty state: centered `#A8A29E` text, `48px` top margin.
 
 ### Border Radius Scale
-- `4px` — small chips, tight elements
+- `4px` — small chips
 - `6px` — buttons, inputs
-- `8px` — cards, containers
+- `8px` — cards
 - `12px` — modal panel
+- `16px` — register card
 - `9999px` — status badges (full pill)
 
 ---
@@ -216,32 +267,35 @@ Structure: `● label` — 6px dot (●) + space + text at 12px weight 500
 
 | Level | Treatment | Use |
 |-------|-----------|-----|
-| Flat (0) | No shadow, `1px solid #E5E7EB` border | Page bg, standard cards, inputs |
-| Lifted (1) | `0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.06)` | Card hover state |
-| Overlay (2) | `0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)` | Dropdowns |
-| Modal (3) | `0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)` | API key modal |
-| Focus | `0 0 0 2px rgba(79,70,229,0.15)` + border `#4F46E5` | Keyboard focus on inputs |
+| Flat (0) | No shadow, border `#E7E5E0` | Inputs standard |
+| Card (1) | shadow-sm | Todo cards, form containers |
+| Lifted (2) | shadow-md | Card hover state |
+| Modal (3) | shadow-xl | Edit modal, register card |
+| Focus | `0 0 0 2px rgba(249,115,22,0.15)` + border `#F97316` | Keyboard focus on inputs |
 
-**Depth Philosophy**: Depth only appears when the user is interacting (hover) or when an element demands attention (modal). Static cards are flat — the border alone defines their boundary. This keeps the list scannable without visual noise.
+**Depth Philosophy**: Depth appears on interactive hover and attention-demanding elements (modals, registration). Static cards have a subtle shadow on the warm background — the contrast itself creates separation without heavy borders.
 
 ---
 
 ## 7. Design Guidelines
 
 ### Do
-- Use Indigo (`#4F46E5`) exclusively for primary actions. Never apply it to borders, text, or decorative elements.
-- Apply `line-through` + `#9CA3AF` text color to completed todo titles for immediate status recognition.
-- Show loading state inline (spinner icon replacing the button label) rather than disabling the whole card.
-- Use the status badge in every todo card — it's the primary information hierarchy element.
-- Animate only transitions: 150ms ease for color/shadow/border changes. No transform animations on list items.
+- Use Orange (`#F97316`) exclusively for primary actions, active tabs, and focus rings.
+- Use the 4px left border on cards to signal status — it's faster to scan than badges alone.
+- Apply `line-through` + `#A8A29E` text color to completed todo titles.
+- Show loading state inline (spinner replacing button label).
+- Collapse the completed section by default — completed tasks are history, not current work.
+- Minimum touch target height `44px` for all interactive elements on mobile.
 
 ### Don't
-- Don't use more than one primary button per visible screen section.
-- Don't add icons to buttons unless they are icon-only ghost buttons. Text buttons stay text-only.
-- Don't use red for anything other than destructive confirmation (delete). Errors use red text, not red backgrounds.
-- Don't show skeleton loaders for the todo list — use a single centered spinner instead. The list is short.
-- Don't truncate todo titles with ellipsis — allow wrapping. Tasks need to be fully readable at a glance.
-- Don't change card width or layout on status change. The list should feel stable.
+- Don't use Indigo or any blue except for `in_progress` status.
+- Don't use pure white (`#FFFFFF`) as the page background — use `#F7F6F2`.
+- Don't use more than one primary (orange) button per visible screen section.
+- Don't add icons to text buttons — icon-only ghost buttons only.
+- Don't use red for anything other than destructive actions.
+- Don't show skeleton loaders — use a single centered spinner.
+- Don't truncate todo titles with ellipsis — allow wrapping.
+- Don't change card width or layout on status change.
 
 ---
 
@@ -254,15 +308,15 @@ Structure: `● label` — 6px dot (●) + space + text at 12px weight 500
 | Tablet+ | ≥ 640px | Centered 640px column, 24px horizontal padding |
 
 ### Collapsing Strategy
-- The layout is already single-column — no column collapsing needed.
-- Form: on mobile, title and description fields stack vertically with the submit button full-width below.
-- Todo card action buttons (status change, delete): always visible, never hidden behind a "more" menu — the list is compact enough.
-- API key modal: full-width with 16px horizontal margin on mobile; centered 400px panel on tablet+.
+- Single-column always — no column collapsing needed.
+- Form: title and description fields stack vertically; submit button full-width on mobile.
+- Todo card action buttons: always visible.
+- Edit modal: full-width with 16px margin on mobile; centered 480px panel on tablet+.
 
 ### Touch Targets
-- All buttons minimum `36px` height
-- Delete icon button: `32px × 32px` touch area
-- Status change button: `32px` height minimum
+- All buttons minimum `44px` height on mobile (use `min-h-[44px]`)
+- Edit and delete icon buttons: `40px × 40px` touch area
+- Filter tabs: `44px` height on mobile
 
 ---
 
@@ -270,36 +324,38 @@ Structure: `● label` — 6px dot (●) + space + text at 12px weight 500
 
 ### Quick Color Reference
 ```
-Primary CTA:        #4F46E5  (Indigo 600)
-CTA Hover:          #4338CA  (Indigo 700)
-Page background:    #FFFFFF
-Alt background:     #F9FAFB  (Gray 50)
-Primary text:       #111827  (Gray 900)
-Secondary text:     #4B5563  (Gray 600)
-Muted text:         #9CA3AF  (Gray 400)
-Border:             #E5E7EB  (Gray 200)
-Strong border:      #D1D5DB  (Gray 300)
-Focus ring:         rgba(79,70,229,0.15)
+Primary CTA:        #F97316  (Orange 500)
+CTA Hover:          #EA580C  (Orange 600)
+Page background:    #F7F6F2  (Warm off-white)
+Card surface:       #FFFFFF
+Primary text:       #1C1917  (Stone 950)
+Secondary text:     #78716C  (Stone 500)
+Muted text:         #A8A29E  (Stone 400)
+Border:             #E7E5E0  (Stone 200)
+Strong border:      #D6D3D1  (Stone 300)
+Focus ring:         rgba(249,115,22,0.15)
 
-Status — Pending:     bg #F3F4F6  text #4B5563
-Status — In Progress: bg #DBEAFE  text #1D4ED8
-Status — Completed:   bg #DCFCE7  text #15803D
+Status — Pending:     badge bg #FEF3C7  text #92400E  border #FCD34D
+Status — In Progress: badge bg #DBEAFE  text #1D4ED8  border #60A5FA
+Status — Completed:   badge bg #D1FAE5  text #065F46  border #34D399
 Destructive:          #EF4444  hover-bg #FEF2F2
 ```
 
 ### Example Component Prompts
 
-- **Todo Card**: `White bg, 1px solid #E5E7EB border, 8px radius, 16px padding. Title: 16px Inter weight 500, color #111827. Description: 14px weight 400, color #4B5563. Status badge: pill 9999px, 12px weight 500, colors per status table. Delete: ghost icon button, hover bg #FEF2F2, icon #EF4444.`
-- **Primary Button**: `#4F46E5 bg, white text, 14px weight 500, 6px radius, 8px 16px padding. Hover: #4338CA. Focus: 2px solid #4F46E5 outline + rgba(79,70,229,0.15) ring.`
-- **Text Input**: `White bg, 1px solid #D1D5DB border, 6px radius, 8px 12px padding, 14px #111827 text, placeholder #9CA3AF. Focus: border #4F46E5 + 0 0 0 2px rgba(79,70,229,0.15).`
-- **Status Badge**: `Pill (9999px), 2px 10px padding, 12px Inter weight 500. Pending: bg #F3F4F6 text #4B5563. In Progress: bg #DBEAFE text #1D4ED8. Completed: bg #DCFCE7 text #15803D. Prefix with colored dot ●.`
-- **API Key Modal**: `White panel, 12px radius, 32px padding, max-width 400px. Backdrop: rgba(0,0,0,0.4) + blur(2px). Shadow: 0 20px 25px -5px rgba(0,0,0,0.1). Title: 20px weight 700 #111827.`
+- **Todo Card**: `White bg, border-l-4 (status color), 1px solid #E7E5E0 border, 8px radius, 16px padding, shadow-sm. Title: 16px weight 500 #1C1917. Description: 14px #78716C. Edit: ghost icon. Delete: destructive ghost icon. Status badge: pill.`
+- **Primary Button**: `#F97316 bg, white text, 14px weight 500, 6px radius, 8px 16px padding. Hover: #EA580C. Focus: 2px orange outline + rgba(249,115,22,0.15) ring.`
+- **Text Input**: `White bg, 1px solid #D6D3D1, 6px radius, 8px 12px padding, 14px #1C1917, placeholder #A8A29E. Focus: border #F97316 + orange ring.`
+- **Filter Tab (active)**: `border-b-2 border-orange-500 text-orange-600 font-semibold, 8px 16px padding.`
+- **Edit Modal**: `White panel, 12px radius, 24px padding, max-width 480px. Backdrop: rgba(0,0,0,0.4) + blur(2px). Shadow: shadow-xl.`
+- **Register Card**: `White, 16px radius, 32px padding, max-width 400px, shadow-lg on #F7F6F2 background.`
 
 ### Iteration Guide
-1. Single-column always — this is a focused task manager, not a dashboard. Resist the urge to add sidebars.
-2. Indigo is the only saturated color. If you're reaching for another bright color, use a status color or reconsider.
-3. Status badges are pills (`9999px`). Buttons and inputs are `6px`. Cards are `8px`. Modal is `12px`. Don't mix these.
-4. Completed todos get `line-through` + `#9CA3AF`. That's the only style change for completion — no fade, no collapse.
-5. Hover states on cards add a subtle shadow. The border doesn't change color — the shadow signals interactivity.
-6. Keep transitions at 150ms. This app is used repeatedly; snappy feedback matters more than smooth animation.
-7. Empty state: centered `#9CA3AF` text at 14px, `48px` top margin. No illustrations, no calls-to-action.
+1. Single-column always. Resist sidebars.
+2. Orange is the only saturated non-status color. If you reach for another, reconsider.
+3. Status badges are pills (`9999px`). Buttons/inputs are `6px`. Cards are `8px`. Modal is `12px`. Register card is `16px`. Don't mix these.
+4. Completed todos get `line-through` + `#A8A29E`. That's the only style change for completion.
+5. Hover states on cards add a lifted shadow. The border subtly darkens.
+6. Keep transitions at 150ms. Snappy feedback over smooth animation.
+7. Empty state: centered `#A8A29E` text at 14px, `48px` top margin. No illustrations.
+8. The left `4px` border on cards is always the status color — it's the fastest visual signal.

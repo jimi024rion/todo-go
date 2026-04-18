@@ -1,0 +1,35 @@
+runners:
+  req: http://localhost:8080
+vars:
+  test_api_key: "test-api-key-for-scenario"
+steps:
+  setup:
+    include:
+      path: ../shared/bootstrap.yaml
+  create_todo:
+    req:
+      /v1/todos:
+        post:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+          body:
+            application/json:
+              title: "削除対象タスク"
+              description: "削除テスト用"
+    test: current.res.status == 201
+    bind:
+      todo_id: current.res.body.resultBody.id
+  delete_todo:
+    req:
+      /v1/todos/{{ todo_id }}:
+        delete:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+    test: current.res.status == 204
+  get_deleted_todo:
+    req:
+      /v1/todos/{{ todo_id }}:
+        get:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+    test: current.res.status == 404

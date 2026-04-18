@@ -1,0 +1,38 @@
+runners:
+  req: http://localhost:8080
+vars:
+  test_api_key: "test-api-key-for-scenario"
+steps:
+  setup:
+    include:
+      path: ../shared/bootstrap.yaml
+  create_todo_empty_title:
+    req:
+      /v1/todos:
+        post:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+          body:
+            application/json:
+              title: ""
+    test: current.res.status == 400
+  get_todo_invalid_uuid:
+    req:
+      /v1/todos/invalid-uuid:
+        get:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+    test: current.res.status == 400
+  get_todo_not_found:
+    req:
+      /v1/todos/00000000-0000-0000-0000-999999999999:
+        get:
+          headers:
+            X-API-Key: "{{ vars.test_api_key }}"
+    test: current.res.status == 404
+  get_todos_unauthorized:
+    req:
+      /v1/todos:
+        get:
+          body: null
+    test: current.res.status == 401

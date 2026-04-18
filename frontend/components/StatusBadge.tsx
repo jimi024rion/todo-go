@@ -6,21 +6,21 @@ const STATUS_CONFIG: Record<
 > = {
   pending: {
     label: "未着手",
-    bg: "bg-[#F3F4F6]",
-    text: "text-[#4B5563]",
-    dot: "bg-[#9CA3AF]",
+    bg: "bg-[#FEF3C7]",
+    text: "text-[#92400E]",
+    dot: "bg-[#FCD34D]",
   },
   in_progress: {
     label: "進行中",
     bg: "bg-[#DBEAFE]",
     text: "text-[#1D4ED8]",
-    dot: "bg-[#3B82F6]",
+    dot: "bg-[#60A5FA]",
   },
   completed: {
     label: "完了",
-    bg: "bg-[#DCFCE7]",
-    text: "text-[#15803D]",
-    dot: "bg-[#22C55E]",
+    bg: "bg-[#D1FAE5]",
+    text: "text-[#065F46]",
+    dot: "bg-[#34D399]",
   },
 };
 

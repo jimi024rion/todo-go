@@ -1,0 +1,9 @@
+runners:
+  req: http://localhost:8080
+steps:
+  health_check:
+    req:
+      /health:
+        get:
+          body: null
+    test: current.res.status == 200 && current.res.body.status == "ok"

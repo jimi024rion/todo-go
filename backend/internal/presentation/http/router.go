@@ -32,19 +32,15 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 	// API v1 group
 	v1 := r.Group("/v1")
 	{
-		// 認証不要: APIキー発行
+		// 認証不要
 		v1.POST("/api-keys", h.APIKey.Create.Handle)
+		v1.POST("/users", h.User.Create.Handle)
 
 		// 認証必須グループ
 		auth := v1.Group("")
 		auth.Use(mw.APIKeyAuth)
 		{
 			auth.DELETE("/api-keys/:id", h.APIKey.Delete.Handle)
-
-			users := auth.Group("/users")
-			{
-				users.POST("", h.User.Create.Handle)
-			}
 
 			todos := auth.Group("/todos")
 			{

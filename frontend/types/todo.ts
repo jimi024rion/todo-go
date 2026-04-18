@@ -18,3 +18,19 @@ export type UpdateTodoRequest = {
   description?: string;
   status?: Todo["Status"];
 };
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type APIKey = {
+  id: string;
+  key: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+};

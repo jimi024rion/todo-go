@@ -35,9 +35,12 @@ export function TodoForm({ onCreated }: Props) {
     }
   };
 
+  const inputClass =
+    "w-full rounded-[6px] border border-[#D6D3D1] bg-white px-3 py-2 text-sm text-[#1C1917] placeholder-[#A8A29E] outline-none transition focus:border-[#F97316] focus:ring-2 focus:ring-[rgba(249,115,22,0.15)]";
+
   return (
-    <div className="rounded-lg border border-[#E5E7EB] bg-white p-5">
-      <h2 className="text-sm font-semibold text-[#111827]">新しいタスクを追加</h2>
+    <div className="rounded-lg border border-[#E7E5E0] bg-white p-5 shadow-sm">
+      <h2 className="text-sm font-semibold text-[#1C1917]">新しいタスクを追加</h2>
       <form onSubmit={handleSubmit} className="mt-3 space-y-3">
         <input
           type="text"
@@ -46,7 +49,7 @@ export function TodoForm({ onCreated }: Props) {
           placeholder="タイトル"
           maxLength={100}
           required
-          className="w-full rounded-md border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition focus:border-[#4F46E5] focus:ring-2 focus:ring-[rgba(79,70,229,0.15)]"
+          className={inputClass}
         />
         <textarea
           value={description}
@@ -54,13 +57,13 @@ export function TodoForm({ onCreated }: Props) {
           placeholder="説明（任意）"
           maxLength={1000}
           rows={2}
-          className="w-full resize-none rounded-md border border-[#D1D5DB] bg-white px-3 py-2 text-sm text-[#111827] placeholder-[#9CA3AF] outline-none transition focus:border-[#4F46E5] focus:ring-2 focus:ring-[rgba(79,70,229,0.15)]"
+          className={inputClass + " resize-none"}
         />
         {error && <p className="text-xs text-[#EF4444]">{error}</p>}
         <button
           type="submit"
           disabled={!title.trim() || loading}
-          className="w-full rounded-md bg-[#4F46E5] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#4338CA] disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
+          className="w-full rounded-[6px] bg-[#F97316] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#EA580C] disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#F97316] focus:ring-offset-2 min-h-[44px]"
         >
           {loading ? "追加中…" : "追加する"}
         </button>

@@ -1,0 +1,31 @@
+steps:
+  health:
+    include:
+      path: ./health/check.yaml
+  apikey_create:
+    include:
+      path: ./apikeys/create.yaml
+  apikey_delete:
+    include:
+      path: ./apikeys/delete.yaml
+  user_create:
+    include:
+      path: ./users/create.yaml
+  todo_create:
+    include:
+      path: ./todos/create.yaml
+  todo_list:
+    include:
+      path: ./todos/list.yaml
+  todo_get:
+    include:
+      path: ./todos/get.yaml
+  todo_update:
+    include:
+      path: ./todos/update.yaml
+  todo_delete:
+    include:
+      path: ./todos/delete.yaml
+  todo_errors:
+    include:
+      path: ./todos/errors.yaml

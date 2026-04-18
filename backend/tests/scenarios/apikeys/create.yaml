@@ -1,0 +1,17 @@
+runners:
+  req: http://localhost:8080
+vars:
+  test_user_id: "00000000-0000-0000-0000-000000000001"
+steps:
+  setup:
+    include:
+      path: ../shared/bootstrap.yaml
+  create_apikey:
+    req:
+      /v1/api-keys:
+        post:
+          body:
+            application/json:
+              user_id: "{{ vars.test_user_id }}"
+              name: "My Test API Key"
+    test: current.res.status == 201 && current.res.body.resultHeader.resultCode == 0 && current.res.body.resultBody.id != "" && current.res.body.resultBody.key != ""

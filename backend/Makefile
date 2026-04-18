@@ -54,6 +54,10 @@ test: ## Run all tests
 	@echo "Running tests..."
 	@$(GOTEST) -v $(PKG_LIST)
 
+test-scenario: ## Run runn API scenario tests (requires running server and DB)
+	@echo "Running runn scenario tests..."
+	@runn run tests/scenarios/run_all.yaml --verbose
+
 deps: ## Install and tidy dependencies
 	@echo "Tidying dependencies..."
 	@$(GOMOD) tidy
