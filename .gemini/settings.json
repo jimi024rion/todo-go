@@ -4,5 +4,17 @@
       "enabled": true,
       "strategy": "auto"
     }
+  },
+  "ui": {
+    "hideFooter": false, // フッターを表示
+    "showMemoryUsage": true, // メモリ使用量を表示
+    "dynamicWindowTitle": true, // タイトルバーに状況を表示
+    "footer": {
+      " ": true, // 各項目のラベル（/model など）を表示
+      "hideCWD": false, // カレントディレクトリを表示
+      "hideSandboxStatus": false, // サンドボックス状態を表示
+      "hideModelInfo": false, // モデル名とトークンを表示
+      "hideContextPercentage": false // コンテキスト使用率(%)を表示
+    }
   }
 }

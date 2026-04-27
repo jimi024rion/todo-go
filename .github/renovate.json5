@@ -5,18 +5,18 @@
   "extends": [
     "config:base"
     // // Conventional Commitsの規約に準拠したコミットメッセージを生成します。
-    // "config:conventionalcommits",
-    // "github>aquaproj/aqua-renovate-config#2.2.1"
+    "config:conventionalcommits",
+    "github>aquaproj/aqua-renovate-config#2.2.1"
   ],
   // // Renovateの実行スケジュールを設定します。
   // // 開発業務に影響が出にくいよう、平日の業務時間外と週末に更新チェックを行います。
-  // "schedule": [
-  //   "before 6am and after 8pm every weekday",
-  //   "every weekend"
-  // ],
+  "schedule": [
+    "before 6am and after 8pm every weekday",
+    "every weekend"
+  ],
   // // 更新戦略を設定します。
   // // 全ての依存関係を自動で更新しますが、自動マージは行わず、手動での確認を必須とします。
-  // "automerge": false,
+  "automerge": true,
   // // 同時に開くプルリクエストの最大数を設定します。
   // // PRの洪水状態を避けるため、デフォルトより少なめに設定します。
   // "prConcurrentLimit": 10,
