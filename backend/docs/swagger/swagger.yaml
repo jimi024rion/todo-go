@@ -1,12 +1,5 @@
 basePath: /
 definitions:
-  ApiKeyCreateErrorResponse:
-    properties:
-      resultBody:
-        $ref: '#/definitions/ApiKeyItemErr'
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
-    type: object
   ApiKeyCreateRequest:
     properties:
       name:
@@ -21,13 +14,6 @@ definitions:
     required:
     - name
     - user_id
-    type: object
-  ApiKeyCreateResponse:
-    properties:
-      resultBody:
-        $ref: '#/definitions/ApiKeyItem'
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
     type: object
   ApiKeyItem:
     properties:
@@ -46,42 +32,17 @@ definitions:
         example: 01234567-89ab-cdef-0123-456789abcdef
         type: string
     type: object
-  ApiKeyItemErr:
+  ErrorResponse:
     properties:
-      created_at:
-        example: ""
+      message:
+        example: Not Found
         type: string
-      id:
-        example: ""
-        type: string
-      key:
-        example: ""
-        type: string
-      name:
-        example: ""
-        type: string
-      user_id:
-        example: ""
-        type: string
-    type: object
-  ErrorNullResponse:
-    properties:
-      resultBody:
-        type: object
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
     type: object
   HealthCheckResponse:
     properties:
       status:
         example: ok
         type: string
-    type: object
-  ResultHeader:
-    properties:
-      resultCode:
-        example: 0
-        type: integer
     type: object
   TodoCreateBody:
     properties:
@@ -103,47 +64,24 @@ definitions:
     required:
     - title
     type: object
-  TodoCreateResponse:
-    properties:
-      resultBody:
-        $ref: '#/definitions/TodoCreateBody'
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
-    type: object
-  TodoGetResponse:
-    properties:
-      resultBody:
-        $ref: '#/definitions/TodoItem'
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
-    type: object
   TodoItem:
     properties:
-      CreatedAt:
+      created_at:
         type: string
-      Description:
+      description:
         example: 牛乳、卵、パンを買う
         type: string
-      ID:
+      id:
         example: 01234567-89ab-cdef-0123-456789abcdef
         type: string
-      Status:
+      status:
         example: pending
         type: string
-      Title:
+      title:
         example: 買い物リストを作る
         type: string
-      UpdatedAt:
+      updated_at:
         type: string
-    type: object
-  TodoListResponse:
-    properties:
-      resultBody:
-        items:
-          $ref: '#/definitions/TodoItem'
-        type: array
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
     type: object
   TodoUpdateRequest:
     properties:
@@ -177,13 +115,6 @@ definitions:
     required:
     - email
     - name
-    type: object
-  UserCreateResponse:
-    properties:
-      resultBody:
-        $ref: '#/definitions/UserItem'
-      resultHeader:
-        $ref: '#/definitions/ResultHeader'
     type: object
   UserItem:
     properties:
@@ -239,15 +170,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/ApiKeyCreateResponse'
+            $ref: '#/definitions/ApiKeyItem'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ApiKeyCreateErrorResponse'
+            $ref: '#/definitions/ErrorResponse'
       summary: APIキー作成
       tags:
       - api-keys
@@ -269,11 +200,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: APIキー削除
@@ -288,11 +219,13 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/TodoListResponse'
+            items:
+              $ref: '#/definitions/TodoItem'
+            type: array
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク一覧取得
@@ -315,19 +248,19 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/TodoCreateResponse'
+            $ref: '#/definitions/TodoCreateBody'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク作成
@@ -351,15 +284,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク削除
@@ -380,19 +313,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/TodoGetResponse'
+            $ref: '#/definitions/TodoItem'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク詳細取得
@@ -421,19 +354,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/TodoGetResponse'
+            $ref: '#/definitions/TodoItem'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: タスク更新
@@ -457,15 +390,15 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/UserCreateResponse'
+            $ref: '#/definitions/UserItem'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/ErrorNullResponse'
+            $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: ユーザー作成

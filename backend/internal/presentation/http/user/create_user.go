@@ -24,7 +24,6 @@ type createUserRequest struct {
 	Email string `json:"email" validate:"required" format:"email"                  example:"john@example.com"`
 } // @name UserCreateRequest
 
-// userItem は POST /v1/users 正常系の resultBody です。
 type userItem struct {
 	ID        string    `json:"id"         example:"01234567-89ab-cdef-0123-456789abcdef"`
 	Name      string    `json:"name"       example:"John Doe"`
@@ -32,12 +31,6 @@ type userItem struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 } // @name UserItem
-
-// userCreateResponse は POST /v1/users の正常系レスポンスです。
-type userCreateResponse struct {
-	ResultHeader response.ResultHeader `json:"resultHeader"`
-	ResultBody   userItem              `json:"resultBody"`
-} // @name UserCreateResponse
 
 // Handle は POST /v1/users のリクエストを処理します。
 //
@@ -47,15 +40,15 @@ type userCreateResponse struct {
 // @Accept      json
 // @Produce     json
 // @Param       request body     createUserRequest true "ユーザー作成リクエスト"
-// @Success     201     {object} userCreateResponse
-// @Failure     400     {object} response.ErrorNullResponse
-// @Failure     500     {object} response.ErrorNullResponse
+// @Success     201     {object} userItem
+// @Failure     400     {object} response.ErrorResponse
+// @Failure     500     {object} response.ErrorResponse
 // @Security    ApiKeyAuth
 // @Router      /v1/users [post]
 func (h *CreateUserHandler) Handle(c *gin.Context) {
 	var req createUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(errs.BadRequest.HTTPStatus(), response.FailNull(errs.BadRequest))
+		c.JSON(errs.BadRequest.HTTPStatus(), response.Fail(errs.BadRequest.Message()))
 		return
 	}
 
@@ -65,18 +58,15 @@ func (h *CreateUserHandler) Handle(c *gin.Context) {
 	})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
-		c.JSON(rc.HTTPStatus(), response.FailNull(rc))
+		c.JSON(rc.HTTPStatus(), response.Fail(rc.Message()))
 		return
 	}
 
-	c.JSON(http.StatusCreated, userCreateResponse{
-		ResultHeader: response.OKHeader(),
-		ResultBody: userItem{
-			ID:        output.ID,
-			Name:      output.Name,
-			Email:     output.Email,
-			CreatedAt: output.CreatedAt,
-			UpdatedAt: output.UpdatedAt,
-		},
+	c.JSON(http.StatusCreated, userItem{
+		ID:        output.ID,
+		Name:      output.Name,
+		Email:     output.Email,
+		CreatedAt: output.CreatedAt,
+		UpdatedAt: output.UpdatedAt,
 	})
 }

@@ -16,7 +16,7 @@ func APIKeyAuth(repo apikeyrepo.APIKeyRepository, cache apikeyCache.APIKeyCache)
 		if rawKey == "" {
 			c.JSON(
 				errs.IsUnauthorizedRequest.HTTPStatus(),
-				response.FailNull(errs.IsUnauthorizedRequest),
+				response.Fail(errs.IsUnauthorizedRequest.Message()),
 			)
 			c.Abort()
 			return
@@ -24,26 +24,23 @@ func APIKeyAuth(repo apikeyrepo.APIKeyRepository, cache apikeyCache.APIKeyCache)
 
 		ctx := c.Request.Context()
 
-		// キャッシュを確認
 		if apiKey, ok := cache.Get(ctx, rawKey); ok {
 			c.Set("user_id", apiKey.UserID())
 			c.Next()
 			return
 		}
 
-		// SHA-256ハッシュで直接DB検索
 		keyHash := apikeyentity.HashKey(rawKey)
 		apiKey, err := repo.FindByKeyHash(ctx, keyHash)
 		if err != nil {
 			c.JSON(
 				errs.IsUnauthorizedRequest.HTTPStatus(),
-				response.FailNull(errs.IsUnauthorizedRequest),
+				response.Fail(errs.IsUnauthorizedRequest.Message()),
 			)
 			c.Abort()
 			return
 		}
 
-		// キャッシュに保存
 		cache.Set(ctx, rawKey, apiKey)
 
 		c.Set("user_id", apiKey.UserID())

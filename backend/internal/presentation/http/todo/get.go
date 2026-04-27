@@ -10,29 +10,19 @@ import (
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
-// todoItem は Todo エンドポイントの共通レスポンスボディです。
-// list / get / update で参照します。
 type todoItem struct {
-	ID          string    `json:"ID"          example:"01234567-89ab-cdef-0123-456789abcdef"`
-	Title       string    `json:"Title"       example:"買い物リストを作る"`
-	Description string    `json:"Description" example:"牛乳、卵、パンを買う"`
-	Status      string    `json:"Status"      example:"pending"`
-	CreatedAt   time.Time `json:"CreatedAt"`
-	UpdatedAt   time.Time `json:"UpdatedAt"`
+	ID          string    `json:"id"          example:"01234567-89ab-cdef-0123-456789abcdef"`
+	Title       string    `json:"title"       example:"買い物リストを作る"`
+	Description string    `json:"description" example:"牛乳、卵、パンを買う"`
+	Status      string    `json:"status"      example:"pending"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 } // @name TodoItem
 
-// todoGetResponse は GET /v1/todos/:id および PUT /v1/todos/:id の正常系レスポンスです。
-type todoGetResponse struct {
-	ResultHeader response.ResultHeader `json:"resultHeader"`
-	ResultBody   todoItem              `json:"resultBody"`
-} // @name TodoGetResponse
-
-// GetHandler is a handler for getting a todo.
 type GetHandler struct {
 	usecase *todousecase.GetUseCase
 }
 
-// NewGetHandler creates a new GetHandler.
 func NewGetHandler(u *todousecase.GetUseCase) *GetHandler {
 	return &GetHandler{usecase: u}
 }
@@ -44,10 +34,10 @@ func NewGetHandler(u *todousecase.GetUseCase) *GetHandler {
 // @Tags        todos
 // @Produce     json
 // @Param       id  path     string true "タスクID" example("01234567-89ab-cdef-0123-456789abcdef")
-// @Success     200 {object} todoGetResponse
-// @Failure     400 {object} response.ErrorNullResponse
-// @Failure     404 {object} response.ErrorNullResponse
-// @Failure     500 {object} response.ErrorNullResponse
+// @Success     200 {object} todoItem
+// @Failure     400 {object} response.ErrorResponse
+// @Failure     404 {object} response.ErrorResponse
+// @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
 // @Router      /v1/todos/{id} [get]
 func (h *GetHandler) Handle(c *gin.Context) {
@@ -56,19 +46,16 @@ func (h *GetHandler) Handle(c *gin.Context) {
 	output, err := h.usecase.Execute(c.Request.Context(), &todousecase.GetInput{ID: id})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
-		c.JSON(rc.HTTPStatus(), response.FailNull(rc))
+		c.JSON(rc.HTTPStatus(), response.Fail(rc.Message()))
 		return
 	}
 
-	c.JSON(http.StatusOK, todoGetResponse{
-		ResultHeader: response.OKHeader(),
-		ResultBody: todoItem{
-			ID:          output.ID,
-			Title:       output.Title,
-			Description: output.Description,
-			Status:      output.Status,
-			CreatedAt:   output.CreatedAt,
-			UpdatedAt:   output.UpdatedAt,
-		},
+	c.JSON(http.StatusOK, todoItem{
+		ID:          output.ID,
+		Title:       output.Title,
+		Description: output.Description,
+		Status:      output.Status,
+		CreatedAt:   output.CreatedAt,
+		UpdatedAt:   output.UpdatedAt,
 	})
 }

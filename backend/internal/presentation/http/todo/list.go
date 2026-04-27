@@ -12,18 +12,10 @@ import (
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
-// todoListResponse は GET /v1/todos の正常系レスポンスです。
-type todoListResponse struct {
-	ResultHeader response.ResultHeader `json:"resultHeader"`
-	ResultBody   []todoItem            `json:"resultBody"`
-} // @name TodoListResponse
-
-// ListHandler is a handler for listing todos.
 type ListHandler struct {
 	usecase *todousecase.ListUseCase
 }
 
-// NewListHandler creates a new ListHandler.
 func NewListHandler(u *todousecase.ListUseCase) *ListHandler {
 	return &ListHandler{usecase: u}
 }
@@ -34,8 +26,8 @@ func NewListHandler(u *todousecase.ListUseCase) *ListHandler {
 // @Description すべてのタスクを一覧で取得します
 // @Tags        todos
 // @Produce     json
-// @Success     200 {object} todoListResponse
-// @Failure     500 {object} response.ErrorNullResponse
+// @Success     200 {array}  todoItem
+// @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
 // @Router      /v1/todos [get]
 func (h *ListHandler) Handle(c *gin.Context) {
@@ -49,7 +41,7 @@ func (h *ListHandler) Handle(c *gin.Context) {
 	output, err := h.usecase.Execute(ctx, &todousecase.ListInput{})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
-		c.JSON(rc.HTTPStatus(), response.FailNull(rc))
+		c.JSON(rc.HTTPStatus(), response.Fail(rc.Message()))
 		return
 	}
 
@@ -65,8 +57,5 @@ func (h *ListHandler) Handle(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, todoListResponse{
-		ResultHeader: response.OKHeader(),
-		ResultBody:   items,
-	})
+	c.JSON(http.StatusOK, items)
 }

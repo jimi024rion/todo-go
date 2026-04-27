@@ -63,19 +63,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/ApiKeyCreateResponse"
+                            "$ref": "#/definitions/ApiKeyItem"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ApiKeyCreateErrorResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -113,13 +113,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -144,13 +144,16 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/TodoListResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/TodoItem"
+                            }
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -187,25 +190,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/TodoCreateResponse"
+                            "$ref": "#/definitions/TodoCreateBody"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -240,25 +243,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/TodoGetResponse"
+                            "$ref": "#/definitions/TodoItem"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -303,25 +306,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/TodoGetResponse"
+                            "$ref": "#/definitions/TodoItem"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -357,19 +360,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -408,19 +411,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/UserCreateResponse"
+                            "$ref": "#/definitions/UserItem"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/ErrorNullResponse"
+                            "$ref": "#/definitions/ErrorResponse"
                         }
                     }
                 }
@@ -428,17 +431,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "ApiKeyCreateErrorResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "$ref": "#/definitions/ApiKeyItemErr"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
-                }
-            }
-        },
         "ApiKeyCreateRequest": {
             "type": "object",
             "required": [
@@ -456,17 +448,6 @@ const docTemplate = `{
                     "type": "string",
                     "format": "uuid",
                     "example": "01234567-89ab-cdef-0123-456789abcdef"
-                }
-            }
-        },
-        "ApiKeyCreateResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "$ref": "#/definitions/ApiKeyItem"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
                 }
             }
         },
@@ -494,39 +475,12 @@ const docTemplate = `{
                 }
             }
         },
-        "ApiKeyItemErr": {
+        "ErrorResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "message": {
                     "type": "string",
-                    "example": ""
-                },
-                "id": {
-                    "type": "string",
-                    "example": ""
-                },
-                "key": {
-                    "type": "string",
-                    "example": ""
-                },
-                "name": {
-                    "type": "string",
-                    "example": ""
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": ""
-                }
-            }
-        },
-        "ErrorNullResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "type": "object"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
+                    "example": "Not Found"
                 }
             }
         },
@@ -536,15 +490,6 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "ok"
-                }
-            }
-        },
-        "ResultHeader": {
-            "type": "object",
-            "properties": {
-                "resultCode": {
-                    "type": "integer",
-                    "example": 0
                 }
             }
         },
@@ -576,66 +521,30 @@ const docTemplate = `{
                 }
             }
         },
-        "TodoCreateResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "$ref": "#/definitions/TodoCreateBody"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
-                }
-            }
-        },
-        "TodoGetResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "$ref": "#/definitions/TodoItem"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
-                }
-            }
-        },
         "TodoItem": {
             "type": "object",
             "properties": {
-                "CreatedAt": {
+                "created_at": {
                     "type": "string"
                 },
-                "Description": {
+                "description": {
                     "type": "string",
                     "example": "牛乳、卵、パンを買う"
                 },
-                "ID": {
+                "id": {
                     "type": "string",
                     "example": "01234567-89ab-cdef-0123-456789abcdef"
                 },
-                "Status": {
+                "status": {
                     "type": "string",
                     "example": "pending"
                 },
-                "Title": {
+                "title": {
                     "type": "string",
                     "example": "買い物リストを作る"
                 },
-                "UpdatedAt": {
+                "updated_at": {
                     "type": "string"
-                }
-            }
-        },
-        "TodoListResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/TodoItem"
-                    }
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
                 }
             }
         },
@@ -680,17 +589,6 @@ const docTemplate = `{
                     "maxLength": 100,
                     "minLength": 1,
                     "example": "John Doe"
-                }
-            }
-        },
-        "UserCreateResponse": {
-            "type": "object",
-            "properties": {
-                "resultBody": {
-                    "$ref": "#/definitions/UserItem"
-                },
-                "resultHeader": {
-                    "$ref": "#/definitions/ResultHeader"
                 }
             }
         },

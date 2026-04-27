@@ -24,7 +24,6 @@ type createRequest struct {
 	Name   string `json:"name"    validate:"required" minLength:"1" maxLength:"50" example:"My API Key"`
 } // @name ApiKeyCreateRequest
 
-// apiKeyItem は POST /v1/api-keys 正常系の resultBody です。
 type apiKeyItem struct {
 	ID        string    `json:"id"         example:"01234567-89ab-cdef-0123-456789abcdef"`
 	Key       string    `json:"key"        example:"todo_abc123..."`
@@ -32,18 +31,6 @@ type apiKeyItem struct {
 	Name      string    `json:"name"       example:"My API Key"`
 	CreatedAt time.Time `json:"created_at"`
 } // @name ApiKeyItem
-
-type apiKeyCreateResponse = response.Response[apiKeyItem] // @name ApiKeyCreateResponse
-
-type apiKeyItemErr struct {
-	ID        string    `json:"id"         example:""`
-	Key       string    `json:"key"        example:""`
-	UserID    string    `json:"user_id"    example:""`
-	Name      string    `json:"name"       example:""`
-	CreatedAt time.Time `json:"created_at" example:""`
-} // @name ApiKeyItemErr
-
-type apiKeyCreateErrorResponse = response.Response[apiKeyItemErr] // @name ApiKeyCreateErrorResponse
 
 // Handle は POST /v1/api-keys のリクエストを処理します。
 //
@@ -53,14 +40,14 @@ type apiKeyCreateErrorResponse = response.Response[apiKeyItemErr] // @name ApiKe
 // @Accept      json
 // @Produce     json
 // @Param       request body     createRequest true "APIキー作成リクエスト"
-// @Success     201     {object} apiKeyCreateResponse
-// @Failure     400     {object} response.ErrorNullResponse
-// @Failure     500     {object} apiKeyCreateErrorResponse
+// @Success     201     {object} apiKeyItem
+// @Failure     400     {object} response.ErrorResponse
+// @Failure     500     {object} response.ErrorResponse
 // @Router      /v1/api-keys [post]
 func (h *CreateHandler) Handle(c *gin.Context) {
 	var req createRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(errs.BadRequest.HTTPStatus(), response.FailNull(errs.BadRequest))
+		c.JSON(errs.BadRequest.HTTPStatus(), response.Fail(errs.BadRequest.Message()))
 		return
 	}
 
@@ -69,19 +56,16 @@ func (h *CreateHandler) Handle(c *gin.Context) {
 		Name:   req.Name,
 	})
 	if err != nil {
-		e := errs.AsErr(err)
-		resp := response.NewResponse[apiKeyItem](int(e.ResultCode()), nil)
-		c.JSON(e.ResultCode().HTTPStatus(), resp)
+		rc := errs.ResultCodeFrom(err)
+		c.JSON(rc.HTTPStatus(), response.Fail(rc.Message()))
 		return
 	}
 
-	body := apiKeyItem{
+	c.JSON(http.StatusCreated, apiKeyItem{
 		ID:        output.ID,
 		Key:       output.Key,
 		UserID:    output.UserID,
 		Name:      output.Name,
 		CreatedAt: output.CreatedAt,
-	}
-	resp := response.NewResponse(int(errs.ResultOK), &body)
-	c.JSON(http.StatusCreated, resp)
+	})
 }

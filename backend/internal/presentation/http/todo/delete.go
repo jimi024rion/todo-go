@@ -9,12 +9,10 @@ import (
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
-// DeleteHandler is a handler for deleting a todo.
 type DeleteHandler struct {
 	usecase *todousecase.DeleteUseCase
 }
 
-// NewDeleteHandler creates a new DeleteHandler.
 func NewDeleteHandler(u *todousecase.DeleteUseCase) *DeleteHandler {
 	return &DeleteHandler{usecase: u}
 }
@@ -27,20 +25,18 @@ func NewDeleteHandler(u *todousecase.DeleteUseCase) *DeleteHandler {
 // @Produce     json
 // @Param       id  path     string true "タスクID" example("01234567-89ab-cdef-0123-456789abcdef")
 // @Success     204
-// @Failure     400 {object} response.ErrorNullResponse
-// @Failure     404 {object} response.ErrorNullResponse
-// @Failure     500 {object} response.ErrorNullResponse
+// @Failure     400 {object} response.ErrorResponse
+// @Failure     404 {object} response.ErrorResponse
+// @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
 // @Router      /v1/todos/{id} [delete]
 func (h *DeleteHandler) Handle(c *gin.Context) {
 	id := c.Param("id")
 
-	input := &todousecase.DeleteInput{ID: id}
-
-	_, err := h.usecase.Execute(c.Request.Context(), input)
+	_, err := h.usecase.Execute(c.Request.Context(), &todousecase.DeleteInput{ID: id})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
-		c.JSON(rc.HTTPStatus(), response.FailNull(rc))
+		c.JSON(rc.HTTPStatus(), response.Fail(rc.Message()))
 		return
 	}
 
