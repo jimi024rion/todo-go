@@ -35,12 +35,7 @@ output "github_secrets" {
 
 output "cloud_run_url" {
   description = "バックエンドの公開 URL"
-  value       = "https://${google_cloud_run_v2_service.backend.uri}"
-}
-
-output "vercel_project_id" {
-  description = "Vercel プロジェクト ID"
-  value       = vercel_project.frontend.id
+  value       = google_cloud_run_v2_service.backend.uri
 }
 
 output "artifact_registry_hostname" {

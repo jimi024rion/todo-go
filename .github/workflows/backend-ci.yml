@@ -1,0 +1,38 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+      - '.github/actions/setup-go/**'
+
+jobs:
+  # ──────────────────────────────────────────
+  # lint
+  # ──────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.7.2
+          working-directory: backend
+
+  # ──────────────────────────────────────────
+  # test
+  # ──────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-go
+      - name: Run tests
+        run: go test -v ./...

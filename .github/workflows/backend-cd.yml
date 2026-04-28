@@ -1,18 +1,25 @@
-name: CD
+name: Backend CD
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-cd.yml'
+      - '.github/actions/setup-gcp/**'
 
 # ──────────────────────────────────────────
-# インフラは infra/ ディレクトリの Terraform で管理しています。
-# 初回セットアップ: cd infra && cp terraform.tfvars.example terraform.tfvars && terraform init && terraform apply
-# GitHub Variables / Secrets に設定する値は terraform output で確認できます。
+# インフラは infra/ の Terraform で管理。
+# 初回セットアップ: cd infra && terraform init && terraform apply
+# GitHub Variables / Secrets の設定値は terraform output で確認。
 # ──────────────────────────────────────────
 
 jobs:
-  deploy-backend:
-    name: Deploy Backend → Cloud Run
+  # ──────────────────────────────────────────
+  # 1. Docker build → 2. DB migrate → 3. Cloud Run deploy
+  # ──────────────────────────────────────────
+  deploy:
+    name: Deploy Backend
     runs-on: ubuntu-latest
 
     permissions:
@@ -22,20 +29,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ── GCP認証 (Workload Identity Federation / keyless) ──
-      - id: auth
-        uses: google-github-actions/auth@v2
+      # ── Step 1: GCP認証・gcloud・Docker設定 ──
+      - uses: ./.github/actions/setup-gcp
         with:
-          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
-          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+          wif-provider: ${{ vars.WIF_PROVIDER }}
+          wif-service-account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+          gcp-region: ${{ vars.GCP_REGION }}
 
-      - uses: google-github-actions/setup-gcloud@v2
-
-      # ── Docker → Artifact Registry ──
-      - name: Configure Docker for Artifact Registry
-        run: |
-          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
-
+      # ── Step 2: Dockerイメージ build → Artifact Registry push ──
       - name: Build and push image
         id: build
         run: |
@@ -44,10 +45,8 @@ jobs:
           docker push "$IMAGE"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
-      # ── DB migration (Atlas) ──
+      # ── Step 3: DBマイグレーション (Atlas) ──
       - uses: ariga/setup-atlas@v0
-        with:
-          cloud-token: ""  # セルフホスト利用のためトークン不要
 
       - name: Run database migrations
         run: |
@@ -55,7 +54,7 @@ jobs:
             --dir "file://backend/internal/infrastructure/rdb/migrations" \
             --url "${{ secrets.DATABASE_URL }}"
 
-      # ── Cloud Run デプロイ ──
+      # ── Step 4: Cloud Run デプロイ ──
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
@@ -65,11 +64,7 @@ jobs:
           flags: --allow-unauthenticated
           env_vars: |
             APP_ENV=production
-            PORT=8080
             LOG_LEVEL=info
             DB_PORT=5432
           secrets: |
-            DB_HOST=DB_HOST:latest
-            DB_USER=DB_USER:latest
             DB_PASSWORD=DB_PASSWORD:latest
-            DB_NAME=DB_NAME:latest

@@ -10,10 +10,6 @@ terraform {
       source  = "kislerdm/neon"
       version = "~> 0.9"
     }
-    vercel = {
-      source  = "vercel/vercel"
-      version = "~> 2.0"
-    }
   }
 
   # ── リモートバックエンド（推奨） ──────────────────────────

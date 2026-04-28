@@ -1,0 +1,9 @@
+name: 'Setup Go Backend'
+description: 'Go環境のセットアップ（go.modからバージョン取得・キャッシュ有効）'
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-go@v5
+      with:
+        go-version-file: backend/go.mod
+        cache: true

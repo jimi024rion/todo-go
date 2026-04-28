@@ -26,16 +26,8 @@ variable "neon_api_key" {
   sensitive   = true
 }
 
-# ── Vercel ───────────────────────────────────────────────
-
-variable "vercel_token" {
-  description = "Vercel API トークン（https://vercel.com/account/tokens で発行）"
+variable "neon_org_id" {
+  description = "Neon Organization ID（https://console.neon.tech/app/settings/organization で確認）"
   type        = string
-  sensitive   = true
 }
 
-variable "vercel_team_id" {
-  description = "Vercel Team ID（個人アカウントの場合は空文字列）"
-  type        = string
-  default     = ""
-}

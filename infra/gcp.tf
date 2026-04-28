@@ -35,6 +35,26 @@ resource "google_artifact_registry_repository" "backend" {
   format        = "DOCKER"
   description   = "todo-go バックエンド Docker イメージ"
 
+  # 古いイメージを自動削除してストレージコストを抑える
+  cleanup_policy_dry_run = false
+
+  cleanup_policies {
+    id     = "keep-last-5"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 5
+    }
+  }
+
+  cleanup_policies {
+    id     = "delete-untagged"
+    action = "DELETE"
+    condition {
+      tag_state  = "UNTAGGED"
+      older_than = "86400s" # 1日後に削除
+    }
+  }
+
   depends_on = [google_project_service.artifactregistry]
 }
 
@@ -154,6 +174,12 @@ resource "google_cloud_run_v2_service" "backend" {
   location = var.gcp_region
 
   template {
+    # 未使用時はゼロスケール、最大2インスタンスでコスト上限を設ける
+    scaling {
+      min_instance_count = 0
+      max_instance_count = 2
+    }
+
     containers {
       # 初回は Cloud Run の公式プレースホルダーイメージを使用
       # 以降は CI/CD（cd.yml）が実際のイメージに更新する
@@ -169,12 +195,20 @@ resource "google_cloud_run_v2_service" "backend" {
         value = "production"
       }
       env {
-        name  = "PORT"
-        value = "8080"
-      }
-      env {
         name  = "LOG_LEVEL"
         value = "info"
+      }
+      env {
+        name  = "DB_HOST"
+        value = neon_project.main.database_host
+      }
+      env {
+        name  = "DB_USER"
+        value = neon_role.app.name
+      }
+      env {
+        name  = "DB_NAME"
+        value = neon_database.main.name
       }
       env {
         name  = "DB_PORT"

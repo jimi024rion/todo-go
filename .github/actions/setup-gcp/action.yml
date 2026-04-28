@@ -1,0 +1,22 @@
+name: 'Setup GCP'
+description: 'WIF認証・gcloud設定・Artifact Registry向けDocker認証を一括セットアップ'
+inputs:
+  wif-provider:
+    description: 'Workload Identity Federation プロバイダー URI'
+    required: true
+  wif-service-account:
+    description: '権限借用するサービスアカウント'
+    required: true
+  gcp-region:
+    description: 'GCPリージョン（Artifact RegistryのDocker認証に使用）'
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ inputs.wif-provider }}
+        service_account: ${{ inputs.wif-service-account }}
+    - uses: google-github-actions/setup-gcloud@v2
+    - run: gcloud auth configure-docker ${{ inputs.gcp-region }}-docker.pkg.dev --quiet
+      shell: bash

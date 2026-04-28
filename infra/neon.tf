@@ -6,7 +6,11 @@
 
 resource "neon_project" "main" {
   name      = "todo-go"
-  region_id = "aws-ap-northeast-1" # 東京リージョン（バックエンドと同じ地域）
+  org_id    = var.neon_org_id
+  region_id = "aws-ap-southeast-1" # シンガポール（利用可能な最寄りリージョン）
+
+  # 無料プランの上限値（21600秒 = 6時間）
+  history_retention_seconds = 21600
 
   # 無料プランの最小スペックで起動
   default_endpoint_settings {
