@@ -1,19 +1,25 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Providers } from "./providers"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
   title: "Todo",
   description: "シンプルなタスク管理アプリ",
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="ja">
-      <body className="min-h-screen bg-white antialiased">{children}</body>
+    <html lang="ja" className={inter.variable}>
+      <body className="min-h-screen bg-background antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
-  );
+  )
 }

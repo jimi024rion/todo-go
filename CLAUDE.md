@@ -178,6 +178,59 @@ terraform output -json github_secrets  # → DATABASE_URL を Secrets に設定
 - Neon 利用可能リージョン: `aws-ap-southeast-1`（東京 `aws-ap-northeast-1` は不可）
 - Cloud Run のイメージは `lifecycle.ignore_changes` で CD に委ねている
 
+## フロントエンド
+
+Next.js 16（App Router）+ TailwindCSS v4 + shadcn/ui（@base-ui/react ベース）。
+
+### コマンド
+
+```bash
+cd frontend
+
+npm run dev    # 開発サーバー起動 (localhost:3000)
+npm run build  # プロダクションビルド
+```
+
+バックエンドが必要な場合は別ターミナルで `cd backend && make air` を先に起動する。
+
+### 環境変数（`frontend/.env.local`）
+
+| 変数 | 説明 |
+|---|---|
+| `BACKEND_URL` | Go バックエンドのURL（デフォルト: `http://localhost:8080`） |
+| `BACKEND_API_KEY` | Go API の `X-API-Key`（サーバー側のみ使用。ブラウザ非公開） |
+
+`BACKEND_API_KEY` の取得方法：バックエンドを起動後、`POST /v1/users` → `POST /v1/api-keys` で発行する。
+
+### ディレクトリ構成
+
+```
+frontend/
+├── app/
+│   ├── api/todos/         # Next.js Route Handlers（Go API プロキシ）
+│   ├── todos/             # Todo リスト・詳細
+│   ├── settings/          # 設定画面
+│   ├── providers.tsx      # TanStack Query プロバイダー
+│   └── layout.tsx         # ルートレイアウト
+├── components/
+│   ├── layout/            # Sidebar, MobileNav, AppShell
+│   └── todo/              # TodoCard, TodoList, TodoCreate, TodoPanel, EmptyState
+├── lib/api.ts             # クライアント側 fetch ラッパー（/api/* を呼ぶ）
+├── types/todo.ts          # TypeScript 型定義
+└── DESIGN.md              # Google DESIGN.md 形式のデザイン仕様
+```
+
+### 注意点
+
+- shadcn/ui は `@base-ui/react` ベースで、従来の Radix UI と異なる。`asChild` prop が使えない
+- `NEXT_PUBLIC_` なし変数はブラウザに公開されない（API キーは必ず非公開で使う）
+- `PORT` 環境変数は Cloud Run が予約済み（設定不可）
+
+### Firebase Auth（未実装・別計画あり）
+
+Firebase の設定が可能になった時点で実施する。
+計画: `~/.claude/plans/google-cloud-api-cloudrun-githubactions-serene-adleman.md` の「別計画」セクション参照。
+
 ## Claude Code ワークフロー指針
 
 - 複雑なタスクは `/plan` で設計してから実装する
