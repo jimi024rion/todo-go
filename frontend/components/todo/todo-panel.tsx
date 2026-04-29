@@ -2,11 +2,13 @@
 
 import { createPortal } from "react-dom"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Trash2 } from "lucide-react"
+import { Trash2, Plus, X } from "lucide-react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/use-media-query"
-import type { Todo, UpdateTodoInput } from "@/types/todo"
+import { tagApi, todoApi } from "@/lib/api"
+import type { Tag, Todo, UpdateTodoInput } from "@/types/todo"
 
 const MIN_DESKTOP_WIDTH = 280
 const MAX_DESKTOP_WIDTH = 800
@@ -293,6 +295,7 @@ function PanelContent({
           onSave={(val) => fullUpdate({ description: val })}
           strikethrough={false}
         />
+        <TagSelector todo={todo} onClose={onClose} />
       </div>
 
       {/* フッター */}
@@ -321,6 +324,125 @@ function PanelContent({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+    </div>
+  )
+}
+
+// ─── タグ選択 UI ─────────────────────────────────────────────────────
+
+function TagSelector({ todo, onClose: _onClose }: { todo: Todo; onClose: () => void }) {
+  const queryClient = useQueryClient()
+  const [showInput, setShowInput] = useState(false)
+  const [newTagName, setNewTagName] = useState("")
+
+  const { data: allTags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: tagApi.list,
+  })
+
+  const setTagsMutation = useMutation({
+    mutationFn: (tagIds: string[]) => todoApi.setTags(todo.id, tagIds),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+  })
+
+  const createTagMutation = useMutation({
+    mutationFn: tagApi.create,
+    onSuccess: (newTag) => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] })
+      // 作成後すぐにこの Todo にも付与
+      const currentIds = (todo.tags ?? []).map((t) => t.id)
+      setTagsMutation.mutate([...currentIds, newTag.id])
+      setNewTagName("")
+      setShowInput(false)
+    },
+  })
+
+  const currentTagIds = new Set((todo.tags ?? []).map((t) => t.id))
+
+  function toggleTag(tag: Tag) {
+    const ids = new Set(currentTagIds)
+    if (ids.has(tag.id)) {
+      ids.delete(tag.id)
+    } else {
+      ids.add(tag.id)
+    }
+    setTagsMutation.mutate([...ids])
+  }
+
+  function handleCreateTag(e: React.FormEvent) {
+    e.preventDefault()
+    const name = newTagName.trim()
+    if (!name) return
+    createTagMutation.mutate(name)
+  }
+
+  return (
+    <div className="w-full">
+      <p className="mb-1.5 text-xs font-medium text-muted-foreground">タグ</p>
+
+      {/* 付与済みタグ + 選択可能なタグ */}
+      <div className="flex flex-wrap gap-1.5">
+        {allTags.map((tag) => {
+          const isSelected = currentTagIds.has(tag.id)
+          return (
+            <button
+              key={tag.id}
+              onClick={() => toggleTag(tag)}
+              className={cn(
+                "inline-flex items-center rounded-full px-2.5 py-1 text-xs transition-colors duration-150",
+                isSelected
+                  ? "bg-foreground/10 text-foreground font-medium"
+                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+              )}
+            >
+              {isSelected && <span className="mr-1">✓</span>}
+              {tag.name}
+            </button>
+          )
+        })}
+
+        {/* 新規タグ作成ボタン */}
+        {!showInput && (
+          <button
+            onClick={() => setShowInput(true)}
+            className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground hover:border-primary hover:text-foreground transition-colors duration-150"
+          >
+            <Plus className="h-3 w-3" />
+            新規
+          </button>
+        )}
+      </div>
+
+      {/* 新規タグ入力フォーム */}
+      {showInput && (
+        <form onSubmit={handleCreateTag} className="mt-2 flex items-center gap-2">
+          <input
+            autoFocus
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder="タグ名..."
+            className={cn(
+              "flex-1 rounded-md border border-border bg-background px-2.5 py-1 text-sm",
+              "focus:outline-none focus:ring-2 focus:ring-ring"
+            )}
+          />
+          <button
+            type="submit"
+            disabled={!newTagName.trim()}
+            className="rounded-md bg-primary px-2.5 py-1 text-xs text-primary-foreground disabled:opacity-40"
+          >
+            追加
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowInput(false); setNewTagName("") }}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </form>
+      )}
     </div>
   )
 }

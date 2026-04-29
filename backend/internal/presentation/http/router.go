@@ -49,6 +49,14 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 				todos.GET("/:id", h.Todo.Get.Handle)
 				todos.PUT("/:id", h.Todo.Update.Handle)
 				todos.DELETE("/:id", h.Todo.Delete.Handle)
+				todos.PUT("/:id/tags", h.Tag.SetTodoTags.Handle)
+			}
+
+			tags := auth.Group("/tags")
+			{
+				tags.GET("", h.Tag.List.Handle)
+				tags.POST("", h.Tag.Create.Handle)
+				tags.DELETE("/:id", h.Tag.Delete.Handle)
 			}
 		}
 	}

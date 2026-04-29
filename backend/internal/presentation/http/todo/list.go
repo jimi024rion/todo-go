@@ -47,11 +47,16 @@ func (h *ListHandler) Handle(c *gin.Context) {
 
 	items := make([]todoItem, len(output.Todos))
 	for i, t := range output.Todos {
+		tags := make([]todoTag, len(t.Tags))
+		for j, tag := range t.Tags {
+			tags[j] = todoTag{ID: tag.ID, Name: tag.Name}
+		}
 		items[i] = todoItem{
 			ID:          t.ID,
 			Title:       t.Title,
 			Description: t.Description,
 			Status:      t.Status,
+			Tags:        tags,
 			CreatedAt:   t.CreatedAt,
 			UpdatedAt:   t.UpdatedAt,
 		}

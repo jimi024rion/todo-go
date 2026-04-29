@@ -10,11 +10,17 @@ import (
 	todousecase "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 )
 
+type todoTag struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type todoItem struct {
 	ID          string    `json:"id"          example:"01234567-89ab-cdef-0123-456789abcdef"`
 	Title       string    `json:"title"       example:"買い物リストを作る"`
 	Description string    `json:"description" example:"牛乳、卵、パンを買う"`
 	Status      string    `json:"status"      example:"pending"`
+	Tags        []todoTag `json:"tags"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 } // @name TodoItem

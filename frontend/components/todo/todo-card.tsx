@@ -86,6 +86,18 @@ export function TodoCard({ todo, onToggle, onClick }: TodoCardProps) {
             {todo.description}
           </p>
         )}
+        {todo.tags && todo.tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {todo.tags.map((tag) => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground"
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

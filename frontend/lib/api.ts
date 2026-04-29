@@ -1,7 +1,4 @@
-import type { CreateTodoInput, Todo, UpdateTodoInput } from "@/types/todo"
-
-// Next.js の API Routes を経由してバックエンドを呼ぶ（クライアント側から呼ぶ）
-// BACKEND_API_KEY は API Routes のサーバー側のみで使用される
+import type { CreateTodoInput, Tag, Todo, UpdateTodoInput } from "@/types/todo"
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -28,4 +25,20 @@ export const todoApi = {
     }),
   delete: (id: string) =>
     request<void>(`/api/todos/${id}`, { method: "DELETE" }),
+  setTags: (todoId: string, tagIds: string[]) =>
+    request<void>(`/api/todos/${todoId}/tags`, {
+      method: "PUT",
+      body: JSON.stringify({ tag_ids: tagIds }),
+    }),
+}
+
+export const tagApi = {
+  list: () => request<Tag[]>("/api/tags"),
+  create: (name: string) =>
+    request<Tag>("/api/tags", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+  delete: (id: string) =>
+    request<void>(`/api/tags/${id}`, { method: "DELETE" }),
 }

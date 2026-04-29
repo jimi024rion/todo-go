@@ -60,6 +60,7 @@ export function TodoList() {
         title: input.title,
         description: input.description ?? "",
         status: "pending",
+        tags: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
