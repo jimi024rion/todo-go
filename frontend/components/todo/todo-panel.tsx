@@ -1,10 +1,14 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { Trash2 } from "lucide-react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import type { Todo, UpdateTodoInput } from "@/types/todo"
+
+const MIN_WIDTH = 280
+const MAX_WIDTH = 800
+const DEFAULT_WIDTH = 400
 
 interface TodoPanelProps {
   todo: Todo | null
@@ -14,9 +18,51 @@ interface TodoPanelProps {
 }
 
 export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps) {
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const isDragging = useRef(false)
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDragging.current = true
+    document.body.style.cursor = "ew-resize"
+    document.body.style.userSelect = "none"
+
+    function onMouseMove(ev: MouseEvent) {
+      if (!isDragging.current) return
+      const newWidth = window.innerWidth - ev.clientX
+      setPanelWidth(Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth)))
+    }
+
+    function onMouseUp() {
+      isDragging.current = false
+      document.body.style.cursor = ""
+      document.body.style.userSelect = ""
+      document.removeEventListener("mousemove", onMouseMove)
+      document.removeEventListener("mouseup", onMouseUp)
+    }
+
+    document.addEventListener("mousemove", onMouseMove)
+    document.addEventListener("mouseup", onMouseUp)
+  }, [])
+
   return (
     <Sheet open={!!todo} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="w-full max-w-md overflow-y-auto">
+      <SheetContent
+        side="right"
+        style={{ width: panelWidth }}
+        className="p-0 overflow-hidden flex flex-col"
+      >
+        {/* ドラッグハンドル（左端） */}
+        <div
+          onMouseDown={handleDragStart}
+          title="ドラッグして幅を変更"
+          className={cn(
+            "absolute left-0 top-0 h-full w-1 z-10",
+            "cursor-ew-resize",
+            "hover:bg-primary/40 active:bg-primary/60 transition-colors duration-100"
+          )}
+        />
+
         {todo && (
           <PanelContent
             todo={todo}
@@ -51,7 +97,6 @@ function PanelContent({
     onClose()
   }
 
-  // バックエンドの PUT は title が必須のため、常に全フィールドをマージして送る
   async function fullUpdate(patch: UpdateTodoInput) {
     await onUpdate(todo.id, {
       title: todo.title,
@@ -66,14 +111,16 @@ function PanelContent({
   }
 
   return (
-    <>
-      <SheetHeader className="mb-6">
-        <SheetTitle className="text-left text-base font-semibold text-foreground">
+    <div className="flex flex-col h-full w-full">
+      {/* ヘッダー */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+        <SheetTitle className="text-base font-semibold text-foreground">
           タスクの詳細
         </SheetTitle>
-      </SheetHeader>
+      </div>
 
-      <div className="space-y-6">
+      {/* スクロール可能なコンテンツエリア */}
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
         {/* タイトル */}
         <EditableField
           label="タイトル"
@@ -94,14 +141,14 @@ function PanelContent({
         />
 
         {/* メタ情報 */}
-        <div className="text-xs text-muted-foreground">
+        <div className="space-y-1 text-xs text-muted-foreground">
           <p>作成日: {new Date(todo.created_at).toLocaleString("ja-JP")}</p>
           <p>更新日: {new Date(todo.updated_at).toLocaleString("ja-JP")}</p>
         </div>
       </div>
 
-      {/* フッター */}
-      <div className="mt-8 flex gap-2 border-t border-border pt-4">
+      {/* フッター（常に下部固定） */}
+      <div className="flex items-center gap-2 px-5 py-4 border-t border-border shrink-0">
         <button
           onClick={handleToggleDone}
           className={cn(
@@ -118,7 +165,7 @@ function PanelContent({
           onClick={handleDelete}
           disabled={isDeleting}
           className={cn(
-            "rounded-md px-4 py-2 text-sm font-medium text-destructive",
+            "shrink-0 rounded-md px-3 py-2 text-sm font-medium text-destructive",
             "border border-destructive/30 hover:bg-destructive hover:text-destructive-foreground",
             "transition-colors duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -129,7 +176,7 @@ function PanelContent({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
@@ -157,7 +204,6 @@ function EditableField({
   function startEdit() {
     setDraft(value)
     setEditing(true)
-    // 次フレームでフォーカス
     setTimeout(() => ref.current?.focus(), 0)
   }
 
@@ -169,11 +215,9 @@ function EditableField({
     }
   }
 
-  const displayValue = value || placeholder
-
   return (
-    <div>
-      <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
+    <div className="w-full">
+      <p className="mb-1.5 text-xs font-medium text-muted-foreground">{label}</p>
       {editing ? (
         multiline ? (
           <textarea
@@ -204,12 +248,13 @@ function EditableField({
         <p
           onClick={startEdit}
           className={cn(
-            "cursor-text rounded-md px-3 py-2 text-sm hover:bg-secondary/50 transition-colors duration-150",
+            "w-full cursor-text rounded-md px-3 py-2 text-sm",
+            "hover:bg-secondary/50 transition-colors duration-150",
             value ? "text-foreground" : "text-muted-foreground italic",
             strikethrough && "line-through text-muted-foreground"
           )}
         >
-          {displayValue || placeholder}
+          {value || placeholder}
         </p>
       )}
     </div>
