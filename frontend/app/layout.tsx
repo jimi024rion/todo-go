@@ -6,8 +6,9 @@ import { Providers } from "./providers"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "Todo",
+  title: "todos",
   description: "シンプルなタスク管理アプリ",
+  icons: { icon: "/favicon.svg" },
 }
 
 // iOS Safari の自動ズームを防ぐため initial-scale=1 を明示

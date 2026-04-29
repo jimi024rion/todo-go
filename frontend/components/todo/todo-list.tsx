@@ -2,7 +2,23 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, GripVertical } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { todoApi } from "@/lib/api"
 import { TodoCard } from "./todo-card"
 import { TodoCreate } from "./todo-create"
@@ -12,44 +28,93 @@ import type { Todo } from "@/types/todo"
 
 const QUERY_KEY = ["todos"] as const
 
-type SortKey = "created_desc" | "created_asc" | "status" | "title"
+type SortKey = "created_desc" | "created_asc" | "status" | "title" | "manual"
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "created_desc", label: "新しい順" },
   { value: "created_asc",  label: "古い順" },
   { value: "status",       label: "未完了優先" },
   { value: "title",        label: "タイトル順" },
+  { value: "manual",       label: "並び替え" },
 ]
 
 function sortTodos(todos: Todo[], key: SortKey): Todo[] {
+  if (key === "manual") return todos
   return [...todos].sort((a, b) => {
     switch (key) {
-      case "created_desc":
-        return b.created_at.localeCompare(a.created_at)
-      case "created_asc":
-        return a.created_at.localeCompare(b.created_at)
+      case "created_desc": return b.created_at.localeCompare(a.created_at)
+      case "created_asc":  return a.created_at.localeCompare(b.created_at)
       case "status": {
-        // pending → in_progress → completed の順
         const order = { pending: 0, in_progress: 1, completed: 2 }
         return (order[a.status] ?? 0) - (order[b.status] ?? 0)
       }
-      case "title":
-        return a.title.localeCompare(b.title, "ja")
+      case "title": return a.title.localeCompare(b.title, "ja")
     }
   })
 }
+
+// ── DnD ドラッグ可能なカードラッパー ──────────────────────────────────
+
+function SortableTodoCard(props: React.ComponentProps<typeof TodoCard>) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: props.todo.id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={isDragging ? "opacity-50 z-50 relative" : ""}
+    >
+      <div className="flex items-center gap-2">
+        {/* ドラッグハンドル */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="shrink-0 cursor-grab active:cursor-grabbing touch-none p-1 text-muted-foreground/50 hover:text-muted-foreground"
+          aria-label="ドラッグして並び替え"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <TodoCard {...props} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── メインコンポーネント ──────────────────────────────────────────────
 
 export function TodoList() {
   const queryClient = useQueryClient()
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>("created_desc")
+  const [manualOrder, setManualOrder] = useState<string[]>([])
 
   const { data: todos = [], isLoading, error } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: todoApi.list,
   })
 
-  // ── 作成 ──────────────────────────────────────────────────────────
+  // DnD sensors（マウス・タッチ両対応）
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const currentList = getDisplayList()
+    const oldIndex = currentList.findIndex((t) => t.id === active.id)
+    const newIndex = currentList.findIndex((t) => t.id === over.id)
+    const newList = arrayMove(currentList, oldIndex, newIndex)
+    setManualOrder(newList.map((t) => t.id))
+  }
+
+  // ── Mutations ─────────────────────────────────────────────────────
+
   const createMutation = useMutation({
     mutationFn: todoApi.create,
     onMutate: async (input) => {
@@ -67,15 +132,10 @@ export function TodoList() {
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) => [optimistic, ...old])
       return { previous }
     },
-    onError: (_err, _input, ctx) => {
-      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-    },
+    onError: (_e, _i, ctx) => queryClient.setQueryData(QUERY_KEY, ctx?.previous),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
   })
 
-  // ── 更新 ──────────────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: ({ id, ...input }: { id: string } & Parameters<typeof todoApi.update>[1]) =>
       todoApi.update(id, input),
@@ -83,57 +143,43 @@ export function TodoList() {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
-        old.map((t) =>
-          t.id === id
-            ? {
-                ...t,
-                title: input.title ?? t.title,
-                description: input.description ?? t.description,
-                status: input.status ?? t.status,
-                updated_at: new Date().toISOString(),
-              }
-            : t
-        )
+        old.map((t) => t.id === id ? {
+          ...t,
+          title: input.title ?? t.title,
+          description: input.description ?? t.description,
+          status: input.status ?? t.status,
+          updated_at: new Date().toISOString(),
+        } : t)
       )
-      setSelectedTodo((prev) =>
-        prev?.id === id
-          ? { ...prev, title: input.title ?? prev.title, description: input.description ?? prev.description, status: input.status ?? prev.status }
-          : prev
-      )
+      setSelectedTodo((prev) => prev?.id === id ? {
+        ...prev,
+        title: input.title ?? prev.title,
+        description: input.description ?? prev.description,
+        status: input.status ?? prev.status,
+      } : prev)
       return { previous }
     },
-    onError: (_err, _input, ctx) => {
-      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
-    },
+    onError: (_e, _i, ctx) => queryClient.setQueryData(QUERY_KEY, ctx?.previous),
     onSuccess: (serverTodo) => {
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
-        old.map((t) => (t.id === serverTodo.id ? serverTodo : t))
+        old.map((t) => t.id === serverTodo.id ? serverTodo : t)
       )
-      setSelectedTodo((prev) => (prev?.id === serverTodo.id ? serverTodo : prev))
+      setSelectedTodo((prev) => prev?.id === serverTodo.id ? serverTodo : prev)
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
   })
 
-  // ── 削除 ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: todoApi.delete,
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
-      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
-        old.filter((t) => t.id !== id)
-      )
-      setSelectedTodo((prev) => (prev?.id === id ? null : prev))
+      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) => old.filter((t) => t.id !== id))
+      setSelectedTodo((prev) => prev?.id === id ? null : prev)
       return { previous }
     },
-    onError: (_err, _id, ctx) => {
-      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
-    },
+    onError: (_e, _i, ctx) => queryClient.setQueryData(QUERY_KEY, ctx?.previous),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
   })
 
   // ── ハンドラー ────────────────────────────────────────────────────
@@ -143,12 +189,7 @@ export function TodoList() {
   }
 
   async function handleToggle(todo: Todo, done: boolean) {
-    await updateMutation.mutateAsync({
-      id: todo.id,
-      title: todo.title,
-      description: todo.description,
-      status: done ? "completed" : "pending",
-    })
+    await updateMutation.mutateAsync({ id: todo.id, title: todo.title, description: todo.description, status: done ? "completed" : "pending" })
   }
 
   async function handleUpdate(id: string, input: Parameters<typeof todoApi.update>[1]) {
@@ -157,6 +198,16 @@ export function TodoList() {
 
   async function handleDelete(id: string) {
     await deleteMutation.mutateAsync(id)
+  }
+
+  // ── 表示リスト ────────────────────────────────────────────────────
+
+  function getDisplayList(): Todo[] {
+    const base = sortTodos(todos, sortKey)
+    if (sortKey !== "manual" || manualOrder.length === 0) return base
+    // manualOrder に従って並び替え（新しく追加されたものは末尾）
+    const orderMap = new Map(manualOrder.map((id, i) => [id, i]))
+    return [...base].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999))
   }
 
   // ── レンダー ──────────────────────────────────────────────────────
@@ -180,15 +231,13 @@ export function TodoList() {
     )
   }
 
-  const sorted = sortTodos(todos, sortKey)
+  const displayList = getDisplayList()
 
   return (
     <>
       <div className="space-y-4">
-        {/* 作成フォーム */}
         <TodoCreate onSubmit={handleCreate} />
 
-        {/* ソートセレクター */}
         {todos.length > 1 && (
           <div className="flex items-center justify-end gap-1.5">
             <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -196,7 +245,10 @@ export function TodoList() {
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => setSortKey(opt.value)}
+                  onClick={() => {
+                    setSortKey(opt.value)
+                    if (opt.value === "manual") setManualOrder(displayList.map((t) => t.id))
+                  }}
                   className={
                     sortKey === opt.value
                       ? "rounded px-2 py-1 text-xs font-medium bg-secondary text-foreground"
@@ -210,17 +262,35 @@ export function TodoList() {
           </div>
         )}
 
-        {/* Todo リスト */}
         {todos.length === 0 ? (
           <EmptyState />
+        ) : sortKey === "manual" ? (
+          // DnD モード
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={displayList.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {displayList.map((todo) => (
+                  <SortableTodoCard
+                    key={todo.id}
+                    todo={todo}
+                    onToggle={handleToggle}
+                    onClick={setSelectedTodo}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
+          // 通常ソートモード
           <div className="space-y-3">
-            {sorted.map((todo) => (
+            {displayList.map((todo) => (
               <TodoCard
                 key={todo.id}
                 todo={todo}
                 onToggle={handleToggle}
                 onClick={setSelectedTodo}
+                onDelete={handleDelete}
               />
             ))}
           </div>

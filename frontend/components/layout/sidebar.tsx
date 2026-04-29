@@ -31,7 +31,7 @@ export function Sidebar({ pendingCount = 0 }: SidebarProps) {
     <aside className="flex h-full w-60 flex-col border-r border-border bg-background">
       {/* App name */}
       <div className="flex h-14 items-center px-4">
-        <span className="text-xl font-semibold text-foreground">Todo</span>
+        <span className="text-xl font-semibold text-foreground">todos</span>
       </div>
 
       {/* Navigation */}

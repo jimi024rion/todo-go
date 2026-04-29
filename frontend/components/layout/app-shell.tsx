@@ -18,10 +18,9 @@ export function AppShell({ children, pendingCount = 0 }: AppShellProps) {
 
       {/* メインコンテンツ */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* モバイル: トップバーにハンバーガーメニュー */}
+        {/* モバイル: ハンバーガーのみ（アプリ名はサイドバー内に表示） */}
         <header className="flex h-14 items-center border-b border-border px-4 md:hidden">
           <MobileNav pendingCount={pendingCount} />
-          <span className="ml-2 text-lg font-semibold">Todo</span>
         </header>
 
         <main className="flex-1 overflow-auto">{children}</main>
