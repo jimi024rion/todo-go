@@ -49,7 +49,7 @@ export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps)
     <Sheet open={!!todo} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        style={{ width: panelWidth }}
+        style={{ width: panelWidth, maxWidth: panelWidth }}
         className="p-0 overflow-hidden flex flex-col"
       >
         {/* ドラッグハンドル（左端） */}
