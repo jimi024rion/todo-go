@@ -41,7 +41,7 @@ function PanelContent({
   onUpdate: (id: string, input: UpdateTodoInput) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }) {
-  const isDone = todo.status === "done"
+  const isDone = todo.status === "completed"
   const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleDelete() {
@@ -52,7 +52,7 @@ function PanelContent({
   }
 
   async function handleToggleDone() {
-    await onUpdate(todo.id, { status: isDone ? "pending" : "done" })
+    await onUpdate(todo.id, { status: isDone ? "pending" : "completed" })
   }
 
   return (

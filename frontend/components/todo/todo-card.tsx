@@ -12,7 +12,7 @@ interface TodoCardProps {
 
 export function TodoCard({ todo, onToggle, onClick }: TodoCardProps) {
   const [isPending, startTransition] = useTransition()
-  const isDone = todo.status === "done"
+  const isDone = todo.status === "completed"
 
   function handleCheck(e: React.ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
