@@ -1,9 +1,31 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { Trash2 } from "lucide-react"
+import { Trash2, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Todo } from "@/types/todo"
+
+function DueDateBadge({ dueDate }: { dueDate: string }) {
+  const date = new Date(dueDate)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
+  const isOverdue = date < today
+  const isToday = date >= today && date < tomorrow
+
+  const label = isToday ? "今日" : date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
+
+  return (
+    <span className={cn(
+      "inline-flex items-center gap-0.5 rounded text-xs px-1.5 py-0.5",
+      isOverdue ? "text-destructive bg-destructive/10" :
+      isToday   ? "text-orange-600 bg-orange-50" :
+                  "text-muted-foreground bg-secondary"
+    )}>
+      <Calendar className="h-3 w-3" />
+      {label}
+    </span>
+  )
+}
 
 interface TodoCardProps {
   todo: Todo
@@ -165,6 +187,11 @@ export function TodoCard({ todo, onToggle, onClick, onDelete }: TodoCardProps) {
           </p>
           {todo.description && (
             <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{todo.description}</p>
+          )}
+          {todo.due_date && !isDone && (
+            <div className="mt-1.5">
+              <DueDateBadge dueDate={todo.due_date} />
+            </div>
           )}
           {todo.tags && todo.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">

@@ -36,6 +36,7 @@ type TodoOutput struct {
 	Title       string
 	Description string
 	Status      string
+	DueDate     *time.Time
 	Tags        []TagOutput
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
@@ -76,6 +77,7 @@ func (uc *ListUseCase) Execute(ctx context.Context, input *ListInput) (*ListOutp
 			Title:       todo.Title().String(),
 			Description: todo.Description(),
 			Status:      todo.Status().String(),
+			DueDate:     todo.DueDate(),
 			Tags:        tagOutputs,
 			CreatedAt:   todo.CreatedAt(),
 			UpdatedAt:   todo.UpdatedAt(),

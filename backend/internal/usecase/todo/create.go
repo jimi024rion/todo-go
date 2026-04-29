@@ -3,6 +3,7 @@ package todo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.opentelemetry.io/otel"
 
@@ -36,6 +37,7 @@ type CreateInput struct {
 	UserID      string
 	Title       string
 	Description string
+	DueDate     *time.Time
 }
 
 // CreateOutput は、CreateUseCaseの出力です。
@@ -57,7 +59,7 @@ func (uc *CreateUseCase) Execute(ctx context.Context, input *CreateInput) (*Crea
 
 		// ドメインモデルのファクトリを呼び出し、エンティティを生成します。
 		// この中でビジネスルール（タイトルの長さなど）が検証されます。
-		newTodo, err := entity.NewTodo(userID, input.Title, input.Description, uc.clock.Now(ctx))
+		newTodo, err := entity.NewTodo(userID, input.Title, input.Description, input.DueDate, uc.clock.Now(ctx))
 		if err != nil {
 			switch {
 			case errors.Is(err, todovo.ErrTitleIsEmpty):

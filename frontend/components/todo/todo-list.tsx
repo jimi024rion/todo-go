@@ -128,7 +128,13 @@ export function TodoList() {
   // ── Mutations ─────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: todoApi.create,
+    mutationFn: async (input: Parameters<typeof todoApi.create>[0] & { tagIds: string[] }) => {
+      const result = await todoApi.create({ title: input.title, description: input.description })
+      if (input.tagIds.length > 0) {
+        await todoApi.setTags(result.id, input.tagIds)
+      }
+      return result
+    },
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
@@ -202,7 +208,7 @@ export function TodoList() {
 
   // ── ハンドラー ────────────────────────────────────────────────────
 
-  async function handleCreate(input: Parameters<typeof todoApi.create>[0]) {
+  async function handleCreate(input: Parameters<typeof todoApi.create>[0] & { tagIds: string[] }) {
     await createMutation.mutateAsync(input)
   }
 

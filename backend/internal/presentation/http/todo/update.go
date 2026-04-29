@@ -2,6 +2,7 @@ package todo
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
@@ -18,9 +19,11 @@ func NewUpdateHandler(u *todousecase.UpdateUseCase) *UpdateHandler {
 }
 
 type updateRequestBody struct {
-	Title       string `json:"title"       maxLength:"100"                       example:"買い物リストを作る"`
-	Description string `json:"description" maxLength:"1000"                      example:"牛乳、卵、パンを買う"`
-	Status      string `json:"status"      enums:"pending,in_progress,completed" example:"in_progress"`
+	Title        string     `json:"title"         maxLength:"100"                       example:"買い物リストを作る"`
+	Description  string     `json:"description"   maxLength:"1000"                      example:"牛乳、卵、パンを買う"`
+	Status       string     `json:"status"        enums:"pending,in_progress,completed" example:"in_progress"`
+	DueDate      *time.Time `json:"due_date,omitempty"`
+	ClearDueDate bool       `json:"clear_due_date"`
 } // @name TodoUpdateRequest
 
 // Handle handles the request to update an existing todo.
@@ -48,10 +51,12 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 	}
 
 	output, err := h.usecase.Execute(c.Request.Context(), &todousecase.UpdateInput{
-		ID:          id,
-		Title:       req.Title,
-		Description: req.Description,
-		Status:      req.Status,
+		ID:           id,
+		Title:        req.Title,
+		Description:  req.Description,
+		Status:       req.Status,
+		DueDate:      req.DueDate,
+		ClearDueDate: req.ClearDueDate,
 	})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
@@ -64,6 +69,8 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 		Title:       output.Title,
 		Description: output.Description,
 		Status:      output.Status,
+		DueDate:     output.DueDate,
+		Tags:        []todoTag{},
 		CreatedAt:   output.CreatedAt,
 		UpdatedAt:   output.UpdatedAt,
 	})

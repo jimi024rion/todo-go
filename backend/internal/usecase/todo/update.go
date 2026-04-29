@@ -34,6 +34,8 @@ type UpdateInput struct {
 	Title       string
 	Description string
 	Status      string
+	DueDate     *time.Time // nil = 変更なし, &zero = 削除
+	ClearDueDate bool      // true = 期限を削除
 }
 
 // UpdateOutput は、UpdateUseCaseの出力です。
@@ -42,6 +44,7 @@ type UpdateOutput struct {
 	Title       string
 	Description string
 	Status      string
+	DueDate     *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -76,6 +79,13 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 		}
 		targetTodo.ChangeDescription(input.Description, now)
 
+		// DueDateの更新
+		if input.ClearDueDate {
+			targetTodo.ChangeDueDate(nil, now)
+		} else if input.DueDate != nil {
+			targetTodo.ChangeDueDate(input.DueDate, now)
+		}
+
 		// Statusの更新
 		switch todovo.Status(input.Status) {
 		case todovo.StatusCompleted:
@@ -99,6 +109,7 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 			Title:       targetTodo.Title().String(),
 			Description: targetTodo.Description(),
 			Status:      targetTodo.Status().String(),
+			DueDate:     targetTodo.DueDate(),
 			CreatedAt:   targetTodo.CreatedAt(),
 			UpdatedAt:   targetTodo.UpdatedAt(),
 		}, nil

@@ -18,6 +18,7 @@ type Todo struct {
 	title       valueobject.Title
 	description string
 	status      valueobject.Status
+	dueDate     *time.Time
 	createdAt   time.Time
 	updatedAt   time.Time
 }
@@ -27,8 +28,7 @@ type Todo struct {
 // NewTodoは、新しいTodoエンティティを「新規作成」するためのファクトリ関数です。
 // ID、ステータス、タイムスタンプは自動的に設定されます。
 // 引数で受け取った値のビジネスルール検証もこの中で行います。
-func NewTodo(userID uservo.UserID, title, description string, now time.Time) (*Todo, error) {
-	// 値オブジェクトを生成することで、ビジネスルールを検証する
+func NewTodo(userID uservo.UserID, title, description string, dueDate *time.Time, now time.Time) (*Todo, error) {
 	validatedTitle, err := valueobject.NewTitle(title)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,8 @@ func NewTodo(userID uservo.UserID, title, description string, now time.Time) (*T
 		userID:      userID,
 		title:       validatedTitle,
 		description: description,
-		status:      valueobject.StatusPending, // 新規作成時は必ず「未完了」
+		status:      valueobject.StatusPending,
+		dueDate:     dueDate,
 		createdAt:   now,
 		updatedAt:   now,
 	}, nil
@@ -48,7 +49,7 @@ func NewTodo(userID uservo.UserID, title, description string, now time.Time) (*T
 // Reconstructは、データベースなどの永続化層から読み取ったデータを用いて、
 // 既存のTodoエンティティをメモリ上に「再構築」するためのファクトリ関数です。
 // この関数も、内部で値の検証を行います。
-func Reconstruct(id, userID, title, description, status string, createdAt, updatedAt time.Time) (*Todo, error) {
+func Reconstruct(id, userID, title, description, status string, dueDate *time.Time, createdAt, updatedAt time.Time) (*Todo, error) {
 	validatedID, err := valueobject.TodoIDFromString(id)
 	if err != nil {
 		return nil, err
@@ -72,6 +73,7 @@ func Reconstruct(id, userID, title, description, status string, createdAt, updat
 		title:       validatedTitle,
 		description: description,
 		status:      validatedStatus,
+		dueDate:     dueDate,
 		createdAt:   createdAt,
 		updatedAt:   updatedAt,
 	}, nil
@@ -112,6 +114,17 @@ func (t *Todo) CreatedAt() time.Time {
 // UpdatedAtは、Todoが最後に更新された日時を返します。
 func (t *Todo) UpdatedAt() time.Time {
 	return t.updatedAt
+}
+
+// DueDateは、Todoの期限を返します（nil = 未設定）。
+func (t *Todo) DueDate() *time.Time {
+	return t.dueDate
+}
+
+// ChangeDueDateは、Todoの期限を変更します。
+func (t *Todo) ChangeDueDate(dueDate *time.Time, now time.Time) {
+	t.dueDate = dueDate
+	t.updatedAt = now
 }
 
 // IsCompletedは、Todoが完了しているかどうかを返します。

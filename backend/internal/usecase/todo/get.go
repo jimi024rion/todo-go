@@ -27,12 +27,12 @@ type GetInput struct {
 }
 
 // GetOutput は、GetUseCaseの出力です。
-// これはプレゼンテーション層に渡すためのDTO（Data Transfer Object）です。
 type GetOutput struct {
 	ID          string
 	Title       string
 	Description string
 	Status      string
+	DueDate     *time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -59,6 +59,7 @@ func (uc *GetUseCase) Execute(ctx context.Context, input *GetInput) (*GetOutput,
 		Title:       foundTodo.Title().String(),
 		Description: foundTodo.Description(),
 		Status:      foundTodo.Status().String(),
+		DueDate:     foundTodo.DueDate(),
 		CreatedAt:   foundTodo.CreatedAt(),
 		UpdatedAt:   foundTodo.UpdatedAt(),
 	}, nil

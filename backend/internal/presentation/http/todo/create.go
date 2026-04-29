@@ -2,6 +2,7 @@ package todo
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
@@ -18,28 +19,15 @@ func NewCreateHandler(u *todousecase.CreateUseCase) *CreateHandler {
 }
 
 type createRequestBody struct {
-	Title       string `json:"title"       validate:"required" minLength:"1" maxLength:"100"  example:"買い物リストを作る"`
-	Description string `json:"description"                     maxLength:"1000"               example:"牛乳、卵、パンを買う"`
+	Title       string     `json:"title"       validate:"required" minLength:"1" maxLength:"100"  example:"買い物リストを作る"`
+	Description string     `json:"description"                     maxLength:"1000"               example:"牛乳、卵、パンを買う"`
+	DueDate     *time.Time `json:"due_date,omitempty"`
 } // @name TodoCreateRequest
 
 type todoCreateBody struct {
 	ID string `json:"id" example:"01234567-89ab-cdef-0123-456789abcdef"`
 } // @name TodoCreateBody
 
-// Handle はTodo作成リクエストを処理します。
-//
-// @Summary     タスク作成
-// @Description 新しいタスクを作成します
-// @Tags        todos
-// @Accept      json
-// @Produce     json
-// @Param       request body     createRequestBody true "タスク作成リクエスト"
-// @Success     201     {object} todoCreateBody
-// @Failure     400     {object} response.ErrorResponse
-// @Failure     401     {object} response.ErrorResponse
-// @Failure     500     {object} response.ErrorResponse
-// @Security    ApiKeyAuth
-// @Router      /v1/todos [post]
 func (h *CreateHandler) Handle(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -57,6 +45,7 @@ func (h *CreateHandler) Handle(c *gin.Context) {
 		UserID:      userID.(string),
 		Title:       req.Title,
 		Description: req.Description,
+		DueDate:     req.DueDate,
 	})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)

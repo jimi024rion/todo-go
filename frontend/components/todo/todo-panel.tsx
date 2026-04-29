@@ -295,6 +295,10 @@ function PanelContent({
           onSave={(val) => fullUpdate({ description: val })}
           strikethrough={false}
         />
+        <DueDateField
+          dueDate={todo.due_date ?? null}
+          onSave={(val) => fullUpdate(val ? { due_date: val } : { clear_due_date: true })}
+        />
         <TagSelector todo={todo} onClose={onClose} />
       </div>
 
@@ -323,6 +327,51 @@ function PanelContent({
         >
           <Trash2 className="h-4 w-4" />
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── 期限設定 UI ─────────────────────────────────────────────────────
+
+function DueDateField({
+  dueDate,
+  onSave,
+}: {
+  dueDate: string | null
+  onSave: (val: string | null) => Promise<void>
+}) {
+  const [value, setValue] = useState(
+    dueDate ? new Date(dueDate).toISOString().split("T")[0] : ""
+  )
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = e.target.value
+    setValue(v)
+    await onSave(v ? new Date(v).toISOString() : null)
+  }
+
+  return (
+    <div className="w-full">
+      <p className="mb-1.5 text-xs font-medium text-muted-foreground">期限</p>
+      <div className="flex items-center gap-2">
+        <input
+          type="date"
+          value={value}
+          onChange={handleChange}
+          className={cn(
+            "rounded-md border border-border bg-background px-3 py-2 text-base",
+            "focus:outline-none focus:ring-2 focus:ring-ring"
+          )}
+        />
+        {value && (
+          <button
+            onClick={() => { setValue(""); onSave(null) }}
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+          >
+            削除
+          </button>
+        )}
       </div>
     </div>
   )

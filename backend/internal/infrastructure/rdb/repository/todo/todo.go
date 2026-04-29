@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
@@ -137,12 +138,18 @@ func toDomainTodo(m *models.Todo) (*entity.Todo, error) {
 
 	description := m.Description.GetOrZero()
 
+	var dueDate *time.Time
+	if dd, ok := m.DueDate.Get(); ok {
+		dueDate = &dd
+	}
+
 	return entity.Reconstruct(
 		m.ID.String(),
 		m.UserID.String(),
 		m.Title,
 		description,
 		m.Status,
+		dueDate,
 		m.CreatedAt,
 		m.UpdatedAt,
 	)
@@ -161,12 +168,20 @@ func toDBTodoSetter(td *entity.Todo) *models.TodoSetter {
 		description = omitnull.FromNull(null.Val[string]{})
 	}
 
+	var dueDate omitnull.Val[time.Time]
+	if dd := td.DueDate(); dd != nil {
+		dueDate = omitnull.From(*dd)
+	} else {
+		dueDate = omitnull.FromNull(null.Val[time.Time]{})
+	}
+
 	return &models.TodoSetter{
 		ID:          omit.From(uuid.FromStringOrNil(td.ID().String())),
 		UserID:      omit.From(uuid.FromStringOrNil(td.UserID().String())),
 		Title:       omit.From(td.Title().String()),
 		Description: description,
 		Status:      omit.From(td.Status().String()),
+		DueDate:     dueDate,
 		CreatedAt:   omit.From(td.CreatedAt()),
 		UpdatedAt:   omit.From(td.UpdatedAt()),
 	}

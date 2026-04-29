@@ -56,6 +56,7 @@ func (h *ListHandler) Handle(c *gin.Context) {
 			Title:       t.Title,
 			Description: t.Description,
 			Status:      t.Status,
+			DueDate:     t.DueDate,
 			Tags:        tags,
 			CreatedAt:   t.CreatedAt,
 			UpdatedAt:   t.UpdatedAt,

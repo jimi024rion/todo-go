@@ -37,6 +37,8 @@ type Todo struct {
 	UpdatedAt   time.Time        `db:"updated_at" `
 	// タスクの状態 (pending, in_progress, completed)
 	Status string `db:"status" `
+	// 期限（NULL = 未設定）。migration 20260430000000 で追加。gen-bob 再生成で上書きされる。
+	DueDate null.Val[time.Time] `db:"due_date" `
 
 	R todoR `db:"-" `
 }
@@ -97,17 +99,18 @@ func (todoColumns) AliasedAs(alias string) todoColumns {
 // All values are optional, and do not have to be set
 // Generated columns are not included
 type TodoSetter struct {
-	ID          omit.Val[uuid.UUID]  `db:"id,pk" `
-	UserID      omit.Val[uuid.UUID]  `db:"user_id" `
-	Title       omit.Val[string]     `db:"title" `
-	Description omitnull.Val[string] `db:"description" `
-	CreatedAt   omit.Val[time.Time]  `db:"created_at" `
-	UpdatedAt   omit.Val[time.Time]  `db:"updated_at" `
-	Status      omit.Val[string]     `db:"status" `
+	ID          omit.Val[uuid.UUID]      `db:"id,pk" `
+	UserID      omit.Val[uuid.UUID]      `db:"user_id" `
+	Title       omit.Val[string]         `db:"title" `
+	Description omitnull.Val[string]     `db:"description" `
+	CreatedAt   omit.Val[time.Time]      `db:"created_at" `
+	UpdatedAt   omit.Val[time.Time]      `db:"updated_at" `
+	Status      omit.Val[string]         `db:"status" `
+	DueDate     omitnull.Val[time.Time]  `db:"due_date" `
 }
 
 func (s TodoSetter) SetColumns() []string {
-	vals := make([]string, 0, 7)
+	vals := make([]string, 0, 8)
 	if s.ID.IsValue() {
 		vals = append(vals, "id")
 	}
@@ -128,6 +131,9 @@ func (s TodoSetter) SetColumns() []string {
 	}
 	if s.Status.IsValue() {
 		vals = append(vals, "status")
+	}
+	if !s.DueDate.IsUnset() {
+		vals = append(vals, "due_date")
 	}
 	return vals
 }
@@ -153,6 +159,9 @@ func (s TodoSetter) Overwrite(t *Todo) {
 	}
 	if s.Status.IsValue() {
 		t.Status = s.Status.MustGet()
+	}
+	if !s.DueDate.IsUnset() {
+		t.DueDate = s.DueDate.MustGetNull()
 	}
 }
 
