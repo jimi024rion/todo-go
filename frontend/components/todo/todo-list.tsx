@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { ArrowUpDown } from "lucide-react"
 import { todoApi } from "@/lib/api"
 import { TodoCard } from "./todo-card"
 import { TodoCreate } from "./todo-create"
@@ -11,9 +12,37 @@ import type { Todo } from "@/types/todo"
 
 const QUERY_KEY = ["todos"] as const
 
+type SortKey = "created_desc" | "created_asc" | "status" | "title"
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "created_desc", label: "新しい順" },
+  { value: "created_asc",  label: "古い順" },
+  { value: "status",       label: "未完了優先" },
+  { value: "title",        label: "タイトル順" },
+]
+
+function sortTodos(todos: Todo[], key: SortKey): Todo[] {
+  return [...todos].sort((a, b) => {
+    switch (key) {
+      case "created_desc":
+        return b.created_at.localeCompare(a.created_at)
+      case "created_asc":
+        return a.created_at.localeCompare(b.created_at)
+      case "status": {
+        // pending → in_progress → completed の順
+        const order = { pending: 0, in_progress: 1, completed: 2 }
+        return (order[a.status] ?? 0) - (order[b.status] ?? 0)
+      }
+      case "title":
+        return a.title.localeCompare(b.title, "ja")
+    }
+  })
+}
+
 export function TodoList() {
   const queryClient = useQueryClient()
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>("created_desc")
 
   const { data: todos = [], isLoading, error } = useQuery({
     queryKey: QUERY_KEY,
@@ -26,8 +55,6 @@ export function TodoList() {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
-
-      // 仮IDで楽観的に追加（リスト先頭に挿入）
       const optimistic: Todo = {
         id: `__optimistic__${Date.now()}`,
         title: input.title,
@@ -40,11 +67,9 @@ export function TodoList() {
       return { previous }
     },
     onError: (_err, _input, ctx) => {
-      // ロールバック
       queryClient.setQueryData(QUERY_KEY, ctx?.previous)
     },
     onSettled: () => {
-      // 成功・失敗どちらでもサーバーと同期
       queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
@@ -56,8 +81,6 @@ export function TodoList() {
     onMutate: async ({ id, ...input }) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
-
-      // キャッシュを楽観的に更新
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
         old.map((t) =>
           t.id === id
@@ -71,26 +94,17 @@ export function TodoList() {
             : t
         )
       )
-
-      // 開いているパネルも即時反映
       setSelectedTodo((prev) =>
         prev?.id === id
-          ? {
-              ...prev,
-              title: input.title ?? prev.title,
-              description: input.description ?? prev.description,
-              status: input.status ?? prev.status,
-            }
+          ? { ...prev, title: input.title ?? prev.title, description: input.description ?? prev.description, status: input.status ?? prev.status }
           : prev
       )
-
       return { previous }
     },
     onError: (_err, _input, ctx) => {
       queryClient.setQueryData(QUERY_KEY, ctx?.previous)
     },
     onSuccess: (serverTodo) => {
-      // サーバーの正確なデータで上書き
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
         old.map((t) => (t.id === serverTodo.id ? serverTodo : t))
       )
@@ -107,14 +121,10 @@ export function TodoList() {
     onMutate: async (id) => {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
-
-      // 即時削除
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
         old.filter((t) => t.id !== id)
       )
-      // 削除対象がパネルで開いていたら閉じる
       setSelectedTodo((prev) => (prev?.id === id ? null : prev))
-
       return { previous }
     },
     onError: (_err, _id, ctx) => {
@@ -169,16 +179,42 @@ export function TodoList() {
     )
   }
 
+  const sorted = sortTodos(todos, sortKey)
+
   return (
     <>
       <div className="space-y-4">
+        {/* 作成フォーム */}
         <TodoCreate onSubmit={handleCreate} />
 
+        {/* ソートセレクター */}
+        {todos.length > 1 && (
+          <div className="flex items-center justify-end gap-1.5">
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+            <div className="flex gap-1">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSortKey(opt.value)}
+                  className={
+                    sortKey === opt.value
+                      ? "rounded px-2 py-1 text-xs font-medium bg-secondary text-foreground"
+                      : "rounded px-2 py-1 text-xs text-muted-foreground hover:bg-secondary/60 transition-colors"
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Todo リスト */}
         {todos.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="space-y-3">
-            {todos.map((todo) => (
+            {sorted.map((todo) => (
               <TodoCard
                 key={todo.id}
                 todo={todo}
