@@ -1,5 +1,6 @@
 "use client"
 
+import { createPortal } from "react-dom"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Trash2 } from "lucide-react"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
@@ -7,9 +8,9 @@ import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/use-media-query"
 import type { Todo, UpdateTodoInput } from "@/types/todo"
 
-const MIN_WIDTH = 280
-const MAX_WIDTH = 800
-const DEFAULT_WIDTH = 400
+const MIN_DESKTOP_WIDTH = 280
+const MAX_DESKTOP_WIDTH = 800
+const DEFAULT_DESKTOP_WIDTH = 400
 
 type HeightMode = "partial" | "full"
 
@@ -22,120 +23,126 @@ interface TodoPanelProps {
 
 export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps) {
   const isMobile = useIsMobile()
-  const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_DESKTOP_WIDTH)
   const [heightMode, setHeightMode] = useState<HeightMode>("partial")
-  const isDragging = useRef(false)
+  // スクロールコンテナの ref を親で持ち、BottomSheet のスワイプ判定に使う
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isDraggingDesktop = useRef(false)
 
-  // シートを閉じたときに高さをリセット
   useEffect(() => {
     if (!todo) setHeightMode("partial")
   }, [todo])
 
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
+  const handleDesktopDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    isDragging.current = true
+    isDraggingDesktop.current = true
     document.body.style.cursor = "ew-resize"
     document.body.style.userSelect = "none"
-
-    function onMouseMove(ev: MouseEvent) {
-      if (!isDragging.current) return
-      setPanelWidth(Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, window.innerWidth - ev.clientX)))
+    function onMove(ev: MouseEvent) {
+      if (!isDraggingDesktop.current) return
+      setPanelWidth(Math.max(MIN_DESKTOP_WIDTH, Math.min(MAX_DESKTOP_WIDTH, window.innerWidth - ev.clientX)))
     }
-    function onMouseUp() {
-      isDragging.current = false
+    function onUp() {
+      isDraggingDesktop.current = false
       document.body.style.cursor = ""
       document.body.style.userSelect = ""
-      document.removeEventListener("mousemove", onMouseMove)
-      document.removeEventListener("mouseup", onMouseUp)
+      document.removeEventListener("mousemove", onMove)
+      document.removeEventListener("mouseup", onUp)
     }
-    document.addEventListener("mousemove", onMouseMove)
-    document.addEventListener("mouseup", onMouseUp)
+    document.addEventListener("mousemove", onMove)
+    document.addEventListener("mouseup", onUp)
   }, [])
+
+  const content = todo ? (
+    <PanelContent
+      todo={todo}
+      onClose={onClose}
+      onUpdate={onUpdate}
+      onDelete={onDelete}
+      scrollRef={scrollRef}
+    />
+  ) : null
+
+  if (isMobile) {
+    return (
+      <MobileBottomSheet
+        open={!!todo}
+        onClose={onClose}
+        heightMode={heightMode}
+        onExpand={() => setHeightMode("full")}
+        onCollapse={() => setHeightMode("partial")}
+        scrollRef={scrollRef}
+      >
+        {content}
+      </MobileBottomSheet>
+    )
+  }
 
   return (
     <Sheet open={!!todo} onOpenChange={(open) => !open && onClose()}>
-      {isMobile ? (
-        <SheetContent
-          side="bottom"
-          className={cn(
-            "p-0 overflow-hidden flex flex-col transition-[height,border-radius] duration-300",
-            heightMode === "full"
-              ? "h-[100dvh] rounded-t-none"
-              : "h-[85dvh] rounded-t-2xl"
-          )}
-        >
-          {todo && (
-            <PanelContent
-              todo={todo}
-              onClose={onClose}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              heightMode={heightMode}
-              onExpand={() => setHeightMode("full")}
-              onCollapse={() => setHeightMode("partial")}
-              isMobile
-            />
-          )}
-        </SheetContent>
-      ) : (
-        <SheetContent
-          side="right"
-          style={{ width: panelWidth, maxWidth: panelWidth }}
-          className="p-0 overflow-hidden flex flex-col"
-        >
-          <div
-            onMouseDown={handleDragStart}
-            className="absolute left-0 top-0 h-full w-1 z-10 cursor-ew-resize hover:bg-primary/40 active:bg-primary/60 transition-colors duration-100"
-          />
-          {todo && (
-            <PanelContent
-              todo={todo}
-              onClose={onClose}
-              onUpdate={onUpdate}
-              onDelete={onDelete}
-              heightMode="full"
-              onExpand={() => {}}
-              onCollapse={() => {}}
-              isMobile={false}
-            />
-          )}
-        </SheetContent>
-      )}
+      <SheetContent
+        side="right"
+        style={{ width: panelWidth, maxWidth: panelWidth }}
+        className="p-0 overflow-hidden flex flex-col"
+      >
+        <div
+          onMouseDown={handleDesktopDragStart}
+          className="absolute left-0 top-0 h-full w-1 z-10 cursor-ew-resize hover:bg-primary/40 transition-colors duration-100"
+        />
+        {content}
+      </SheetContent>
     </Sheet>
   )
 }
 
-function PanelContent({
-  todo,
+// ─── カスタム ボトムシート ──────────────────────────────────────────
+
+function MobileBottomSheet({
+  open,
   onClose,
-  onUpdate,
-  onDelete,
   heightMode,
   onExpand,
   onCollapse,
-  isMobile,
+  scrollRef,
+  children,
 }: {
-  todo: Todo
+  open: boolean
   onClose: () => void
-  onUpdate: (id: string, input: UpdateTodoInput) => Promise<void>
-  onDelete: (id: string) => Promise<void>
   heightMode: HeightMode
   onExpand: () => void
   onCollapse: () => void
-  isMobile: boolean
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  children: React.ReactNode
 }) {
-  const isDone = todo.status === "completed"
-  const [isDeleting, setIsDeleting] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const sheetRef = useRef<HTMLDivElement>(null)
 
-  // ネイティブタッチイベントでドラッグ検知（passive: false が必要なため useEffect で登録）
+  // open/close アニメーション
   useEffect(() => {
-    if (!isMobile) return
-    const container = containerRef.current
-    if (!container) return
-    // 以降 container は non-null
-    const el = container
+    if (open) {
+      setMounted(true)
+      // 2フレーム待って transition が効くようにする
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)))
+    } else {
+      setVisible(false)
+      const t = setTimeout(() => setMounted(false), 300)
+      return () => clearTimeout(t)
+    }
+  }, [open])
+
+  // body スクロールロック
+  useEffect(() => {
+    if (!open) return
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [open])
+
+  // スワイプ操作（passive:false が必要なので useEffect で登録）
+  useEffect(() => {
+    if (!open || !mounted) return
+    const sheet = sheetRef.current
+    if (!sheet) return
 
     let startY = 0
     let startTime = 0
@@ -147,62 +154,101 @@ function PanelContent({
       startTime = Date.now()
       latestDY = 0
       isGesture = false
-      el.style.transition = "none"
+      sheet!.style.transition = "none"
     }
 
     function onTouchMove(e: TouchEvent) {
       const dy = e.touches[0].clientY - startY
       const scrollTop = scrollRef.current?.scrollTop ?? 0
 
-      const isCloseGesture = dy > 5 && scrollTop === 0
-      const isExpandGesture = dy < -5
-
-      if (isCloseGesture || isExpandGesture) {
-        isGesture = true
+      if (!isGesture) {
+        if (dy > 8 && scrollTop === 0) isGesture = true        // 下スワイプ（閉じる or 縮小）
+        else if (dy < -8 && heightMode === "partial") isGesture = true  // 上スワイプ（全画面）
       }
 
       if (isGesture) {
         e.preventDefault()
         latestDY = dy
-        const visual = dy < 0 ? dy * 0.35 : dy
-        el.style.transform = `translateY(${visual}px)`
+        // 上方向は 0.3 の抵抗を付与、下方向はそのまま追従
+        const visual = dy < 0 ? dy * 0.3 : dy
+        sheet!.style.transform = `translateY(${visual}px)`
       }
     }
 
     function onTouchEnd() {
       if (!isGesture) return
 
-      const velocity = latestDY / (Date.now() - startTime)
-      el.style.transition = "transform 0.25s ease"
-      el.style.transform = ""
+      const velocity = latestDY / Math.max(1, Date.now() - startTime) // px/ms
+      sheet!.style.transition = "transform 0.25s cubic-bezier(0.32,0.72,0,1)"
+      sheet!.style.transform = ""
 
-      const isDownSwipe = latestDY > 80 || (velocity > 0.4 && latestDY > 20)
-      const isUpSwipe = latestDY < -60 || (velocity < -0.4 && latestDY < -20)
+      const isDown = latestDY > 80 || (velocity > 0.4 && latestDY > 20)
+      const isUp   = latestDY < -60 || (velocity < -0.4 && latestDY < -20)
 
-      if (isDownSwipe) {
-        if (heightMode === "full") {
-          // full → partial
-          onCollapse()
-        } else {
-          // partial → close
-          onClose()
-        }
-      } else if (isUpSwipe) {
-        // partial → full
-        if (heightMode === "partial") onExpand()
+      if (isDown) {
+        heightMode === "full" ? onCollapse() : onClose()
+      } else if (isUp) {
+        onExpand()
       }
     }
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true })
-    el.addEventListener("touchmove", onTouchMove, { passive: false })
-    el.addEventListener("touchend", onTouchEnd, { passive: true })
-
+    sheet.addEventListener("touchstart", onTouchStart, { passive: true })
+    sheet.addEventListener("touchmove",  onTouchMove,  { passive: false })
+    sheet.addEventListener("touchend",   onTouchEnd,   { passive: true })
     return () => {
-      el.removeEventListener("touchstart", onTouchStart)
-      el.removeEventListener("touchmove", onTouchMove)
-      el.removeEventListener("touchend", onTouchEnd)
+      sheet.removeEventListener("touchstart", onTouchStart)
+      sheet.removeEventListener("touchmove",  onTouchMove)
+      sheet.removeEventListener("touchend",   onTouchEnd)
     }
-  }, [isMobile, heightMode, onClose, onExpand, onCollapse])
+  }, [open, mounted, heightMode, scrollRef, onClose, onExpand, onCollapse])
+
+  if (!mounted) return null
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 touch-none">
+      {/* バックドロップ */}
+      <div
+        className={cn(
+          "absolute inset-0 bg-black/30 transition-opacity duration-300",
+          visible ? "opacity-100" : "opacity-0"
+        )}
+        onClick={onClose}
+      />
+
+      {/* シート本体（このdivにtransformを直接適用） */}
+      <div
+        ref={sheetRef}
+        className={cn(
+          "absolute bottom-0 left-0 right-0 bg-background flex flex-col overflow-hidden",
+          "transition-[height,border-radius,transform] duration-300",
+          heightMode === "full" ? "h-[100dvh] rounded-t-none" : "h-[85dvh] rounded-t-2xl",
+          visible ? "translate-y-0" : "translate-y-full"
+        )}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+// ─── パネルコンテンツ ────────────────────────────────────────────────
+
+function PanelContent({
+  todo,
+  onClose,
+  onUpdate,
+  onDelete,
+  scrollRef,
+}: {
+  todo: Todo
+  onClose: () => void
+  onUpdate: (id: string, input: UpdateTodoInput) => Promise<void>
+  onDelete: (id: string) => Promise<void>
+  scrollRef: React.RefObject<HTMLDivElement | null>
+}) {
+  const isDone = todo.status === "completed"
+  const [isDeleting, setIsDeleting] = useState(false)
 
   async function handleDelete() {
     if (!confirm("このタスクを削除しますか？")) return
@@ -221,19 +267,17 @@ function PanelContent({
   }
 
   return (
-    <div ref={containerRef} className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full touch-auto">
       {/* ヘッダー */}
-      <div className="relative flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
-        {isMobile && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
-        )}
+      <div className="relative flex items-center px-5 py-4 border-b border-border shrink-0">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
         <SheetTitle className="text-base font-semibold text-foreground">
           タスクの詳細
         </SheetTitle>
       </div>
 
       {/* スクロール可能なコンテンツ */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-6 touch-auto">
         <EditableField
           label="タイトル"
           value={todo.title}
@@ -257,7 +301,6 @@ function PanelContent({
           onClick={() => fullUpdate({ status: isDone ? "pending" : "completed" })}
           className={cn(
             "flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-colors duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             isDone
               ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -271,9 +314,7 @@ function PanelContent({
           className={cn(
             "shrink-0 rounded-md px-3 py-2.5 text-sm font-medium text-destructive",
             "border border-destructive/30 hover:bg-destructive hover:text-destructive-foreground",
-            "transition-colors duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            "disabled:opacity-50"
+            "transition-colors duration-150 disabled:opacity-50"
           )}
           aria-label="タスクを削除"
         >
@@ -284,16 +325,23 @@ function PanelContent({
   )
 }
 
-interface EditableFieldProps {
+// ─── 編集可能フィールド ───────────────────────────────────────────────
+
+function EditableField({
+  label,
+  value,
+  multiline,
+  placeholder,
+  onSave,
+  strikethrough,
+}: {
   label: string
   value: string
   multiline: boolean
   placeholder?: string
   onSave: (value: string) => Promise<void>
   strikethrough: boolean
-}
-
-function EditableField({ label, value, multiline, placeholder, onSave, strikethrough }: EditableFieldProps) {
+}) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
 
