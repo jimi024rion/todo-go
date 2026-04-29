@@ -15,16 +15,17 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
   const [expanded, setExpanded] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
 
   function handleFocus() {
     setExpanded(true)
   }
 
-  // フォームの外側がクリックされたときに折りたたむ
   function handleBlur(e: React.FocusEvent) {
-    // 次のフォーカス先がフォーム内であれば折りたたまない
+    // フォーム内へのフォーカス移動なら何もしない
     if (formRef.current?.contains(e.relatedTarget as Node)) return
+    // タイトルも説明もなければ折りたたむ
     if (!title.trim() && !description.trim()) {
       setExpanded(false)
     }
@@ -53,17 +54,34 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
     titleRef.current?.blur()
   }
 
-  function handleTitleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") handleCancel()
-    // Shift+Enter で説明欄にフォーカス移動
-    if (e.key === "Enter" && !e.shiftKey) {
+  function handleTitleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      handleCancel()
+      return
+    }
+    // Enter → 説明欄にフォーカス移動（送信しない）
+    if (e.key === "Enter") {
       e.preventDefault()
-      if (title.trim()) handleSubmit(e as unknown as React.FormEvent)
+      descriptionRef.current?.focus()
+      return
+    }
+    // Ctrl/Cmd + Enter → 送信
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+      handleSubmit(e as unknown as React.FormEvent)
     }
   }
 
-  function handleDescriptionKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Escape") handleCancel()
+  function handleDescriptionKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Escape") {
+      handleCancel()
+      return
+    }
+    // Ctrl/Cmd + Enter → 送信
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault()
+      handleSubmit(e as unknown as React.FormEvent)
+    }
   }
 
   return (
@@ -106,6 +124,7 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
             <>
               <div className="border-t border-border/60 px-3 py-2">
                 <textarea
+                  ref={descriptionRef}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   onKeyDown={handleDescriptionKeyDown}
@@ -121,32 +140,37 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 border-t border-border/60 px-3 py-2">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={isSubmitting}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 text-sm text-muted-foreground",
-                    "hover:bg-secondary hover:text-foreground transition-colors duration-150",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    "disabled:opacity-50"
-                  )}
-                >
-                  キャンセル
-                </button>
-                <button
-                  type="submit"
-                  disabled={!title.trim() || isSubmitting}
-                  className={cn(
-                    "rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground",
-                    "hover:bg-primary/90 transition-colors duration-150",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    "disabled:opacity-40 disabled:cursor-not-allowed"
-                  )}
-                >
-                  {isSubmitting ? "追加中..." : "追加"}
-                </button>
+              <div className="flex items-center justify-between border-t border-border/60 px-3 py-2">
+                <p className="text-xs text-muted-foreground">
+                  Ctrl+Enter で追加
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    className={cn(
+                      "rounded-md px-3 py-1.5 text-sm text-muted-foreground",
+                      "hover:bg-secondary hover:text-foreground transition-colors duration-150",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "disabled:opacity-50"
+                    )}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!title.trim() || isSubmitting}
+                    className={cn(
+                      "rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground",
+                      "hover:bg-primary/90 transition-colors duration-150",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "disabled:opacity-40 disabled:cursor-not-allowed"
+                    )}
+                  >
+                    {isSubmitting ? "追加中..." : "追加"}
+                  </button>
+                </div>
               </div>
             </>
           )}
