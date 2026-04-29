@@ -107,6 +107,16 @@ function PanelContent({
 }) {
   const isDone = todo.status === "completed"
   const [isDeleting, setIsDeleting] = useState(false)
+  const touchStartY = useRef(0)
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const delta = e.changedTouches[0].clientY - touchStartY.current
+    if (delta > 80) onClose()
+  }
 
   async function handleDelete() {
     if (!confirm("このタスクを削除しますか？")) return
@@ -130,8 +140,12 @@ function PanelContent({
 
   return (
     <div className="flex flex-col h-full w-full">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+      {/* ヘッダー（モバイルではスワイプ閉じ検知エリア） */}
+      <div
+        className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 touch-none"
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchEnd={isMobile ? handleTouchEnd : undefined}
+      >
         {/* モバイル: ドラッグインジケーター */}
         {isMobile && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
@@ -260,7 +274,7 @@ function EditableField({
         )
       ) : (
         <p
-          onClick={startEdit}
+          onPointerDown={startEdit}
           className={cn(
             "w-full cursor-text rounded-md px-3 py-2 text-sm",
             "hover:bg-secondary/50 transition-colors duration-150",
