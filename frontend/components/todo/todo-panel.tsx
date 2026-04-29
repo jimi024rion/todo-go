@@ -366,6 +366,12 @@ function EditableField({
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={handleBlur}
+            onKeyDown={(e) => {
+              // Ctrl/Cmd+Enter は改行として扱う（送信しない）
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                e.stopPropagation()
+              }
+            }}
             rows={4}
             className={cn(
               "w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-base",

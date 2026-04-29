@@ -50,12 +50,12 @@ export function TodoCard({ todo, onToggle, onClick }: TodoCardProps) {
             className={cn(
               "flex h-4 w-4 items-center justify-center rounded-sm border transition-colors duration-150",
               isDone
-                ? "border-green-500 bg-green-500"
+                ? "border-foreground/40 bg-foreground/10"
                 : "border-border bg-background peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
             )}
           >
             {isDone && (
-              <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+              <svg className="h-3 w-3 text-foreground/50" viewBox="0 0 12 12" fill="none">
                 <path
                   d="M2 6l3 3 5-5"
                   stroke="currentColor"
