@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
@@ -8,6 +8,13 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 export const metadata: Metadata = {
   title: "Todo",
   description: "シンプルなタスク管理アプリ",
+}
+
+// iOS Safari の自動ズームを防ぐため initial-scale=1 を明示
+// maximum-scale=1 は使わない（アクセシビリティ上ユーザーによるズームを妨げるため）
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 }
 
 export default function RootLayout({

@@ -111,7 +111,7 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
               placeholder="タスクを追加..."
               disabled={isSubmitting}
               className={cn(
-                "flex-1 bg-transparent text-sm text-foreground",
+                "flex-1 bg-transparent text-base text-foreground",
                 "placeholder:text-muted-foreground",
                 "focus:outline-none",
                 "disabled:opacity-50"
@@ -132,7 +132,7 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
                   rows={3}
                   disabled={isSubmitting}
                   className={cn(
-                    "w-full resize-none bg-transparent text-sm text-foreground",
+                    "w-full resize-none bg-transparent text-base text-foreground",
                     "placeholder:text-muted-foreground",
                     "focus:outline-none",
                     "disabled:opacity-50"

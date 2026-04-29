@@ -227,7 +227,7 @@ function EditableField({
             onBlur={handleBlur}
             rows={4}
             className={cn(
-              "w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-sm",
+              "w-full resize-none rounded-md border border-border bg-background px-3 py-2 text-base",
               "focus:outline-none focus:ring-2 focus:ring-ring"
             )}
           />
@@ -239,7 +239,7 @@ function EditableField({
             onChange={(e) => setDraft(e.target.value)}
             onBlur={handleBlur}
             className={cn(
-              "w-full rounded-md border border-border bg-background px-3 py-2 text-sm",
+              "w-full rounded-md border border-border bg-background px-3 py-2 text-base",
               "focus:outline-none focus:ring-2 focus:ring-ring"
             )}
           />
