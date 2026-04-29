@@ -6,7 +6,7 @@ import type { Todo } from "@/types/todo"
 
 interface TodoCardProps {
   todo: Todo
-  onToggle: (id: string, done: boolean) => void
+  onToggle: (todo: Todo, done: boolean) => void
   onClick: (todo: Todo) => void
 }
 
@@ -17,7 +17,7 @@ export function TodoCard({ todo, onToggle, onClick }: TodoCardProps) {
   function handleCheck(e: React.ChangeEvent<HTMLInputElement>) {
     e.stopPropagation()
     startTransition(() => {
-      onToggle(todo.id, e.target.checked)
+      onToggle(todo, e.target.checked)
     })
   }
 

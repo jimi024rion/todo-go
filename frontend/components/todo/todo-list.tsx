@@ -48,8 +48,13 @@ export function TodoList() {
     await createMutation.mutateAsync({ title })
   }
 
-  async function handleToggle(id: string, done: boolean) {
-    await updateMutation.mutateAsync({ id, status: done ? "completed" : "pending" })
+  async function handleToggle(todo: Todo, done: boolean) {
+    await updateMutation.mutateAsync({
+      id: todo.id,
+      title: todo.title,
+      description: todo.description,
+      status: done ? "completed" : "pending",
+    })
   }
 
   async function handleUpdate(id: string, input: Parameters<typeof todoApi.update>[1]) {

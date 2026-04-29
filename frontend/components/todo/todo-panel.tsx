@@ -51,8 +51,18 @@ function PanelContent({
     onClose()
   }
 
+  // バックエンドの PUT は title が必須のため、常に全フィールドをマージして送る
+  async function fullUpdate(patch: UpdateTodoInput) {
+    await onUpdate(todo.id, {
+      title: todo.title,
+      description: todo.description,
+      status: todo.status,
+      ...patch,
+    })
+  }
+
   async function handleToggleDone() {
-    await onUpdate(todo.id, { status: isDone ? "pending" : "completed" })
+    await fullUpdate({ status: isDone ? "pending" : "completed" })
   }
 
   return (
@@ -69,7 +79,7 @@ function PanelContent({
           label="タイトル"
           value={todo.title}
           multiline={false}
-          onSave={(val) => onUpdate(todo.id, { title: val })}
+          onSave={(val) => fullUpdate({ title: val })}
           strikethrough={isDone}
         />
 
@@ -79,7 +89,7 @@ function PanelContent({
           value={todo.description}
           multiline={true}
           placeholder="説明を追加..."
-          onSave={(val) => onUpdate(todo.id, { description: val })}
+          onSave={(val) => fullUpdate({ description: val })}
           strikethrough={false}
         />
 
