@@ -9,40 +9,123 @@ import { TodoPanel } from "./todo-panel"
 import { EmptyState } from "./empty-state"
 import type { Todo } from "@/types/todo"
 
+const QUERY_KEY = ["todos"] as const
+
 export function TodoList() {
   const queryClient = useQueryClient()
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null)
 
   const { data: todos = [], isLoading, error } = useQuery({
-    queryKey: ["todos"],
+    queryKey: QUERY_KEY,
     queryFn: todoApi.list,
   })
 
+  // ── 作成 ──────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: todoApi.create,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["todos"] }),
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY })
+      const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
+
+      // 仮IDで楽観的に追加（リスト先頭に挿入）
+      const optimistic: Todo = {
+        id: `__optimistic__${Date.now()}`,
+        title: input.title,
+        description: input.description ?? "",
+        status: "pending",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) => [optimistic, ...old])
+      return { previous }
+    },
+    onError: (_err, _input, ctx) => {
+      // ロールバック
+      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
+    },
+    onSettled: () => {
+      // 成功・失敗どちらでもサーバーと同期
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
+    },
   })
 
+  // ── 更新 ──────────────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: ({ id, ...input }: { id: string } & Parameters<typeof todoApi.update>[1]) =>
       todoApi.update(id, input),
-    onSuccess: (updatedTodo) => {
-      queryClient.setQueryData<Todo[]>(["todos"], (old = []) =>
-        old.map((t) => (t.id === updatedTodo.id ? updatedTodo : t))
+    onMutate: async ({ id, ...input }) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY })
+      const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
+
+      // キャッシュを楽観的に更新
+      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
+        old.map((t) =>
+          t.id === id
+            ? {
+                ...t,
+                title: input.title ?? t.title,
+                description: input.description ?? t.description,
+                status: input.status ?? t.status,
+                updated_at: new Date().toISOString(),
+              }
+            : t
+        )
       )
-      // パネルの Todo も最新に
-      if (selectedTodo?.id === updatedTodo.id) setSelectedTodo(updatedTodo)
+
+      // 開いているパネルも即時反映
+      setSelectedTodo((prev) =>
+        prev?.id === id
+          ? {
+              ...prev,
+              title: input.title ?? prev.title,
+              description: input.description ?? prev.description,
+              status: input.status ?? prev.status,
+            }
+          : prev
+      )
+
+      return { previous }
+    },
+    onError: (_err, _input, ctx) => {
+      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
+    },
+    onSuccess: (serverTodo) => {
+      // サーバーの正確なデータで上書き
+      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
+        old.map((t) => (t.id === serverTodo.id ? serverTodo : t))
+      )
+      setSelectedTodo((prev) => (prev?.id === serverTodo.id ? serverTodo : prev))
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
 
+  // ── 削除 ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: todoApi.delete,
-    onSuccess: (_, id) => {
-      queryClient.setQueryData<Todo[]>(["todos"], (old = []) =>
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: QUERY_KEY })
+      const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
+
+      // 即時削除
+      queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
         old.filter((t) => t.id !== id)
       )
+      // 削除対象がパネルで開いていたら閉じる
+      setSelectedTodo((prev) => (prev?.id === id ? null : prev))
+
+      return { previous }
+    },
+    onError: (_err, _id, ctx) => {
+      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY })
     },
   })
+
+  // ── ハンドラー ────────────────────────────────────────────────────
 
   async function handleCreate(input: Parameters<typeof todoApi.create>[0]) {
     await createMutation.mutateAsync(input)
@@ -64,6 +147,8 @@ export function TodoList() {
   async function handleDelete(id: string) {
     await deleteMutation.mutateAsync(id)
   }
+
+  // ── レンダー ──────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
@@ -87,10 +172,8 @@ export function TodoList() {
   return (
     <>
       <div className="space-y-4">
-        {/* インライン作成フォーム */}
         <TodoCreate onSubmit={handleCreate} />
 
-        {/* Todo リスト */}
         {todos.length === 0 ? (
           <EmptyState />
         ) : (
@@ -107,7 +190,6 @@ export function TodoList() {
         )}
       </div>
 
-      {/* 編集パネル */}
       <TodoPanel
         todo={selectedTodo}
         onClose={() => setSelectedTodo(null)}
