@@ -17,11 +17,12 @@ type Config struct {
 
 // DBConfig holds the database connection configuration.
 type DBConfig struct {
-	Host     string `env:"HOST" envDefault:"localhost"`
-	User     string `env:"USER" envDefault:"postgres"`
+	Host    string `env:"HOST" envDefault:"localhost"`
+	User    string `env:"USER" envDefault:"postgres"`
 	Password string `env:"PASSWORD" envDefault:"postgres"`
-	Name     string `env:"NAME" envDefault:"todo-db"`
-	Port     int    `env:"PORT" envDefault:"5432"`
+	Name    string `env:"NAME" envDefault:"todo-db"`
+	Port    int    `env:"PORT" envDefault:"5432"`
+	SSLMode string `env:"SSL_MODE" envDefault:"disable"`
 }
 
 var Cfg Config // nolint:gochecknoglobals

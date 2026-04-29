@@ -68,5 +68,6 @@ jobs:
             APP_ENV=production
             LOG_LEVEL=info
             DB_PORT=5432
+            DB_SSL_MODE=require
           secrets: |
             DB_PASSWORD=DB_PASSWORD:latest

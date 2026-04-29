@@ -16,8 +16,8 @@ import (
 // which automatically creates spans for every query and embeds trace context
 // into SQL comments (sqlcommenter format) for DB-side log correlation.
 func NewDB(cfg *env.Config) (bob.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DB.Host, strconv.Itoa(cfg.DB.Port), cfg.DB.User, cfg.DB.Password, cfg.DB.Name)
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.DB.Host, strconv.Itoa(cfg.DB.Port), cfg.DB.User, cfg.DB.Password, cfg.DB.Name, cfg.DB.SSLMode)
 
 	sqlDB, err := otelsql.Open("postgres", dsn,
 		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),
