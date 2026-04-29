@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ArrowUpDown, GripVertical } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import {
   DndContext,
   closestCenter,
@@ -52,6 +52,7 @@ function sortTodos(todos: Todo[], key: SortKey): Todo[] {
 }
 
 // ── DnD ドラッグ可能なカードラッパー ──────────────────────────────────
+// カード全体を長押し（モバイル 300ms / デスクトップ 8px 移動）でドラッグ開始
 
 function SortableTodoCard(props: React.ComponentProps<typeof TodoCard>) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -61,22 +62,11 @@ function SortableTodoCard(props: React.ComponentProps<typeof TodoCard>) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={isDragging ? "opacity-50 z-50 relative" : ""}
+      className={isDragging ? "opacity-50 z-50 relative cursor-grabbing" : "cursor-grab"}
+      {...attributes}
+      {...listeners}
     >
-      <div className="flex items-center gap-1">
-        {/* ドラッグハンドル（常時表示） */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="shrink-0 cursor-grab active:cursor-grabbing touch-none py-4 px-1 text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
-          aria-label="ドラッグして並び替え"
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <TodoCard {...props} />
-        </div>
-      </div>
+      <TodoCard {...props} />
     </div>
   )
 }
@@ -104,7 +94,8 @@ export function TodoList() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+    // モバイル: 300ms 長押しでドラッグ開始。横スワイプ（削除）との競合を避けるため tolerance を広めに
+    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 10 } })
   )
 
   function handleDragEnd(event: DragEndEvent) {
