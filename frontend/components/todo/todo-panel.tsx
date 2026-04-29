@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Trash2 } from "lucide-react"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/use-media-query"
 import type { Todo, UpdateTodoInput } from "@/types/todo"
@@ -271,9 +271,9 @@ function PanelContent({
       {/* ヘッダー */}
       <div className="relative flex items-center px-5 py-4 border-b border-border shrink-0">
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
-        <SheetTitle className="text-base font-semibold text-foreground">
+        <h2 className="text-base font-semibold text-foreground">
           タスクの詳細
-        </SheetTitle>
+        </h2>
       </div>
 
       {/* スクロール可能なコンテンツ */}
