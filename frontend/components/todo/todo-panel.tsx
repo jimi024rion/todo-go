@@ -221,7 +221,7 @@ function MobileBottomSheet({
         className={cn(
           "absolute bottom-0 left-0 right-0 bg-background flex flex-col overflow-hidden",
           "transition-[height,border-radius,transform] duration-300",
-          heightMode === "full" ? "h-[100dvh] rounded-t-none" : "h-[85dvh] rounded-t-2xl",
+          heightMode === "full" ? "h-[100dvh] rounded-t-none" : "h-[60dvh] rounded-t-2xl",
           visible ? "translate-y-0" : "translate-y-full"
         )}
       >
@@ -387,7 +387,7 @@ function EditableField({
         )
       ) : (
         <p
-          onPointerDown={startEdit}
+          onClick={startEdit}
           className={cn(
             "w-full cursor-text rounded-md px-3 py-2 text-sm min-h-[2.5rem]",
             "active:bg-secondary/70 transition-colors duration-100",
