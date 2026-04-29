@@ -8,7 +8,9 @@ Go 製の Todo 管理 REST API。Clean Architecture で構成されたバック�
 
 - **言語**: Go 1.25
 - **フレームワーク**: Gin (HTTP), Bob (ORM), Wire + Kessoku (DI)
-- **DB**: PostgreSQL / Atlas (マイグレーション)
+- **DB**: Neon (PostgreSQL) / Atlas (マイグレーション)
+- **ホスティング**: Google Cloud Run (asia-northeast1)
+- **CI/CD**: GitHub Actions + Workload Identity Federation
 - **ツール管理**: Aqua
 - **観測性**: OpenTelemetry, zerolog
 
@@ -27,6 +29,15 @@ backend/
 │   │   └── rdb/         # Bob ORM モデル・Atlas マイグレーション
 │   └── presentation/    # HTTP ハンドラ
 └── docs/swagger/        # Swagger 生成ドキュメント
+
+infra/                   # Terraform（GCP + Neon）
+.github/
+├── actions/
+│   ├── setup-gcp/       # WIF認証・gcloud・Docker設定
+│   └── setup-go/        # Go環境セットアップ
+└── workflows/
+    ├── backend-cd.yml   # main push → Cloud Run デプロイ
+    └── backend-ci.yml   # PR → lint + test
 ```
 
 ## よく使うコマンド
@@ -112,6 +123,60 @@ mockery             # internal/domain 配下のインターフェースからモ
 
 - `internal/testhelper/db.go`: testcontainers を使った DB 起動・マイグレーション適用・TRUNCATE ヘルパー
 - `internal/config/clock/mock_clock.go`: 固定時刻を返す `MockClock`
+
+## インフラ・デプロイ
+
+### 構成概要
+
+```
+GitHub Actions (backend-cd.yml)
+  1. Docker build → Artifact Registry (asia-northeast1)
+  2. Atlas migrate apply → Neon (aws-ap-southeast-1 / シンガポール)
+  3. gcloud run deploy → Cloud Run (asia-northeast1)
+```
+
+認証は Workload Identity Federation（サービスアカウントキーなし）。
+
+### 初回セットアップ（Terraform）
+
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars
+# terraform.tfvars に実値を記入（gcp_project_id, neon_api_key, neon_org_id）
+
+terraform init
+terraform apply
+```
+
+apply 後に GitHub Variables / Secrets を設定する:
+
+```bash
+terraform output github_variables   # → GitHub Settings > Variables に設定
+terraform output -json github_secrets  # → DATABASE_URL を Secrets に設定
+```
+
+### 環境変数
+
+| 変数 | ローカル | 本番 (Cloud Run) |
+|---|---|---|
+| `DB_HOST` | localhost | Neon エンドポイント（Terraform 管理） |
+| `DB_SSL_MODE` | 未設定（disable） | `require` |
+| `PORT` | 8080（デフォルト） | Cloud Run が自動セット（設定不可） |
+| `APP_ENV` | local | production |
+
+`PORT` は Cloud Run の予約済み変数。Terraform・CDワークフロー共に設定してはいけない。
+
+### CD トリガー
+
+`backend/` 配下の変更を `main` にプッシュすると `backend-cd.yml` が自動起動する。
+マイグレーションファイルの変更も同じフローで本番 Neon に適用される。
+
+### Terraform の注意点
+
+- `infra/terraform.tfvars` は gitignore 済み。絶対にコミットしない
+- Neon 無料プランの制約: `history_retention_seconds` 上限 21600秒（6時間）
+- Neon 利用可能リージョン: `aws-ap-southeast-1`（東京 `aws-ap-northeast-1` は不可）
+- Cloud Run のイメージは `lifecycle.ignore_changes` で CD に委ねている
 
 ## Claude Code ワークフロー指針
 

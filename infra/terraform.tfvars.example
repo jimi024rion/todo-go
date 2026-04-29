@@ -12,13 +12,8 @@ gcp_region     = "asia-northeast1"
 github_repo = "your-github-username/todo-go"
 
 # ── Neon ─────────────────────────────────────────────────
-# https://console.neon.tech/app/settings/api-keys で発行
+# API キー: https://console.neon.tech/app/settings/api-keys で発行
 neon_api_key = "your-neon-api-key"
 
-# ── Vercel ───────────────────────────────────────────────
-# https://vercel.com/account/tokens で発行
-vercel_token = "your-vercel-api-token"
-
-# 個人アカウントの場合は空文字列のまま
-# チームアカウントの場合は Team ID を設定
-vercel_team_id = ""
+# Organization ID: https://console.neon.tech/app/settings/organization で確認
+neon_org_id = "org-your-org-id"

@@ -50,6 +50,8 @@ jobs:
 
       - name: Run database migrations
         run: |
+          # --revisions-schema public: Neon の app_user は新規スキーマ作成権限がないため public スキーマを使用
+          # --allow-dirty: atlas_schema_revisions スキーマが既存でも続行
           atlas migrate apply \
             --dir "file://backend/internal/infrastructure/rdb/migrations" \
             --url "${{ secrets.DATABASE_URL }}" \
