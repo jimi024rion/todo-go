@@ -50,7 +50,6 @@ export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps)
   return (
     <Sheet open={!!todo} onOpenChange={(open) => !open && onClose()}>
       {isMobile ? (
-        // モバイル: ボトムシート
         <SheetContent
           side="bottom"
           className="p-0 overflow-hidden flex flex-col rounded-t-2xl h-[85dvh]"
@@ -66,7 +65,6 @@ export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps)
           )}
         </SheetContent>
       ) : (
-        // デスクトップ: 右からスライド + ドラッグリサイズ
         <SheetContent
           side="right"
           style={{ width: panelWidth, maxWidth: panelWidth }}
@@ -107,15 +105,27 @@ function PanelContent({
 }) {
   const isDone = todo.status === "completed"
   const [isDeleting, setIsDeleting] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
+  const touchStartTime = useRef(0)
 
+  // シート全体でスワイプ閉じを検知（スクロール中は干渉しない）
   function handleTouchStart(e: React.TouchEvent) {
     touchStartY.current = e.touches[0].clientY
+    touchStartTime.current = Date.now()
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
-    const delta = e.changedTouches[0].clientY - touchStartY.current
-    if (delta > 80) onClose()
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current
+    const deltaTime = Date.now() - touchStartTime.current
+    const velocity = deltaY / deltaTime // px/ms
+    const scrollTop = scrollRef.current?.scrollTop ?? 0
+
+    // スクロールエリアが先頭にある場合のみ判定
+    // 距離が大きい(60px) OR 素早いフリック(0.3px/ms かつ 20px以上)
+    if (scrollTop === 0 && (deltaY > 60 || (velocity > 0.3 && deltaY > 20))) {
+      onClose()
+    }
   }
 
   async function handleDelete() {
@@ -139,14 +149,13 @@ function PanelContent({
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
-      {/* ヘッダー（モバイルではスワイプ閉じ検知エリア） */}
-      <div
-        className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 touch-none"
-        onTouchStart={isMobile ? handleTouchStart : undefined}
-        onTouchEnd={isMobile ? handleTouchEnd : undefined}
-      >
-        {/* モバイル: ドラッグインジケーター */}
+    <div
+      className="flex flex-col h-full w-full"
+      onTouchStart={isMobile ? handleTouchStart : undefined}
+      onTouchEnd={isMobile ? handleTouchEnd : undefined}
+    >
+      {/* ヘッダー */}
+      <div className="relative flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
         {isMobile && (
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
         )}
@@ -156,7 +165,7 @@ function PanelContent({
       </div>
 
       {/* スクロール可能なコンテンツエリア */}
-      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
         <EditableField
           label="タイトル"
           value={todo.title}
@@ -164,7 +173,6 @@ function PanelContent({
           onSave={(val) => fullUpdate({ title: val })}
           strikethrough={isDone}
         />
-
         <EditableField
           label="説明"
           value={todo.description}
@@ -227,12 +235,11 @@ function EditableField({
 }: EditableFieldProps) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
-  const ref = useRef<HTMLInputElement & HTMLTextAreaElement>(null)
 
   function startEdit() {
     setDraft(value)
     setEditing(true)
-    setTimeout(() => ref.current?.focus(), 0)
+    // autoFocus が iOS のユーザージェスチャー内でキーボードを起動する
   }
 
   async function handleBlur() {
@@ -249,7 +256,8 @@ function EditableField({
       {editing ? (
         multiline ? (
           <textarea
-            ref={ref as React.RefObject<HTMLTextAreaElement>}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onBlur={handleBlur}
@@ -261,7 +269,8 @@ function EditableField({
           />
         ) : (
           <input
-            ref={ref as React.RefObject<HTMLInputElement>}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -276,8 +285,8 @@ function EditableField({
         <p
           onPointerDown={startEdit}
           className={cn(
-            "w-full cursor-text rounded-md px-3 py-2 text-sm",
-            "hover:bg-secondary/50 transition-colors duration-150",
+            "w-full cursor-text rounded-md px-3 py-2 text-sm min-h-[2.5rem]",
+            "active:bg-secondary/70 transition-colors duration-100",
             value ? "text-foreground" : "text-muted-foreground italic",
             strikethrough && "line-through text-muted-foreground"
           )}
