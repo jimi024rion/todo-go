@@ -44,8 +44,8 @@ export function TodoList() {
     },
   })
 
-  async function handleCreate(title: string) {
-    await createMutation.mutateAsync({ title })
+  async function handleCreate(input: Parameters<typeof todoApi.create>[0]) {
+    await createMutation.mutateAsync(input)
   }
 
   async function handleToggle(todo: Todo, done: boolean) {
