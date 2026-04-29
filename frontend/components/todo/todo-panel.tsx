@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react"
 import { Trash2 } from "lucide-react"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/lib/use-media-query"
 import type { Todo, UpdateTodoInput } from "@/types/todo"
 
 const MIN_WIDTH = 280
@@ -18,6 +19,7 @@ interface TodoPanelProps {
 }
 
 export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps) {
+  const isMobile = useIsMobile()
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const isDragging = useRef(false)
 
@@ -47,31 +49,45 @@ export function TodoPanel({ todo, onClose, onUpdate, onDelete }: TodoPanelProps)
 
   return (
     <Sheet open={!!todo} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent
-        side="right"
-        style={{ width: panelWidth, maxWidth: panelWidth }}
-        className="p-0 overflow-hidden flex flex-col"
-      >
-        {/* ドラッグハンドル（左端） */}
-        <div
-          onMouseDown={handleDragStart}
-          title="ドラッグして幅を変更"
-          className={cn(
-            "absolute left-0 top-0 h-full w-1 z-10",
-            "cursor-ew-resize",
-            "hover:bg-primary/40 active:bg-primary/60 transition-colors duration-100"
+      {isMobile ? (
+        // モバイル: ボトムシート
+        <SheetContent
+          side="bottom"
+          className="p-0 overflow-hidden flex flex-col rounded-t-2xl h-[85dvh]"
+        >
+          {todo && (
+            <PanelContent
+              todo={todo}
+              onClose={onClose}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              isMobile
+            />
           )}
-        />
-
-        {todo && (
-          <PanelContent
-            todo={todo}
-            onClose={onClose}
-            onUpdate={onUpdate}
-            onDelete={onDelete}
+        </SheetContent>
+      ) : (
+        // デスクトップ: 右からスライド + ドラッグリサイズ
+        <SheetContent
+          side="right"
+          style={{ width: panelWidth, maxWidth: panelWidth }}
+          className="p-0 overflow-hidden flex flex-col"
+        >
+          <div
+            onMouseDown={handleDragStart}
+            title="ドラッグして幅を変更"
+            className="absolute left-0 top-0 h-full w-1 z-10 cursor-ew-resize hover:bg-primary/40 active:bg-primary/60 transition-colors duration-100"
           />
-        )}
-      </SheetContent>
+          {todo && (
+            <PanelContent
+              todo={todo}
+              onClose={onClose}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              isMobile={false}
+            />
+          )}
+        </SheetContent>
+      )}
     </Sheet>
   )
 }
@@ -81,11 +97,13 @@ function PanelContent({
   onClose,
   onUpdate,
   onDelete,
+  isMobile,
 }: {
   todo: Todo
   onClose: () => void
   onUpdate: (id: string, input: UpdateTodoInput) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  isMobile: boolean
 }) {
   const isDone = todo.status === "completed"
   const [isDeleting, setIsDeleting] = useState(false)
@@ -114,6 +132,10 @@ function PanelContent({
     <div className="flex flex-col h-full w-full">
       {/* ヘッダー */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+        {/* モバイル: ドラッグインジケーター */}
+        {isMobile && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-border" />
+        )}
         <SheetTitle className="text-base font-semibold text-foreground">
           タスクの詳細
         </SheetTitle>
@@ -121,7 +143,6 @@ function PanelContent({
 
       {/* スクロール可能なコンテンツエリア */}
       <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-        {/* タイトル */}
         <EditableField
           label="タイトル"
           value={todo.title}
@@ -130,7 +151,6 @@ function PanelContent({
           strikethrough={isDone}
         />
 
-        {/* 説明文 */}
         <EditableField
           label="説明"
           value={todo.description}
@@ -139,20 +159,14 @@ function PanelContent({
           onSave={(val) => fullUpdate({ description: val })}
           strikethrough={false}
         />
-
-        {/* メタ情報 */}
-        <div className="space-y-1 text-xs text-muted-foreground">
-          <p>作成日: {new Date(todo.created_at).toLocaleString("ja-JP")}</p>
-          <p>更新日: {new Date(todo.updated_at).toLocaleString("ja-JP")}</p>
-        </div>
       </div>
 
-      {/* フッター（常に下部固定） */}
+      {/* フッター */}
       <div className="flex items-center gap-2 px-5 py-4 border-t border-border shrink-0">
         <button
           onClick={handleToggleDone}
           className={cn(
-            "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors duration-150",
+            "flex-1 rounded-md px-4 py-2.5 text-sm font-medium transition-colors duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             isDone
               ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -165,7 +179,7 @@ function PanelContent({
           onClick={handleDelete}
           disabled={isDeleting}
           className={cn(
-            "shrink-0 rounded-md px-3 py-2 text-sm font-medium text-destructive",
+            "shrink-0 rounded-md px-3 py-2.5 text-sm font-medium text-destructive",
             "border border-destructive/30 hover:bg-destructive hover:text-destructive-foreground",
             "transition-colors duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

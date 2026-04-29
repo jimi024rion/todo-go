@@ -141,9 +141,10 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
               </div>
 
               <div className="flex items-center justify-between border-t border-border/60 px-3 py-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="hidden md:block text-xs text-muted-foreground">
                   Ctrl+Enter で追加
                 </p>
+                <p className="md:hidden text-xs text-muted-foreground invisible" aria-hidden="true" />
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
