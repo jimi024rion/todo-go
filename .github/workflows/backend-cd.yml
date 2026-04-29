@@ -53,7 +53,8 @@ jobs:
           atlas migrate apply \
             --dir "file://backend/internal/infrastructure/rdb/migrations" \
             --url "${{ secrets.DATABASE_URL }}" \
-            --revisions-schema public
+            --revisions-schema public \
+            --allow-dirty
 
       # ── Step 4: Cloud Run デプロイ ──
       - name: Deploy to Cloud Run
