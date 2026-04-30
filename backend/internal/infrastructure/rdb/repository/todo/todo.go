@@ -168,11 +168,11 @@ func toDBTodoSetter(td *entity.Todo) *models.TodoSetter {
 		description = omitnull.FromNull(null.Val[string]{})
 	}
 
+	// DueDate: nil のときは zero value (unset) のまま → INSERT/UPDATE に含めない
+	// 値があるときだけセット、ClearDueDate は上位レイヤー(usecase)が nil を渡すことで表現
 	var dueDate omitnull.Val[time.Time]
 	if dd := td.DueDate(); dd != nil {
 		dueDate = omitnull.From(*dd)
-	} else {
-		dueDate = omitnull.FromNull(null.Val[time.Time]{})
 	}
 
 	return &models.TodoSetter{

@@ -171,7 +171,7 @@ func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
 	})
 
 	q.AppendValues(bob.ExpressionFunc(func(ctx context.Context, w io.StringWriter, d bob.Dialect, start int) ([]any, error) {
-		vals := make([]bob.Expression, 7)
+		vals := make([]bob.Expression, 8)
 		if s.ID.IsValue() {
 			vals[0] = psql.Arg(s.ID.MustGet())
 		} else {
@@ -212,6 +212,12 @@ func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
 			vals[6] = psql.Arg(s.Status.MustGet())
 		} else {
 			vals[6] = psql.Raw("DEFAULT")
+		}
+
+		if !s.DueDate.IsUnset() {
+			vals[7] = psql.Arg(s.DueDate.MustGetNull())
+		} else {
+			vals[7] = psql.Raw("DEFAULT")
 		}
 
 		return bob.ExpressSlice(ctx, w, d, start, vals, "", ", ", "")
@@ -271,6 +277,13 @@ func (s TodoSetter) Expressions(prefix ...string) []bob.Expression {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
 			psql.Quote(append(prefix, "status")...),
 			psql.Arg(s.Status),
+		}})
+	}
+
+	if !s.DueDate.IsUnset() {
+		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
+			psql.Quote(append(prefix, "due_date")...),
+			psql.Arg(s.DueDate),
 		}})
 	}
 
