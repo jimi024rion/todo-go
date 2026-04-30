@@ -129,7 +129,7 @@ export function TodoList() {
 
   const createMutation = useMutation({
     mutationFn: async (input: Parameters<typeof todoApi.create>[0] & { tagIds: string[] }) => {
-      const result = await todoApi.create({ title: input.title, description: input.description })
+      const result = await todoApi.create({ title: input.title, description: input.description, due_date: input.due_date })
       if (input.tagIds.length > 0) {
         await todoApi.setTags(result.id, input.tagIds)
       }
@@ -208,7 +208,7 @@ export function TodoList() {
 
   // ── ハンドラー ────────────────────────────────────────────────────
 
-  async function handleCreate(input: Parameters<typeof todoApi.create>[0] & { tagIds: string[] }) {
+  async function handleCreate(input: Parameters<typeof todoApi.create>[0] & { tagIds: string[]; due_date?: string | null }) {
     await createMutation.mutateAsync(input)
   }
 

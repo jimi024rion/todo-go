@@ -6,9 +6,10 @@ import { MobileNav } from "./mobile-nav"
 interface AppShellProps {
   children: React.ReactNode
   pendingCount?: number
+  title?: string
 }
 
-export function AppShell({ children, pendingCount = 0 }: AppShellProps) {
+export function AppShell({ children, pendingCount = 0, title }: AppShellProps) {
   return (
     <div className="flex h-screen">
       {/* デスクトップ: 左サイドバー固定表示 */}
@@ -18,9 +19,12 @@ export function AppShell({ children, pendingCount = 0 }: AppShellProps) {
 
       {/* メインコンテンツ */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* モバイル: ハンバーガーのみ（アプリ名はサイドバー内に表示） */}
+        {/* モバイル: ハンバーガー + ページタイトル（標準的なモバイル UX） */}
         <header className="flex h-14 items-center border-b border-border px-4 md:hidden">
           <MobileNav pendingCount={pendingCount} />
+          {title && (
+            <span className="ml-3 text-base font-semibold text-foreground">{title}</span>
+          )}
         </header>
 
         <main className="flex-1 overflow-auto">{children}</main>

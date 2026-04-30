@@ -472,7 +472,7 @@ function TagSelector({ todo, onClose: _onClose }: { todo: Todo; onClose: () => v
             onChange={(e) => setNewTagName(e.target.value)}
             placeholder="タグ名..."
             className={cn(
-              "flex-1 rounded-md border border-border bg-background px-2.5 py-1 text-sm",
+              "flex-1 rounded-md border border-border bg-background px-2.5 py-1 text-base",
               "focus:outline-none focus:ring-2 focus:ring-ring"
             )}
           />

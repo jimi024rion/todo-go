@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/layout/app-shell"
 
 export default function TodosLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>
+  return <AppShell title="todos">{children}</AppShell>
 }
