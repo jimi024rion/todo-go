@@ -30,12 +30,13 @@ func NewUpdateUseCase(todoRepo todorepository.TodoRepository, txManager tx.TxMan
 
 // UpdateInput は、UpdateUseCaseの入力です。
 type UpdateInput struct {
-	ID          string
-	Title       string
-	Description string
-	Status      string
-	DueDate     *time.Time // nil = 変更なし, &zero = 削除
-	ClearDueDate bool      // true = 期限を削除
+	ID           string
+	Title        string
+	Description  string
+	Status       string
+	DueDate      *time.Time
+	ClearDueDate bool
+	SortOrder    *float64 // nil = 変更なし
 }
 
 // UpdateOutput は、UpdateUseCaseの出力です。
@@ -45,6 +46,7 @@ type UpdateOutput struct {
 	Description string
 	Status      string
 	DueDate     *time.Time
+	SortOrder   float64
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -79,6 +81,11 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 		}
 		targetTodo.ChangeDescription(input.Description, now)
 
+		// SortOrder の更新
+		if input.SortOrder != nil {
+			targetTodo.ChangeSortOrder(*input.SortOrder)
+		}
+
 		// DueDateの更新
 		if input.ClearDueDate {
 			targetTodo.ChangeDueDate(nil, now)
@@ -110,6 +117,7 @@ func (uc *UpdateUseCase) Execute(ctx context.Context, input *UpdateInput) (*Upda
 			Description: targetTodo.Description(),
 			Status:      targetTodo.Status().String(),
 			DueDate:     targetTodo.DueDate(),
+			SortOrder:   targetTodo.SortOrder(),
 			CreatedAt:   targetTodo.CreatedAt(),
 			UpdatedAt:   targetTodo.UpdatedAt(),
 		}, nil

@@ -86,10 +86,11 @@ export function TodoList() {
     queryFn: todoApi.list,
   })
 
-  // サーバーからデータが届いたとき、orderedIds を初期化
+  // サーバーからデータが届いたとき orderedIds を初期化（sort_order 順がベース）
   useEffect(() => {
     if (todos.length > 0 && orderedIds.length === 0) {
-      setOrderedIds(sortTodos(todos, sortKey).map((t) => t.id))
+      const sorted = [...todos].sort((a, b) => a.sort_order - b.sort_order)
+      setOrderedIds(sorted.map((t) => t.id))
     }
   }, [todos]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -102,10 +103,30 @@ export function TodoList() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    setOrderedIds((ids) => {
-      const oldIndex = ids.indexOf(active.id as string)
-      const newIndex = ids.indexOf(over.id as string)
-      return arrayMove(ids, oldIndex, newIndex)
+
+    const currentList = getDisplayList()
+    const oldIndex = currentList.findIndex((t) => t.id === active.id)
+    const newIndex = currentList.findIndex((t) => t.id === over.id)
+    const newList = arrayMove(currentList, oldIndex, newIndex)
+
+    setOrderedIds(newList.map((t) => t.id))
+
+    // 前後の sort_order から新しい sort_order を計算してサーバーに保存
+    const prev = newList[newIndex - 1]?.sort_order
+    const next = newList[newIndex + 1]?.sort_order
+    let newSortOrder: number
+    if (prev === undefined && next === undefined) return
+    if (prev === undefined) newSortOrder = next! - 1000
+    else if (next === undefined) newSortOrder = prev + 1000
+    else newSortOrder = (prev + next) / 2
+
+    const movedTodo = newList[newIndex]
+    updateMutation.mutate({
+      id: movedTodo.id,
+      title: movedTodo.title,
+      description: movedTodo.description,
+      status: movedTodo.status,
+      sort_order: newSortOrder,
     })
   }
 
@@ -151,6 +172,7 @@ export function TodoList() {
         description: input.description ?? "",
         status: "pending",
         due_date: input.due_date ?? null,
+        sort_order: -(Date.now() / 1000), // 新しいほど小さい値
         tags: selectedTags,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

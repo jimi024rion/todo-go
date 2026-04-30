@@ -19,6 +19,7 @@ type Todo struct {
 	description string
 	status      valueobject.Status
 	dueDate     *time.Time
+	sortOrder   float64
 	createdAt   time.Time
 	updatedAt   time.Time
 }
@@ -41,6 +42,7 @@ func NewTodo(userID uservo.UserID, title, description string, dueDate *time.Time
 		description: description,
 		status:      valueobject.StatusPending,
 		dueDate:     dueDate,
+		sortOrder:   float64(-now.Unix()), // 新しいほど小さい値 → ASC ソートで上に来る
 		createdAt:   now,
 		updatedAt:   now,
 	}, nil
@@ -49,7 +51,7 @@ func NewTodo(userID uservo.UserID, title, description string, dueDate *time.Time
 // Reconstructは、データベースなどの永続化層から読み取ったデータを用いて、
 // 既存のTodoエンティティをメモリ上に「再構築」するためのファクトリ関数です。
 // この関数も、内部で値の検証を行います。
-func Reconstruct(id, userID, title, description, status string, dueDate *time.Time, createdAt, updatedAt time.Time) (*Todo, error) {
+func Reconstruct(id, userID, title, description, status string, dueDate *time.Time, sortOrder float64, createdAt, updatedAt time.Time) (*Todo, error) {
 	validatedID, err := valueobject.TodoIDFromString(id)
 	if err != nil {
 		return nil, err
@@ -74,6 +76,7 @@ func Reconstruct(id, userID, title, description, status string, dueDate *time.Ti
 		description: description,
 		status:      validatedStatus,
 		dueDate:     dueDate,
+		sortOrder:   sortOrder,
 		createdAt:   createdAt,
 		updatedAt:   updatedAt,
 	}, nil
@@ -119,6 +122,16 @@ func (t *Todo) UpdatedAt() time.Time {
 // DueDateは、Todoの期限を返します（nil = 未設定）。
 func (t *Todo) DueDate() *time.Time {
 	return t.dueDate
+}
+
+// SortOrderは、ユーザー定義の並び順を返します。
+func (t *Todo) SortOrder() float64 {
+	return t.sortOrder
+}
+
+// ChangeSortOrderは、並び順を変更します。
+func (t *Todo) ChangeSortOrder(sortOrder float64) {
+	t.sortOrder = sortOrder
 }
 
 // ChangeDueDateは、Todoの期限を変更します。

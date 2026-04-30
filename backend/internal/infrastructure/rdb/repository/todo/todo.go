@@ -14,6 +14,7 @@ import (
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/dm"
+	"github.com/stephenafamo/bob/dialect/psql/sm"
 	"github.com/stephenafamo/bob/dialect/psql/um"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
@@ -112,9 +113,11 @@ func (r *Repository) Delete(ctx context.Context, id valueobject.TodoID) error {
 	return nil
 }
 
-// List は、すべてのTodoエンティティのリストを取得します。
+// List は、すべてのTodoエンティティをsort_order順で取得します。
 func (r *Repository) List(ctx context.Context) ([]*entity.Todo, error) {
-	todoModels, err := models.Todos.Query().All(ctx, r.getExecutor(ctx))
+	todoModels, err := models.Todos.Query(
+		sm.OrderBy(models.Todos.Columns.SortOrder),
+	).All(ctx, r.getExecutor(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list todos: %w", err)
 	}
@@ -150,6 +153,7 @@ func toDomainTodo(m *models.Todo) (*entity.Todo, error) {
 		description,
 		m.Status,
 		dueDate,
+		m.SortOrder,
 		m.CreatedAt,
 		m.UpdatedAt,
 	)
@@ -182,6 +186,7 @@ func toDBTodoSetter(td *entity.Todo) *models.TodoSetter {
 		Description: description,
 		Status:      omit.From(td.Status().String()),
 		DueDate:     dueDate,
+		SortOrder:   omit.From(td.SortOrder()),
 		CreatedAt:   omit.From(td.CreatedAt()),
 		UpdatedAt:   omit.From(td.UpdatedAt()),
 	}

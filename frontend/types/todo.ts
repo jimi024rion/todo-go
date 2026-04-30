@@ -11,6 +11,7 @@ export interface Todo {
   description: string
   status: TodoStatus
   due_date?: string | null
+  sort_order: number
   tags: Tag[]
   created_at: string
   updated_at: string
@@ -28,4 +29,5 @@ export interface UpdateTodoInput {
   status?: TodoStatus
   due_date?: string | null
   clear_due_date?: boolean
+  sort_order?: number
 }

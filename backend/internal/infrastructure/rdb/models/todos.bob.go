@@ -39,6 +39,8 @@ type Todo struct {
 	Status string `db:"status" `
 	// 期限（NULL = 未設定）。migration 20260430000000 で追加。gen-bob 再生成で上書きされる。
 	DueDate null.Val[time.Time] `db:"due_date" `
+	// ユーザー定義の並び順。migration 20260430000001 で追加。gen-bob 再生成で上書きされる。
+	SortOrder float64 `db:"sort_order" `
 
 	R todoR `db:"-" `
 }
@@ -62,7 +64,7 @@ type todoR struct {
 func buildTodoColumns(alias string) todoColumns {
 	return todoColumns{
 		ColumnsExpr: expr.NewColumnsExpr(
-			"id", "user_id", "title", "description", "created_at", "updated_at", "status", "due_date",
+			"id", "user_id", "title", "description", "created_at", "updated_at", "status", "due_date", "sort_order",
 		).WithParent("todos"),
 		tableAlias:  alias,
 		ID:          psql.Quote(alias, "id"),
@@ -73,6 +75,7 @@ func buildTodoColumns(alias string) todoColumns {
 		UpdatedAt:   psql.Quote(alias, "updated_at"),
 		Status:      psql.Quote(alias, "status"),
 		DueDate:     psql.Quote(alias, "due_date"),
+		SortOrder:   psql.Quote(alias, "sort_order"),
 	}
 }
 
@@ -87,6 +90,7 @@ type todoColumns struct {
 	UpdatedAt   psql.Expression
 	Status      psql.Expression
 	DueDate     psql.Expression
+	SortOrder   psql.Expression
 }
 
 func (c todoColumns) Alias() string {
@@ -109,6 +113,7 @@ type TodoSetter struct {
 	UpdatedAt   omit.Val[time.Time]      `db:"updated_at" `
 	Status      omit.Val[string]         `db:"status" `
 	DueDate     omitnull.Val[time.Time]  `db:"due_date" `
+	SortOrder   omit.Val[float64]        `db:"sort_order" `
 }
 
 func (s TodoSetter) SetColumns() []string {
@@ -136,6 +141,9 @@ func (s TodoSetter) SetColumns() []string {
 	}
 	if !s.DueDate.IsUnset() {
 		vals = append(vals, "due_date")
+	}
+	if s.SortOrder.IsValue() {
+		vals = append(vals, "sort_order")
 	}
 	return vals
 }
@@ -165,6 +173,9 @@ func (s TodoSetter) Overwrite(t *Todo) {
 	if !s.DueDate.IsUnset() {
 		t.DueDate = s.DueDate.MustGetNull()
 	}
+	if s.SortOrder.IsValue() {
+		t.SortOrder = s.SortOrder.MustGet()
+	}
 }
 
 func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
@@ -173,7 +184,7 @@ func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
 	})
 
 	q.AppendValues(bob.ExpressionFunc(func(ctx context.Context, w io.StringWriter, d bob.Dialect, start int) ([]any, error) {
-		vals := make([]bob.Expression, 8)
+		vals := make([]bob.Expression, 9)
 		if s.ID.IsValue() {
 			vals[0] = psql.Arg(s.ID.MustGet())
 		} else {
@@ -220,6 +231,12 @@ func (s *TodoSetter) Apply(q *dialect.InsertQuery) {
 			vals[7] = psql.Arg(s.DueDate.MustGetNull())
 		} else {
 			vals[7] = psql.Raw("DEFAULT")
+		}
+
+		if s.SortOrder.IsValue() {
+			vals[8] = psql.Arg(s.SortOrder.MustGet())
+		} else {
+			vals[8] = psql.Raw("DEFAULT")
 		}
 
 		return bob.ExpressSlice(ctx, w, d, start, vals, "", ", ", "")
@@ -286,6 +303,13 @@ func (s TodoSetter) Expressions(prefix ...string) []bob.Expression {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
 			psql.Quote(append(prefix, "due_date")...),
 			psql.Arg(s.DueDate),
+		}})
+	}
+
+	if s.SortOrder.IsValue() {
+		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
+			psql.Quote(append(prefix, "sort_order")...),
+			psql.Arg(s.SortOrder),
 		}})
 	}
 

@@ -21,6 +21,7 @@ type todoItem struct {
 	Description string     `json:"description" example:"牛乳、卵、パンを買う"`
 	Status      string     `json:"status"      example:"pending"`
 	DueDate     *time.Time `json:"due_date,omitempty"`
+	SortOrder   float64    `json:"sort_order"`
 	Tags        []todoTag  `json:"tags"`
 	CreatedAt   time.Time  `json:"created_at"`
 	UpdatedAt   time.Time  `json:"updated_at"`

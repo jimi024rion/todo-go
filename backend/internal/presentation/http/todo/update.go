@@ -24,6 +24,7 @@ type updateRequestBody struct {
 	Status       string     `json:"status"        enums:"pending,in_progress,completed" example:"in_progress"`
 	DueDate      *time.Time `json:"due_date,omitempty"`
 	ClearDueDate bool       `json:"clear_due_date"`
+	SortOrder    *float64   `json:"sort_order,omitempty"`
 } // @name TodoUpdateRequest
 
 // Handle handles the request to update an existing todo.
@@ -57,6 +58,7 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 		Status:       req.Status,
 		DueDate:      req.DueDate,
 		ClearDueDate: req.ClearDueDate,
+		SortOrder:    req.SortOrder,
 	})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
@@ -70,6 +72,7 @@ func (h *UpdateHandler) Handle(c *gin.Context) {
 		Description: output.Description,
 		Status:      output.Status,
 		DueDate:     output.DueDate,
+		SortOrder:   output.SortOrder,
 		Tags:        []todoTag{},
 		CreatedAt:   output.CreatedAt,
 		UpdatedAt:   output.UpdatedAt,
