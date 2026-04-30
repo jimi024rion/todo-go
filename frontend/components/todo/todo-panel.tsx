@@ -2,7 +2,8 @@
 
 import { createPortal } from "react-dom"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Trash2, Plus, X } from "lucide-react"
+import { Trash2, Plus, X, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -515,6 +516,7 @@ function EditableField({
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [saving, setSaving] = useState(false)
 
   function startEdit() {
     setDraft(value)
@@ -524,12 +526,23 @@ function EditableField({
   async function handleBlur() {
     setEditing(false)
     const trimmed = draft.trim()
-    if (trimmed !== value) await onSave(trimmed)
+    if (trimmed === value) return
+    setSaving(true)
+    try {
+      await onSave(trimmed)
+    } catch {
+      toast.error("保存に失敗しました")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <div className="w-full">
-      <p className="mb-1.5 text-xs font-medium text-muted-foreground">{label}</p>
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        {saving && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      </div>
       {editing ? (
         multiline ? (
           <textarea

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ArrowUpDown } from "lucide-react"
 import {
@@ -161,6 +162,7 @@ export function TodoList() {
     onError: (_e, _i, ctx) => {
       queryClient.setQueryData(QUERY_KEY, ctx?.previous)
       setOrderedIds((ids) => ids.filter((id) => id !== ctx?.optimisticId))
+      toast.error("タスクの作成に失敗しました")
     },
     onSuccess: (result, _input, ctx) => {
       // 楽観的 ID を実 ID に差し替えて位置ジャンプを防ぐ
@@ -194,7 +196,10 @@ export function TodoList() {
       } : prev)
       return { previous }
     },
-    onError: (_e, _i, ctx) => queryClient.setQueryData(QUERY_KEY, ctx?.previous),
+    onError: (_e, _i, ctx) => {
+      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
+      toast.error("タスクの更新に失敗しました")
+    },
     onSuccess: (serverTodo) => {
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) =>
         old.map((t) => t.id === serverTodo.id ? serverTodo : t)
@@ -214,7 +219,10 @@ export function TodoList() {
       setSelectedTodo((prev) => prev?.id === id ? null : prev)
       return { previous }
     },
-    onError: (_e, _i, ctx) => queryClient.setQueryData(QUERY_KEY, ctx?.previous),
+    onError: (_e, _i, ctx) => {
+      queryClient.setQueryData(QUERY_KEY, ctx?.previous)
+      toast.error("タスクの削除に失敗しました")
+    },
     onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
   })
 

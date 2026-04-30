@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
+import { Toaster } from "sonner"
 import "./globals.css"
 import { Providers } from "./providers"
 
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="ja" className={inter.variable}>
       <body className="min-h-screen bg-background antialiased">
         <Providers>{children}</Providers>
+        <Toaster position="bottom-center" richColors closeButton />
       </body>
     </html>
   )
