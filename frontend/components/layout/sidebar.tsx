@@ -7,9 +7,11 @@ import { cn } from "@/lib/utils"
 
 interface SidebarProps {
   pendingCount?: number
+  hideHeader?: boolean
+  className?: string
 }
 
-export function Sidebar({ pendingCount = 0 }: SidebarProps) {
+export function Sidebar({ pendingCount = 0, hideHeader = false, className }: SidebarProps) {
   const pathname = usePathname()
 
   const navItems = [
@@ -28,11 +30,13 @@ export function Sidebar({ pendingCount = 0 }: SidebarProps) {
   ]
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r border-border bg-background">
-      {/* App name */}
-      <div className="flex h-14 items-center px-4">
-        <span className="text-xl font-semibold text-foreground">todos</span>
-      </div>
+    <aside className={cn("flex h-full flex-col border-r border-border bg-background", className ?? "w-60")}>
+      {/* App name（モバイルでは MobileNav 側でヘッダーを描画するため非表示） */}
+      {!hideHeader && (
+        <div className="flex h-14 items-center px-4">
+          <span className="text-xl font-semibold text-foreground">todos</span>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-2">
