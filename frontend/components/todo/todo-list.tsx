@@ -139,22 +139,34 @@ export function TodoList() {
       await queryClient.cancelQueries({ queryKey: QUERY_KEY })
       const previous = queryClient.getQueryData<Todo[]>(QUERY_KEY)
       const optimisticId = `__optimistic__${Date.now()}`
+
+      // 選択済みタグを TanStack Query キャッシュから取得して楽観的表示に含める
+      const cachedTags = queryClient.getQueryData<import("@/types/todo").Tag[]>(["tags"]) ?? []
+      const selectedTags = cachedTags.filter((t) => input.tagIds.includes(t.id))
+
       const optimistic: Todo = {
         id: optimisticId,
         title: input.title,
         description: input.description ?? "",
         status: "pending",
-        tags: [],
+        due_date: input.due_date ?? null,
+        tags: selectedTags,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
       queryClient.setQueryData<Todo[]>(QUERY_KEY, (old = []) => [optimistic, ...old])
       setOrderedIds((ids) => [optimisticId, ...ids])
-      return { previous }
+      return { previous, optimisticId }
     },
     onError: (_e, _i, ctx) => {
       queryClient.setQueryData(QUERY_KEY, ctx?.previous)
-      setOrderedIds((ids) => ids.filter((id) => !id.startsWith("__optimistic__")))
+      setOrderedIds((ids) => ids.filter((id) => id !== ctx?.optimisticId))
+    },
+    onSuccess: (result, _input, ctx) => {
+      // 楽観的 ID を実 ID に差し替えて位置ジャンプを防ぐ
+      if (ctx?.optimisticId) {
+        setOrderedIds((ids) => ids.map((id) => id === ctx.optimisticId ? result.id : id))
+      }
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
   })

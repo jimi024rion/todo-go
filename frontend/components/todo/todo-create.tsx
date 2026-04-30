@@ -1,8 +1,8 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Plus } from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
+import { Plus, X } from "lucide-react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import { tagApi } from "@/lib/api"
 import type { CreateTodoInput } from "@/types/todo"
@@ -18,6 +18,9 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
   const [dueDate, setDueDate] = useState("")
   const [expanded, setExpanded] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showNewTagInput, setShowNewTagInput] = useState(false)
+  const [newTagName, setNewTagName] = useState("")
+  const queryClient = useQueryClient()
   const titleRef = useRef<HTMLInputElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
@@ -25,7 +28,17 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
   const { data: allTags = [] } = useQuery({
     queryKey: ["tags"],
     queryFn: tagApi.list,
-    enabled: expanded, // 展開時のみ取得
+    enabled: expanded,
+  })
+
+  const createTagMutation = useMutation({
+    mutationFn: tagApi.create,
+    onSuccess: (newTag) => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] })
+      setSelectedTagIds((prev) => [...prev, newTag.id])
+      setNewTagName("")
+      setShowNewTagInput(false)
+    },
   })
 
   function handleFocus() {
@@ -74,6 +87,8 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
     setDescription("")
     setSelectedTagIds([])
     setDueDate("")
+    setShowNewTagInput(false)
+    setNewTagName("")
     setExpanded(false)
     titleRef.current?.blur()
   }
@@ -150,33 +165,76 @@ export function TodoCreate({ onSubmit }: TodoCreateProps) {
                 />
               </div>
 
-              {/* タグ選択 */}
-              {allTags.length > 0 && (
-                <div className="border-t border-border/60 px-3 py-2">
-                  <p className="mb-1.5 text-xs text-muted-foreground">タグ</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {allTags.map((tag) => {
-                      const selected = selectedTagIds.includes(tag.id)
-                      return (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          onClick={() => toggleTag(tag.id)}
-                          className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs transition-colors duration-150",
-                            selected
-                              ? "bg-foreground/10 text-foreground font-medium"
-                              : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                          )}
-                        >
-                          {selected && <span className="mr-1">✓</span>}
-                          {tag.name}
-                        </button>
-                      )
-                    })}
-                  </div>
+              {/* タグ選択 + 新規作成 */}
+              <div className="border-t border-border/60 px-3 py-2">
+                <p className="mb-1.5 text-xs text-muted-foreground">タグ</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {allTags.map((tag) => {
+                    const selected = selectedTagIds.includes(tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        className={cn(
+                          "inline-flex items-center rounded-full px-2.5 py-1 text-xs transition-colors duration-150",
+                          selected
+                            ? "bg-foreground/10 text-foreground font-medium"
+                            : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                        )}
+                      >
+                        {selected && <span className="mr-1">✓</span>}
+                        {tag.name}
+                      </button>
+                    )
+                  })}
+                  {/* 新規タグ作成ボタン */}
+                  {!showNewTagInput && (
+                    <button
+                      type="button"
+                      onClick={() => setShowNewTagInput(true)}
+                      className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      新規
+                    </button>
+                  )}
                 </div>
-              )}
+                {showNewTagInput && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); if (newTagName.trim()) createTagMutation.mutate(newTagName.trim()) }
+                        if (e.key === "Escape") { setShowNewTagInput(false); setNewTagName("") }
+                      }}
+                      placeholder="タグ名..."
+                      className={cn(
+                        "flex-1 rounded-md border border-border bg-background px-2.5 py-1 text-base",
+                        "focus:outline-none focus:ring-2 focus:ring-ring"
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { if (newTagName.trim()) createTagMutation.mutate(newTagName.trim()) }}
+                      disabled={!newTagName.trim()}
+                      className="rounded-md bg-primary px-2.5 py-1 text-xs text-primary-foreground disabled:opacity-40"
+                    >
+                      追加
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowNewTagInput(false); setNewTagName("") }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* フッター */}
               <div className="flex items-center justify-between border-t border-border/60 px-3 py-2">

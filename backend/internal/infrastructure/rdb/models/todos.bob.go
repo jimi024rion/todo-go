@@ -62,7 +62,7 @@ type todoR struct {
 func buildTodoColumns(alias string) todoColumns {
 	return todoColumns{
 		ColumnsExpr: expr.NewColumnsExpr(
-			"id", "user_id", "title", "description", "created_at", "updated_at", "status",
+			"id", "user_id", "title", "description", "created_at", "updated_at", "status", "due_date",
 		).WithParent("todos"),
 		tableAlias:  alias,
 		ID:          psql.Quote(alias, "id"),
@@ -72,6 +72,7 @@ func buildTodoColumns(alias string) todoColumns {
 		CreatedAt:   psql.Quote(alias, "created_at"),
 		UpdatedAt:   psql.Quote(alias, "updated_at"),
 		Status:      psql.Quote(alias, "status"),
+		DueDate:     psql.Quote(alias, "due_date"),
 	}
 }
 
@@ -85,6 +86,7 @@ type todoColumns struct {
 	CreatedAt   psql.Expression
 	UpdatedAt   psql.Expression
 	Status      psql.Expression
+	DueDate     psql.Expression
 }
 
 func (c todoColumns) Alias() string {
