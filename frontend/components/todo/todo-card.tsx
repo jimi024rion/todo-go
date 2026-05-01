@@ -126,9 +126,12 @@ export function TodoCard({ todo, onToggle, onClick, onDelete, dragHandleProps, i
 
   return (
     <div className="relative overflow-hidden rounded-lg">
-      {/* 削除ボタン（背景） */}
+      {/* 削除ボタン（背景）: スワイプ中のみ表示してチェック時の透け防止 */}
       <div
-        className="absolute inset-y-0 right-0 flex items-center justify-center bg-destructive px-5 rounded-lg"
+        className={cn(
+          "absolute inset-y-0 right-0 flex items-center justify-center bg-destructive px-5 rounded-lg",
+          translateX === 0 && !isRevealed && "invisible"
+        )}
         style={{ width: SWIPE_THRESHOLD + 20 }}
         onClick={handleDeleteTap}
       >
