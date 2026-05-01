@@ -163,33 +163,6 @@ export function TodoCard({ todo, onToggle, onClick, onDelete, dragHandleProps, i
           </div>
         )}
 
-        {/* チェックボックス */}
-        <div className="mt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-          <label className="relative flex h-4 w-4 cursor-pointer items-center">
-            <input
-              type="checkbox"
-              checked={isDone}
-              onChange={handleCheck}
-              className="peer sr-only"
-              aria-label={`${todo.title}を${isDone ? "未完了" : "完了"}にする`}
-            />
-            <span
-              className={cn(
-                "flex h-4 w-4 items-center justify-center rounded-sm border transition-colors duration-150",
-                isDone
-                  ? "border-foreground/40 bg-foreground/10"
-                  : "border-border bg-background peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
-              )}
-            >
-              {isDone && (
-                <svg className="h-3 w-3 text-foreground/50" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
-            </span>
-          </label>
-        </div>
-
         {/* テキスト */}
         <div className="min-w-0 flex-1">
           <p className={cn(
@@ -215,6 +188,33 @@ export function TodoCard({ todo, onToggle, onClick, onDelete, dragHandleProps, i
               ))}
             </div>
           )}
+        </div>
+
+        {/* チェックボックス（右端・上下中央） */}
+        <div className="shrink-0 self-center" onClick={(e) => e.stopPropagation()}>
+          <label className="relative flex h-5 w-5 cursor-pointer items-center">
+            <input
+              type="checkbox"
+              checked={isDone}
+              onChange={handleCheck}
+              className="peer sr-only"
+              aria-label={`${todo.title}を${isDone ? "未完了" : "完了"}にする`}
+            />
+            <span
+              className={cn(
+                "flex h-5 w-5 items-center justify-center rounded-full border transition-colors duration-150",
+                isDone
+                  ? "border-foreground/40 bg-foreground/10"
+                  : "border-border bg-background peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+              )}
+            >
+              {isDone && (
+                <svg className="h-3 w-3 text-foreground/50" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </span>
+          </label>
         </div>
       </div>
     </div>
