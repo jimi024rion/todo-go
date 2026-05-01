@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState, useTransition } from "react"
-import { Trash2, Calendar } from "lucide-react"
+import { Trash2, Calendar, GripVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Todo } from "@/types/todo"
 
@@ -32,12 +32,14 @@ interface TodoCardProps {
   onToggle: (todo: Todo, done: boolean) => void
   onClick: (todo: Todo) => void
   onDelete: (id: string) => void
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>
+  isDragging?: boolean
 }
 
 const SWIPE_THRESHOLD = 72   // この距離スワイプしたら削除ボタン表示
 const DELETE_THRESHOLD = 140 // この距離まで引っ張ったら即削除
 
-export function TodoCard({ todo, onToggle, onClick, onDelete }: TodoCardProps) {
+export function TodoCard({ todo, onToggle, onClick, onDelete, dragHandleProps, isDragging }: TodoCardProps) {
   const [isPending, startTransition] = useTransition()
   const isDone = todo.status === "completed"
 
@@ -150,6 +152,17 @@ export function TodoCard({ todo, onToggle, onClick, onDelete }: TodoCardProps) {
         tabIndex={0}
         onKeyDown={(e) => e.key === "Enter" && !isRevealed && onClick(todo)}
       >
+        {/* ドラッグハンドル（縦方向のみ移動。スワイプ削除と分離） */}
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className="flex shrink-0 touch-none items-center self-stretch px-0.5 text-muted-foreground/30 active:text-muted-foreground/60"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+        )}
+
         {/* チェックボックス */}
         <div className="mt-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
           <label className="relative flex h-4 w-4 cursor-pointer items-center">

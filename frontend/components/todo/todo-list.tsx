@@ -13,6 +13,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core"
+import { restrictToVerticalAxis, restrictToWindowEdges } from "@dnd-kit/modifiers"
 import {
   SortableContext,
   useSortable,
@@ -63,11 +64,13 @@ function SortableTodoCard(props: React.ComponentProps<typeof TodoCard>) {
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={isDragging ? "opacity-50 z-50 relative cursor-grabbing" : "cursor-grab"}
-      {...attributes}
-      {...listeners}
+      className={isDragging ? "opacity-50 z-50 relative" : ""}
     >
-      <TodoCard {...props} />
+      <TodoCard
+        {...props}
+        dragHandleProps={{ ...attributes, ...listeners }}
+        isDragging={isDragging}
+      />
     </div>
   )
 }
@@ -320,7 +323,7 @@ export function TodoList() {
         {todos.length === 0 ? (
           <EmptyState />
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis, restrictToWindowEdges]}>
             <SortableContext items={displayList.map((t) => t.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-3">
                 {displayList.map((todo) => (
