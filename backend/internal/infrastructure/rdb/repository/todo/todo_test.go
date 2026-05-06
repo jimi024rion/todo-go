@@ -31,7 +31,7 @@ func newTestUser(t *testing.T, ctx context.Context) *userentity.User {
 func newTestTodo(t *testing.T, ctx context.Context, userID uservo.UserID) *entity.Todo {
 	t.Helper()
 	now := time.Now().Truncate(time.Second)
-	todo, err := entity.NewTodo(userID, "テストタスク", "テスト説明", now)
+	todo, err := entity.NewTodo(userID, "テストタスク", "テスト説明", &now, now)
 	require.NoError(t, err)
 	repo := todorepo.NewRepository(testBobDB)
 	require.NoError(t, repo.Save(ctx, todo))
@@ -46,7 +46,7 @@ func TestTodoRepository_Save_Insert(t *testing.T) {
 	repo := todorepo.NewRepository(testBobDB)
 
 	now := time.Now().Truncate(time.Second)
-	todo, err := entity.NewTodo(user.ID(), "買い物", "牛乳・卵", now)
+	todo, err := entity.NewTodo(user.ID(), "買い物", "牛乳・卵", &now, now)
 	require.NoError(t, err)
 
 	require.NoError(t, repo.Save(ctx, todo))

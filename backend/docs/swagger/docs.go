@@ -125,6 +125,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/tags": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "タグ一覧取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/internal_presentation_http_tag.tagItem"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "タグ作成",
+                "parameters": [
+                    {
+                        "description": "タグ作成リクエスト",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_presentation_http_tag.createRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_presentation_http_tag.tagItem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tags/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "tags": [
+                    "tags"
+                ],
+                "summary": "タグ削除",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "タグID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/todos": {
             "get": {
                 "security": [
@@ -148,61 +238,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/TodoItem"
                             }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "新しいタスクを作成します",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "todos"
-                ],
-                "summary": "タスク作成",
-                "parameters": [
-                    {
-                        "description": "タスク作成リクエスト",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/TodoCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/TodoCreateBody"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/ErrorResponse"
                         }
                     },
                     "500": {
@@ -378,6 +413,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/todos/{id}/tags": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "todos"
+                ],
+                "summary": "TodoにタグをセットするPUT /v1/todos/:id/tags",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "TodoID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "タグIDリスト",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_presentation_http_tag.setTodoTagsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/users": {
             "post": {
                 "security": [
@@ -493,34 +567,6 @@ const docTemplate = `{
                 }
             }
         },
-        "TodoCreateBody": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "01234567-89ab-cdef-0123-456789abcdef"
-                }
-            }
-        },
-        "TodoCreateRequest": {
-            "type": "object",
-            "required": [
-                "title"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "maxLength": 1000,
-                    "example": "牛乳、卵、パンを買う"
-                },
-                "title": {
-                    "type": "string",
-                    "maxLength": 100,
-                    "minLength": 1,
-                    "example": "買い物リストを作る"
-                }
-            }
-        },
         "TodoItem": {
             "type": "object",
             "properties": {
@@ -531,13 +577,25 @@ const docTemplate = `{
                     "type": "string",
                     "example": "牛乳、卵、パンを買う"
                 },
+                "due_date": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string",
                     "example": "01234567-89ab-cdef-0123-456789abcdef"
                 },
+                "sort_order": {
+                    "type": "number"
+                },
                 "status": {
                     "type": "string",
                     "example": "pending"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_presentation_http_todo.todoTag"
+                    }
                 },
                 "title": {
                     "type": "string",
@@ -551,10 +609,19 @@ const docTemplate = `{
         "TodoUpdateRequest": {
             "type": "object",
             "properties": {
+                "clear_due_date": {
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string",
                     "maxLength": 1000,
                     "example": "牛乳、卵、パンを買う"
+                },
+                "due_date": {
+                    "type": "string"
+                },
+                "sort_order": {
+                    "type": "number"
                 },
                 "status": {
                     "type": "string",
@@ -611,6 +678,56 @@ const docTemplate = `{
                     "example": "John Doe"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_presentation_http_tag.createRequest": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_presentation_http_tag.setTodoTagsRequest": {
+            "type": "object",
+            "properties": {
+                "tag_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "internal_presentation_http_tag.tagItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_presentation_http_todo.todoTag": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

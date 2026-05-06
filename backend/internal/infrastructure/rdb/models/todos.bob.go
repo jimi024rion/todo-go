@@ -36,11 +36,9 @@ type Todo struct {
 	CreatedAt   time.Time        `db:"created_at" `
 	UpdatedAt   time.Time        `db:"updated_at" `
 	// タスクの状態 (pending, in_progress, completed)
-	Status string `db:"status" `
-	// 期限（NULL = 未設定）。migration 20260430000000 で追加。gen-bob 再生成で上書きされる。
-	DueDate null.Val[time.Time] `db:"due_date" `
-	// ユーザー定義の並び順。migration 20260430000001 で追加。gen-bob 再生成で上書きされる。
-	SortOrder float64 `db:"sort_order" `
+	Status    string              `db:"status" `
+	DueDate   null.Val[time.Time] `db:"due_date" `
+	SortOrder float64             `db:"sort_order" `
 
 	R todoR `db:"-" `
 }
@@ -105,19 +103,19 @@ func (todoColumns) AliasedAs(alias string) todoColumns {
 // All values are optional, and do not have to be set
 // Generated columns are not included
 type TodoSetter struct {
-	ID          omit.Val[uuid.UUID]      `db:"id,pk" `
-	UserID      omit.Val[uuid.UUID]      `db:"user_id" `
-	Title       omit.Val[string]         `db:"title" `
-	Description omitnull.Val[string]     `db:"description" `
-	CreatedAt   omit.Val[time.Time]      `db:"created_at" `
-	UpdatedAt   omit.Val[time.Time]      `db:"updated_at" `
-	Status      omit.Val[string]         `db:"status" `
-	DueDate     omitnull.Val[time.Time]  `db:"due_date" `
-	SortOrder   omit.Val[float64]        `db:"sort_order" `
+	ID          omit.Val[uuid.UUID]     `db:"id,pk" `
+	UserID      omit.Val[uuid.UUID]     `db:"user_id" `
+	Title       omit.Val[string]        `db:"title" `
+	Description omitnull.Val[string]    `db:"description" `
+	CreatedAt   omit.Val[time.Time]     `db:"created_at" `
+	UpdatedAt   omit.Val[time.Time]     `db:"updated_at" `
+	Status      omit.Val[string]        `db:"status" `
+	DueDate     omitnull.Val[time.Time] `db:"due_date" `
+	SortOrder   omit.Val[float64]       `db:"sort_order" `
 }
 
 func (s TodoSetter) SetColumns() []string {
-	vals := make([]string, 0, 8)
+	vals := make([]string, 0, 9)
 	if s.ID.IsValue() {
 		vals = append(vals, "id")
 	}
@@ -248,7 +246,7 @@ func (s TodoSetter) UpdateMod() bob.Mod[*dialect.UpdateQuery] {
 }
 
 func (s TodoSetter) Expressions(prefix ...string) []bob.Expression {
-	exprs := make([]bob.Expression, 0, 7)
+	exprs := make([]bob.Expression, 0, 9)
 
 	if s.ID.IsValue() {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
@@ -713,6 +711,8 @@ type todoWhere[Q psql.Filterable] struct {
 	CreatedAt   psql.WhereMod[Q, time.Time]
 	UpdatedAt   psql.WhereMod[Q, time.Time]
 	Status      psql.WhereMod[Q, string]
+	DueDate     psql.WhereNullMod[Q, time.Time]
+	SortOrder   psql.WhereMod[Q, float64]
 }
 
 func (todoWhere[Q]) AliasedAs(alias string) todoWhere[Q] {
@@ -728,6 +728,8 @@ func buildTodoWhere[Q psql.Filterable](cols todoColumns) todoWhere[Q] {
 		CreatedAt:   psql.Where[Q, time.Time](cols.CreatedAt),
 		UpdatedAt:   psql.Where[Q, time.Time](cols.UpdatedAt),
 		Status:      psql.Where[Q, string](cols.Status),
+		DueDate:     psql.WhereNull[Q, time.Time](cols.DueDate),
+		SortOrder:   psql.Where[Q, float64](cols.SortOrder),
 	}
 }
 

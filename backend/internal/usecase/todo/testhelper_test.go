@@ -6,8 +6,8 @@ import (
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/model/entity"
-	uservo "github.com/jimi024rion/todo-go/backend/internal/domain/user/model/valueobject"
 	txmocks "github.com/jimi024rion/todo-go/backend/internal/domain/tx/mocks"
+	uservo "github.com/jimi024rion/todo-go/backend/internal/domain/user/model/valueobject"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -20,7 +20,8 @@ var (
 func newTxMock(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *txmocks.MockTxManager {
+},
+) *txmocks.MockTxManager {
 	txMock := txmocks.NewMockTxManager(t)
 	txMock.EXPECT().Do(mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, fn func(context.Context) (any, error)) (any, error) {
@@ -33,6 +34,6 @@ func newTxMock(t interface {
 // newTodoEntity はテスト用 Todo エンティティを生成します。
 func newTodoEntity(userIDStr, title, description string) *entity.Todo {
 	userID, _ := uservo.UserIDFromString(userIDStr)
-	todo, _ := entity.NewTodo(userID, title, description, testNow)
+	todo, _ := entity.NewTodo(userID, title, description, &testNow, testNow)
 	return todo
 }

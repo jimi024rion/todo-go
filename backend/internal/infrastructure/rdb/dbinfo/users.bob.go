@@ -60,6 +60,15 @@ var Users = Table[
 			Generated: false,
 			AutoIncr:  false,
 		},
+		FirebaseUID: column{
+			Name:      "firebase_uid",
+			DBType:    "character varying",
+			Default:   "NULL",
+			Comment:   "",
+			Nullable:  true,
+			Generated: false,
+			AutoIncr:  false,
+		},
 	},
 	Indexes: userIndexes{
 		UsersPkey: index{
@@ -96,6 +105,23 @@ var Users = Table[
 			Where:         "",
 			Include:       []string{},
 		},
+		UsersFirebaseUIDKey: index{
+			Type: "btree",
+			Name: "users_firebase_uid_key",
+			Columns: []indexColumn{
+				{
+					Name:         "firebase_uid",
+					Desc:         null.FromCond(false, true),
+					IsExpression: false,
+				},
+			},
+			Unique:        true,
+			Comment:       "",
+			NullsFirst:    []bool{false},
+			NullsDistinct: false,
+			Where:         "",
+			Include:       []string{},
+		},
 	},
 	PrimaryKey: &constraint{
 		Name:    "users_pkey",
@@ -109,33 +135,40 @@ var Users = Table[
 			Columns: []string{"email"},
 			Comment: "",
 		},
+		UsersFirebaseUIDKey: constraint{
+			Name:    "users_firebase_uid_key",
+			Columns: []string{"firebase_uid"},
+			Comment: "",
+		},
 	},
 
 	Comment: "ユーザー情報",
 }
 
 type userColumns struct {
-	ID        column
-	Name      column
-	Email     column
-	CreatedAt column
-	UpdatedAt column
+	ID          column
+	Name        column
+	Email       column
+	CreatedAt   column
+	UpdatedAt   column
+	FirebaseUID column
 }
 
 func (c userColumns) AsSlice() []column {
 	return []column{
-		c.ID, c.Name, c.Email, c.CreatedAt, c.UpdatedAt,
+		c.ID, c.Name, c.Email, c.CreatedAt, c.UpdatedAt, c.FirebaseUID,
 	}
 }
 
 type userIndexes struct {
-	UsersPkey     index
-	UsersEmailKey index
+	UsersPkey           index
+	UsersEmailKey       index
+	UsersFirebaseUIDKey index
 }
 
 func (i userIndexes) AsSlice() []index {
 	return []index{
-		i.UsersPkey, i.UsersEmailKey,
+		i.UsersPkey, i.UsersEmailKey, i.UsersFirebaseUIDKey,
 	}
 }
 
@@ -146,12 +179,13 @@ func (f userForeignKeys) AsSlice() []foreignKey {
 }
 
 type userUniques struct {
-	UsersEmailKey constraint
+	UsersEmailKey       constraint
+	UsersFirebaseUIDKey constraint
 }
 
 func (u userUniques) AsSlice() []constraint {
 	return []constraint{
-		u.UsersEmailKey,
+		u.UsersEmailKey, u.UsersFirebaseUIDKey,
 	}
 }
 

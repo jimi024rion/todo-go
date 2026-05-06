@@ -62,7 +62,10 @@ func main() {
 	}()
 
 	// Setup Server with DI
-	server := di.InitializeServer(ctx, db)
+	server, err := di.InitializeServer(ctx, db)
+	if err != nil {
+		l.FatalLog(err)
+	}
 
 	// Run the server
 	addr := fmt.Sprintf(":%d", env.Cfg.Port)

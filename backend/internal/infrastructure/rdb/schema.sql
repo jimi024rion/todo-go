@@ -2,6 +2,7 @@ CREATE TABLE "users" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "name" varchar(255) NOT NULL,
   "email" varchar(255) NOT NULL UNIQUE,
+  "firebase_uid" varchar(128) UNIQUE,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL
 );
@@ -12,6 +13,8 @@ CREATE TABLE "todos" (
   "title" varchar(255) NOT NULL,
   "description" text,
   "status" varchar(50) NOT NULL DEFAULT 'pending' CONSTRAINT "chk_todos_status" CHECK (status IN ('pending', 'in_progress', 'completed')),
+  "due_date" timestamptz,
+  "sort_order" double precision NOT NULL DEFAULT 0.0,
   "created_at" timestamptz NOT NULL,
   "updated_at" timestamptz NOT NULL
 );

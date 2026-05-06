@@ -8,13 +8,12 @@ import (
 
 	// repository
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
-	apikeycache "github.com/jimi024rion/todo-go/backend/internal/domain/apikey/cache"
 	apikeyrepo "github.com/jimi024rion/todo-go/backend/internal/domain/apikey/repository"
 	tagrepo "github.com/jimi024rion/todo-go/backend/internal/domain/tag/repository"
 	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	userrepo "github.com/jimi024rion/todo-go/backend/internal/domain/user/repository"
-	localCache "github.com/jimi024rion/todo-go/backend/internal/infrastructure/cache/local"
 	clockimpl "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
+	firebaseinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/firebase"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	apikeyinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/apikey"
 	taginfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/tag"
@@ -48,9 +47,10 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Bind[todorepo.TodoRepository](kessoku.Async(kessoku.Provide(todo.NewRepository))),
 	// user
 	kessoku.Bind[userrepo.UserRepository](kessoku.Async(kessoku.Provide(userinfra.NewRepository))),
+	// firebase
+	kessoku.Bind[firebaseinfra.TokenVerifier](kessoku.Async(kessoku.Provide(firebaseinfra.NewTokenVerifier))),
 	// apikey
 	kessoku.Bind[apikeyrepo.APIKeyRepository](kessoku.Async(kessoku.Provide(apikeyinfra.NewRepository))),
-	kessoku.Bind[apikeycache.APIKeyCache](kessoku.Provide(localCache.NewLocalAPIKeyCache)),
 	// tag
 	kessoku.Bind[tagrepo.TagRepository](kessoku.Async(kessoku.Provide(taginfra.NewRepository))),
 

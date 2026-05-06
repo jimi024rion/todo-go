@@ -8,11 +8,12 @@ import (
 
 // Config holds the application configuration.
 type Config struct {
-	AppEnv       string   `env:"APP_ENV" envDefault:"local"`
-	Port         int      `env:"PORT" envDefault:"8080"`
-	DB           DBConfig `envPrefix:"DB_"`
-	GCPProjectID string   `env:"GCP_PROJECT_ID" envDefault:"test-project"`
-	LogLevel     string   `env:"LOG_LEVEL" envDefault:"debug"`
+	AppEnv            string   `env:"APP_ENV" envDefault:"local"`
+	Port              int      `env:"PORT" envDefault:"8080"`
+	DB                DBConfig `envPrefix:"DB_"`
+	GCPProjectID      string   `env:"GCP_PROJECT_ID" envDefault:"test-project"`
+	LogLevel          string   `env:"LOG_LEVEL" envDefault:"debug"`
+	FirebaseProjectID string   `env:"FIREBASE_PROJECT_ID" envDefault:""`
 }
 
 // DBConfig holds the database connection configuration.

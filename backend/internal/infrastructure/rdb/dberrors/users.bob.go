@@ -17,10 +17,19 @@ var UserErrors = &userErrors{
 		columns: []string{"email"},
 		s:       "users_email_key",
 	},
+
+	ErrUniqueUsersFirebaseUidKey: &UniqueConstraintError{
+		schema:  "",
+		table:   "users",
+		columns: []string{"firebase_uid"},
+		s:       "users_firebase_uid_key",
+	},
 }
 
 type userErrors struct {
 	ErrUniqueUsersPkey *UniqueConstraintError
 
 	ErrUniqueUsersEmailKey *UniqueConstraintError
+
+	ErrUniqueUsersFirebaseUidKey *UniqueConstraintError
 }

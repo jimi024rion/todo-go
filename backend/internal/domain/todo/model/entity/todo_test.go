@@ -50,7 +50,7 @@ func TestNewTodo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := entity.NewTodo(testUserID, tt.title, tt.description, testNow)
+			got, err := entity.NewTodo(testUserID, tt.title, tt.description, &testNow, testNow)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
@@ -71,7 +71,7 @@ func TestTodo_MarkAsCompleted(t *testing.T) {
 
 	t.Run("pending→completedに変わりupdatedAtが更新される", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 
 		later := testNow.Add(time.Hour)
@@ -84,7 +84,7 @@ func TestTodo_MarkAsCompleted(t *testing.T) {
 
 	t.Run("すでにcompletedなら冪等（updatedAt変わらない）", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 		todo.MarkAsCompleted(testNow.Add(time.Hour))
 		updatedAt := todo.UpdatedAt()
@@ -100,7 +100,7 @@ func TestTodo_MarkAsInProgress(t *testing.T) {
 
 	t.Run("pending→in_progressに変わる", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 
 		later := testNow.Add(time.Hour)
@@ -112,7 +112,7 @@ func TestTodo_MarkAsInProgress(t *testing.T) {
 
 	t.Run("すでにin_progressなら冪等", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 		todo.MarkAsInProgress(testNow.Add(time.Hour))
 		updatedAt := todo.UpdatedAt()
@@ -128,7 +128,7 @@ func TestTodo_MarkAsPending(t *testing.T) {
 
 	t.Run("completed→pendingに戻る", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 		todo.MarkAsCompleted(testNow.Add(time.Hour))
 
@@ -141,7 +141,7 @@ func TestTodo_MarkAsPending(t *testing.T) {
 
 	t.Run("すでにpendingなら冪等", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "テスト", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "テスト", "", &testNow, testNow)
 		require.NoError(t, err)
 		updatedAt := todo.UpdatedAt()
 
@@ -156,7 +156,7 @@ func TestTodo_ChangeTitle(t *testing.T) {
 
 	t.Run("正常: タイトルが変わりupdatedAtが更新される", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "古いタイトル", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "古いタイトル", "", &testNow, testNow)
 		require.NoError(t, err)
 
 		later := testNow.Add(time.Hour)
@@ -169,7 +169,7 @@ func TestTodo_ChangeTitle(t *testing.T) {
 
 	t.Run("同じタイトルなら変更なし（updatedAt変わらない）", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "同じタイトル", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "同じタイトル", "", &testNow, testNow)
 		require.NoError(t, err)
 		updatedAt := todo.UpdatedAt()
 
@@ -181,7 +181,7 @@ func TestTodo_ChangeTitle(t *testing.T) {
 
 	t.Run("異常: 空文字", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "タイトル", "", testNow)
+		todo, err := entity.NewTodo(testUserID, "タイトル", "", &testNow, testNow)
 		require.NoError(t, err)
 
 		err = todo.ChangeTitle("", testNow.Add(time.Hour))
@@ -195,7 +195,7 @@ func TestTodo_ChangeDescription(t *testing.T) {
 
 	t.Run("説明が変わりupdatedAtが更新される", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "タイトル", "旧説明", testNow)
+		todo, err := entity.NewTodo(testUserID, "タイトル", "旧説明", &testNow, testNow)
 		require.NoError(t, err)
 
 		later := testNow.Add(time.Hour)
@@ -207,7 +207,7 @@ func TestTodo_ChangeDescription(t *testing.T) {
 
 	t.Run("同じ説明なら変更なし", func(t *testing.T) {
 		t.Parallel()
-		todo, err := entity.NewTodo(testUserID, "タイトル", "説明", testNow)
+		todo, err := entity.NewTodo(testUserID, "タイトル", "説明", &testNow, testNow)
 		require.NoError(t, err)
 		updatedAt := todo.UpdatedAt()
 

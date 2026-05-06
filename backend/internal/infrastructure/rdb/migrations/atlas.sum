@@ -1,4 +1,4 @@
-h1:aEVxeJgYxurn3m9ivrGJYudssK9RRXmJryLK93Jt3Ss=
+h1:3GkvIScT/B+vqMAuUyCTE8yic8HE2Ca85+Ud0jEbBr4=
 20251217135055_initial.sql h1:2zVO5AV2SzJRY3ZH3847V3iNCkmCw6QjKLpASlo3wc8=
 20251221141638_change_todo_columns_done_to_status.sql h1:gEMzRToPsqv+9Kqvnayy31Xve3WJJwHhC3VcYbkoQ/M=
 20251223141144_add_comment.sql h1:DuFAcJ9/nGP7fwD69VHhdG5VvLJykDqHmmTzVL0DqoQ=
@@ -7,3 +7,4 @@ h1:aEVxeJgYxurn3m9ivrGJYudssK9RRXmJryLK93Jt3Ss=
 20260406104133_change_api_keys_to_sha256.sql h1:G5f1PYc6ng5I0JNDnIjLReA9h/cYTsHi20epcFc+M9M=
 20260430000000_add_due_date_to_todos.sql h1:u1b2CumuqsCT2iwbFdy5R30KYw1mLj3+6jxF2FuT4us=
 20260430000001_add_sort_order_to_todos.sql h1:WQ199Ad4EwF2YkbBxu2HAqq/+oUJmq832CmSbw4nARU=
+20260506071617_add_firebase_uid_to_users.sql h1:ArOvmPaRKimA30bzf/jQZgK3gVdD275fXBFYKtbPw0k=

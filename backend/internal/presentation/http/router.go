@@ -20,7 +20,7 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"http://localhost:3000"},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders: []string{"Content-Type", "X-API-Key"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
 	r.Use(middleware.Logger())
 	r.Use(middleware.Trace())
@@ -38,7 +38,7 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 
 		// 認証必須グループ
 		auth := v1.Group("")
-		auth.Use(mw.APIKeyAuth)
+		auth.Use(mw.FirebaseAuth)
 		{
 			auth.DELETE("/api-keys/:id", h.APIKey.Delete.Handle)
 

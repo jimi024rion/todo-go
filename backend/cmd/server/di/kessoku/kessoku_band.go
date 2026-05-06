@@ -6,14 +6,13 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
-	"github.com/jimi024rion/todo-go/backend/internal/domain/apikey/cache"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/apikey/repository"
 	repository0 "github.com/jimi024rion/todo-go/backend/internal/domain/tag/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tx"
 	repository1 "github.com/jimi024rion/todo-go/backend/internal/domain/user/repository"
-	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/cache/local"
 	clock0 "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/firebase"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/apikey"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/tag"
@@ -36,66 +35,86 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
+func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 	var (
-		apikeyCache          cache.APIKeyCache
 		healthCheckHandler   *health.HealthCheckHandler
 		clock1               clock.Clock
 		clockCh              = make(chan struct{})
 		handler0             *health.Handler
-		apikeyRepository     repository.APIKeyRepository
-		apikeyRepositoryCh   = make(chan struct{})
+		tokenVerifier        firebase.TokenVerifier
+		tokenVerifierCh      = make(chan struct{})
 		userRepository       repository1.UserRepository
+		userRepositoryCh     = make(chan struct{})
 		txManager            tx.TxManager
 		txManagerCh          = make(chan struct{})
 		repository2          *todo0.Repository
 		repositoryCh         = make(chan struct{})
 		repository3          *tag.Repository
 		repositoryCh0        = make(chan struct{})
+		apikeyRepository     repository.APIKeyRepository
 		middleware0          *middleware.Middleware
 		createUserUsecase    *user1.CreateUserUsecase
-		createUseCase        *apikey1.CreateUseCase
-		deleteUseCase        *apikey1.DeleteUseCase
-		createUseCase0       *todo2.CreateUseCase
+		createUseCase        *todo2.CreateUseCase
 		getUseCase           *todo2.GetUseCase
 		updateUseCase        *todo2.UpdateUseCase
-		deleteUseCase0       *todo2.DeleteUseCase
+		deleteUseCase        *todo2.DeleteUseCase
 		listUseCase          *todo2.ListUseCase
 		listUseCase0         *tag1.ListUseCase
-		createUseCase1       *tag1.CreateUseCase
-		deleteUseCase1       *tag1.DeleteUseCase
+		createUseCase0       *tag1.CreateUseCase
+		deleteUseCase0       *tag1.DeleteUseCase
 		setTodoTagsUseCase   *tag1.SetTodoTagsUseCase
+		createUseCase1       *apikey1.CreateUseCase
+		deleteUseCase1       *apikey1.DeleteUseCase
 		createUserHandler    *user0.CreateUserHandler
-		createHandler        *apikey0.CreateHandler
-		deleteHandler        *apikey0.DeleteHandler
-		deleteHandlerCh      = make(chan struct{})
-		createHandler0       *todo1.CreateHandler
+		createHandler        *todo1.CreateHandler
 		getHandler           *todo1.GetHandler
 		updateHandler        *todo1.UpdateHandler
 		updateHandlerCh      = make(chan struct{})
-		deleteHandler0       *todo1.DeleteHandler
-		deleteHandlerCh0     = make(chan struct{})
+		deleteHandler        *todo1.DeleteHandler
+		deleteHandlerCh      = make(chan struct{})
 		listHandler          *todo1.ListHandler
 		listHandlerCh        = make(chan struct{})
 		listHandler0         *tag0.ListHandler
-		createHandler1       *tag0.CreateHandler
-		deleteHandler1       *tag0.DeleteHandler
+		createHandler0       *tag0.CreateHandler
+		deleteHandler0       *tag0.DeleteHandler
 		setTodoTagsHandler   *tag0.SetTodoTagsHandler
 		setTodoTagsHandlerCh = make(chan struct{})
+		createHandler1       *apikey0.CreateHandler
+		deleteHandler1       *apikey0.DeleteHandler
 		handler1             *user0.Handler
 		handlerCh            = make(chan struct{})
-		handler2             *apikey0.Handler
-		handler3             *todo1.Handler
+		handler2             *todo1.Handler
 		handlerCh0           = make(chan struct{})
-		handler4             *tag0.Handler
+		handler3             *tag0.Handler
 		handlerCh1           = make(chan struct{})
+		handler4             *apikey0.Handler
+		handlerCh2           = make(chan struct{})
 		handler5             *handler.Handler
+		handlerCh3           = make(chan struct{})
 		engine               *gin.Engine
 	)
 	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		userRepository = kessoku.Bind[repository1.UserRepository](kessoku.Async(kessoku.Provide(user.NewRepository))).Fn()(db)
-		for _, ch := range []<-chan struct{}{txManagerCh, clockCh} {
+		close(userRepositoryCh)
+		select {
+		case <-tokenVerifierCh:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		middleware0 = kessoku.Provide(middleware.NewMiddleware).Fn()(tokenVerifier, userRepository)
+		select {
+		case <-handlerCh3:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		engine = kessoku.Provide(http.NewRouter).Fn()(handler5, middleware0)
+		return nil
+	})
+	eg.Go(func() error {
+		txManager = kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))).Fn()(db)
+		close(txManagerCh)
+		for _, ch := range []<-chan struct{}{userRepositoryCh, clockCh} {
 			select {
 			case <-ch:
 			case <-ctx.Done():
@@ -103,20 +122,6 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 			}
 		}
 		createUserUsecase = kessoku.Provide(user1.NewCreateUserUsecase).Fn()(userRepository, txManager, clock1)
-		createUserHandler = kessoku.Provide(user0.NewCreateUserHandler).Fn()(createUserUsecase)
-		handler1 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
-		close(handlerCh)
-		return nil
-	})
-	eg.Go(func() error {
-		txManager = kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))).Fn()(db)
-		close(txManagerCh)
-		select {
-		case <-apikeyRepositoryCh:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-		deleteUseCase = kessoku.Provide(apikey1.NewDeleteUseCase).Fn()(apikeyRepository, txManager)
 		for _, ch := range []<-chan struct{}{repositoryCh, clockCh} {
 			select {
 			case <-ch:
@@ -130,21 +135,22 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		deleteUseCase0 = kessoku.Provide(todo2.NewDeleteUseCase).Fn()(repository2, txManager)
+		deleteUseCase = kessoku.Provide(todo2.NewDeleteUseCase).Fn()(repository2, txManager)
 		select {
 		case <-repositoryCh0:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 		setTodoTagsUseCase = kessoku.Provide(tag1.NewSetTodoTagsUseCase).Fn()(repository3, txManager)
-		deleteHandler = kessoku.Provide(apikey0.NewDeleteHandler).Fn()(deleteUseCase)
-		close(deleteHandlerCh)
+		createUserHandler = kessoku.Provide(user0.NewCreateUserHandler).Fn()(createUserUsecase)
 		updateHandler = kessoku.Provide(todo1.NewUpdateHandler).Fn()(updateUseCase)
 		close(updateHandlerCh)
-		deleteHandler0 = kessoku.Provide(todo1.NewDeleteHandler).Fn()(deleteUseCase0)
-		close(deleteHandlerCh0)
+		deleteHandler = kessoku.Provide(todo1.NewDeleteHandler).Fn()(deleteUseCase)
+		close(deleteHandlerCh)
 		setTodoTagsHandler = kessoku.Provide(tag0.NewSetTodoTagsHandler).Fn()(setTodoTagsUseCase)
 		close(setTodoTagsHandlerCh)
+		handler1 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
+		close(handlerCh)
 		return nil
 	})
 	eg.Go(func() error {
@@ -157,18 +163,18 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 				return ctx.Err()
 			}
 		}
-		createUseCase0 = kessoku.Provide(todo2.NewCreateUseCase).Fn()(repository2, txManager, clock1)
+		createUseCase = kessoku.Provide(todo2.NewCreateUseCase).Fn()(repository2, txManager, clock1)
 		getUseCase = kessoku.Provide(todo2.NewGetUseCase).Fn()(repository2)
-		createHandler0 = kessoku.Provide(todo1.NewCreateHandler).Fn()(createUseCase0)
+		createHandler = kessoku.Provide(todo1.NewCreateHandler).Fn()(createUseCase)
 		getHandler = kessoku.Provide(todo1.NewGetHandler).Fn()(getUseCase)
-		for _, ch := range []<-chan struct{}{listHandlerCh, updateHandlerCh, deleteHandlerCh0} {
+		for _, ch := range []<-chan struct{}{listHandlerCh, updateHandlerCh, deleteHandlerCh} {
 			select {
 			case <-ch:
 			case <-ctx.Done():
 				return ctx.Err()
 			}
 		}
-		handler3 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler0, getHandler, updateHandler, deleteHandler0)
+		handler2 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
 		close(handlerCh0)
 		return nil
 	})
@@ -187,40 +193,67 @@ func InitializeServer(ctx context.Context, db bob.DB) *gin.Engine {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		createUseCase1 = kessoku.Provide(tag1.NewCreateUseCase).Fn()(repository3, clock1)
-		deleteUseCase1 = kessoku.Provide(tag1.NewDeleteUseCase).Fn()(repository3)
+		createUseCase0 = kessoku.Provide(tag1.NewCreateUseCase).Fn()(repository3, clock1)
+		deleteUseCase0 = kessoku.Provide(tag1.NewDeleteUseCase).Fn()(repository3)
 		listHandler = kessoku.Provide(todo1.NewListHandler).Fn()(listUseCase)
 		close(listHandlerCh)
 		listHandler0 = kessoku.Provide(tag0.NewListHandler).Fn()(listUseCase0)
-		createHandler1 = kessoku.Provide(tag0.NewCreateHandler).Fn()(createUseCase1)
-		deleteHandler1 = kessoku.Provide(tag0.NewDeleteHandler).Fn()(deleteUseCase1)
+		createHandler0 = kessoku.Provide(tag0.NewCreateHandler).Fn()(createUseCase0)
+		deleteHandler0 = kessoku.Provide(tag0.NewDeleteHandler).Fn()(deleteUseCase0)
 		select {
 		case <-setTodoTagsHandlerCh:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		handler4 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler1, deleteHandler1, setTodoTagsHandler)
+		handler3 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler0, deleteHandler0, setTodoTagsHandler)
 		close(handlerCh1)
 		return nil
 	})
-	apikeyCache = kessoku.Bind[cache.APIKeyCache](kessoku.Provide(local.NewLocalAPIKeyCache)).Fn()()
+	eg.Go(func() error {
+		apikeyRepository = kessoku.Bind[repository.APIKeyRepository](kessoku.Async(kessoku.Provide(apikey.NewRepository))).Fn()(db)
+		for _, ch := range []<-chan struct{}{txManagerCh, clockCh} {
+			select {
+			case <-ch:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		createUseCase1 = kessoku.Provide(apikey1.NewCreateUseCase).Fn()(apikeyRepository, txManager, clock1)
+		select {
+		case <-txManagerCh:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		deleteUseCase1 = kessoku.Provide(apikey1.NewDeleteUseCase).Fn()(apikeyRepository, txManager)
+		createHandler1 = kessoku.Provide(apikey0.NewCreateHandler).Fn()(createUseCase1)
+		deleteHandler1 = kessoku.Provide(apikey0.NewDeleteHandler).Fn()(deleteUseCase1)
+		handler4 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler1, deleteHandler1)
+		close(handlerCh2)
+		return nil
+	})
 	healthCheckHandler = kessoku.Provide(health.NewHealthCheckHandler).Fn()()
 	clock1 = kessoku.Bind[clock.Clock](kessoku.Provide(clock0.NewRealClock)).Fn()()
 	close(clockCh)
 	handler0 = kessoku.Provide(health.NewHandler).Fn()(healthCheckHandler)
-	apikeyRepository = kessoku.Bind[repository.APIKeyRepository](kessoku.Async(kessoku.Provide(apikey.NewRepository))).Fn()(db)
-	close(apikeyRepositoryCh)
-	middleware0 = kessoku.Provide(middleware.NewMiddleware).Fn()(apikeyRepository, apikeyCache)
-	<-txManagerCh
-	createUseCase = kessoku.Provide(apikey1.NewCreateUseCase).Fn()(apikeyRepository, txManager, clock1)
-	createHandler = kessoku.Provide(apikey0.NewCreateHandler).Fn()(createUseCase)
-	<-deleteHandlerCh
-	handler2 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler, deleteHandler)
-	for _, ch := range []<-chan struct{}{handlerCh, handlerCh0, handlerCh1} {
-		<-ch
+	var err error
+	tokenVerifier, err = kessoku.Bind[firebase.TokenVerifier](kessoku.Async(kessoku.Provide(firebase.NewTokenVerifier))).Fn()(ctx)
+	if err != nil {
+		var zero *gin.Engine
+		return zero, err
 	}
-	handler5 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler1, handler3, handler2, handler4)
-	engine = kessoku.Provide(http.NewRouter).Fn()(handler5, middleware0)
-	_ = eg.Wait()
-	return engine
+	close(tokenVerifierCh)
+	for _, ch := range []<-chan struct{}{handlerCh, handlerCh0, handlerCh2, handlerCh1} {
+		select {
+		case <-ch:
+		case <-ctx.Done():
+			var zero *gin.Engine
+			return zero, ctx.Err()
+		}
+	}
+	handler5 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler1, handler2, handler4, handler3)
+	close(handlerCh3)
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+	return engine, nil
 }

@@ -78,6 +78,24 @@ var Todos = Table[
 			Generated: false,
 			AutoIncr:  false,
 		},
+		DueDate: column{
+			Name:      "due_date",
+			DBType:    "timestamp with time zone",
+			Default:   "NULL",
+			Comment:   "",
+			Nullable:  true,
+			Generated: false,
+			AutoIncr:  false,
+		},
+		SortOrder: column{
+			Name:      "sort_order",
+			DBType:    "double precision",
+			Default:   "0.0",
+			Comment:   "",
+			Nullable:  false,
+			Generated: false,
+			AutoIncr:  false,
+		},
 	},
 	Indexes: todoIndexes{
 		TodosPkey: index{
@@ -136,11 +154,13 @@ type todoColumns struct {
 	CreatedAt   column
 	UpdatedAt   column
 	Status      column
+	DueDate     column
+	SortOrder   column
 }
 
 func (c todoColumns) AsSlice() []column {
 	return []column{
-		c.ID, c.UserID, c.Title, c.Description, c.CreatedAt, c.UpdatedAt, c.Status,
+		c.ID, c.UserID, c.Title, c.Description, c.CreatedAt, c.UpdatedAt, c.Status, c.DueDate, c.SortOrder,
 	}
 }
 

@@ -9,7 +9,9 @@ import (
 	"io"
 	"time"
 
+	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
+	"github.com/aarondl/opt/omitnull"
 	"github.com/gofrs/uuid/v5"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
@@ -25,11 +27,12 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID        uuid.UUID `db:"id,pk" `
-	Name      string    `db:"name" `
-	Email     string    `db:"email" `
-	CreatedAt time.Time `db:"created_at" `
-	UpdatedAt time.Time `db:"updated_at" `
+	ID          uuid.UUID        `db:"id,pk" `
+	Name        string           `db:"name" `
+	Email       string           `db:"email" `
+	CreatedAt   time.Time        `db:"created_at" `
+	UpdatedAt   time.Time        `db:"updated_at" `
+	FirebaseUID null.Val[string] `db:"firebase_uid" `
 
 	R userR `db:"-" `
 }
@@ -54,25 +57,27 @@ type userR struct {
 func buildUserColumns(alias string) userColumns {
 	return userColumns{
 		ColumnsExpr: expr.NewColumnsExpr(
-			"id", "name", "email", "created_at", "updated_at",
+			"id", "name", "email", "created_at", "updated_at", "firebase_uid",
 		).WithParent("users"),
-		tableAlias: alias,
-		ID:         psql.Quote(alias, "id"),
-		Name:       psql.Quote(alias, "name"),
-		Email:      psql.Quote(alias, "email"),
-		CreatedAt:  psql.Quote(alias, "created_at"),
-		UpdatedAt:  psql.Quote(alias, "updated_at"),
+		tableAlias:  alias,
+		ID:          psql.Quote(alias, "id"),
+		Name:        psql.Quote(alias, "name"),
+		Email:       psql.Quote(alias, "email"),
+		CreatedAt:   psql.Quote(alias, "created_at"),
+		UpdatedAt:   psql.Quote(alias, "updated_at"),
+		FirebaseUID: psql.Quote(alias, "firebase_uid"),
 	}
 }
 
 type userColumns struct {
 	expr.ColumnsExpr
-	tableAlias string
-	ID         psql.Expression
-	Name       psql.Expression
-	Email      psql.Expression
-	CreatedAt  psql.Expression
-	UpdatedAt  psql.Expression
+	tableAlias  string
+	ID          psql.Expression
+	Name        psql.Expression
+	Email       psql.Expression
+	CreatedAt   psql.Expression
+	UpdatedAt   psql.Expression
+	FirebaseUID psql.Expression
 }
 
 func (c userColumns) Alias() string {
@@ -87,15 +92,16 @@ func (userColumns) AliasedAs(alias string) userColumns {
 // All values are optional, and do not have to be set
 // Generated columns are not included
 type UserSetter struct {
-	ID        omit.Val[uuid.UUID] `db:"id,pk" `
-	Name      omit.Val[string]    `db:"name" `
-	Email     omit.Val[string]    `db:"email" `
-	CreatedAt omit.Val[time.Time] `db:"created_at" `
-	UpdatedAt omit.Val[time.Time] `db:"updated_at" `
+	ID          omit.Val[uuid.UUID]  `db:"id,pk" `
+	Name        omit.Val[string]     `db:"name" `
+	Email       omit.Val[string]     `db:"email" `
+	CreatedAt   omit.Val[time.Time]  `db:"created_at" `
+	UpdatedAt   omit.Val[time.Time]  `db:"updated_at" `
+	FirebaseUID omitnull.Val[string] `db:"firebase_uid" `
 }
 
 func (s UserSetter) SetColumns() []string {
-	vals := make([]string, 0, 5)
+	vals := make([]string, 0, 6)
 	if s.ID.IsValue() {
 		vals = append(vals, "id")
 	}
@@ -110,6 +116,9 @@ func (s UserSetter) SetColumns() []string {
 	}
 	if s.UpdatedAt.IsValue() {
 		vals = append(vals, "updated_at")
+	}
+	if !s.FirebaseUID.IsUnset() {
+		vals = append(vals, "firebase_uid")
 	}
 	return vals
 }
@@ -130,6 +139,9 @@ func (s UserSetter) Overwrite(t *User) {
 	if s.UpdatedAt.IsValue() {
 		t.UpdatedAt = s.UpdatedAt.MustGet()
 	}
+	if !s.FirebaseUID.IsUnset() {
+		t.FirebaseUID = s.FirebaseUID.MustGetNull()
+	}
 }
 
 func (s *UserSetter) Apply(q *dialect.InsertQuery) {
@@ -138,7 +150,7 @@ func (s *UserSetter) Apply(q *dialect.InsertQuery) {
 	})
 
 	q.AppendValues(bob.ExpressionFunc(func(ctx context.Context, w io.StringWriter, d bob.Dialect, start int) ([]any, error) {
-		vals := make([]bob.Expression, 5)
+		vals := make([]bob.Expression, 6)
 		if s.ID.IsValue() {
 			vals[0] = psql.Arg(s.ID.MustGet())
 		} else {
@@ -169,6 +181,12 @@ func (s *UserSetter) Apply(q *dialect.InsertQuery) {
 			vals[4] = psql.Raw("DEFAULT")
 		}
 
+		if !s.FirebaseUID.IsUnset() {
+			vals[5] = psql.Arg(s.FirebaseUID.MustGetNull())
+		} else {
+			vals[5] = psql.Raw("DEFAULT")
+		}
+
 		return bob.ExpressSlice(ctx, w, d, start, vals, "", ", ", "")
 	}))
 }
@@ -178,7 +196,7 @@ func (s UserSetter) UpdateMod() bob.Mod[*dialect.UpdateQuery] {
 }
 
 func (s UserSetter) Expressions(prefix ...string) []bob.Expression {
-	exprs := make([]bob.Expression, 0, 5)
+	exprs := make([]bob.Expression, 0, 6)
 
 	if s.ID.IsValue() {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
@@ -212,6 +230,13 @@ func (s UserSetter) Expressions(prefix ...string) []bob.Expression {
 		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
 			psql.Quote(append(prefix, "updated_at")...),
 			psql.Arg(s.UpdatedAt),
+		}})
+	}
+
+	if !s.FirebaseUID.IsUnset() {
+		exprs = append(exprs, expr.Join{Sep: " = ", Exprs: []bob.Expression{
+			psql.Quote(append(prefix, "firebase_uid")...),
+			psql.Arg(s.FirebaseUID),
 		}})
 	}
 
@@ -718,11 +743,12 @@ func (user0 *User) AttachTodos(ctx context.Context, exec bob.Executor, related .
 }
 
 type userWhere[Q psql.Filterable] struct {
-	ID        psql.WhereMod[Q, uuid.UUID]
-	Name      psql.WhereMod[Q, string]
-	Email     psql.WhereMod[Q, string]
-	CreatedAt psql.WhereMod[Q, time.Time]
-	UpdatedAt psql.WhereMod[Q, time.Time]
+	ID          psql.WhereMod[Q, uuid.UUID]
+	Name        psql.WhereMod[Q, string]
+	Email       psql.WhereMod[Q, string]
+	CreatedAt   psql.WhereMod[Q, time.Time]
+	UpdatedAt   psql.WhereMod[Q, time.Time]
+	FirebaseUID psql.WhereNullMod[Q, string]
 }
 
 func (userWhere[Q]) AliasedAs(alias string) userWhere[Q] {
@@ -731,11 +757,12 @@ func (userWhere[Q]) AliasedAs(alias string) userWhere[Q] {
 
 func buildUserWhere[Q psql.Filterable](cols userColumns) userWhere[Q] {
 	return userWhere[Q]{
-		ID:        psql.Where[Q, uuid.UUID](cols.ID),
-		Name:      psql.Where[Q, string](cols.Name),
-		Email:     psql.Where[Q, string](cols.Email),
-		CreatedAt: psql.Where[Q, time.Time](cols.CreatedAt),
-		UpdatedAt: psql.Where[Q, time.Time](cols.UpdatedAt),
+		ID:          psql.Where[Q, uuid.UUID](cols.ID),
+		Name:        psql.Where[Q, string](cols.Name),
+		Email:       psql.Where[Q, string](cols.Email),
+		CreatedAt:   psql.Where[Q, time.Time](cols.CreatedAt),
+		UpdatedAt:   psql.Where[Q, time.Time](cols.UpdatedAt),
+		FirebaseUID: psql.WhereNull[Q, string](cols.FirebaseUID),
 	}
 }
 

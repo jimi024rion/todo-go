@@ -38,6 +38,154 @@ func (_m *MockUserRepository) EXPECT() *MockUserRepository_Expecter {
 	return &MockUserRepository_Expecter{mock: &_m.Mock}
 }
 
+// FindByFirebaseUID provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) FindByFirebaseUID(ctx context.Context, firebaseUID string) (*entity.User, error) {
+	ret := _mock.Called(ctx, firebaseUID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindByFirebaseUID")
+	}
+
+	var r0 *entity.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.User, error)); ok {
+		return returnFunc(ctx, firebaseUID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.User); ok {
+		r0 = returnFunc(ctx, firebaseUID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, firebaseUID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserRepository_FindByFirebaseUID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindByFirebaseUID'
+type MockUserRepository_FindByFirebaseUID_Call struct {
+	*mock.Call
+}
+
+// FindByFirebaseUID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - firebaseUID string
+func (_e *MockUserRepository_Expecter) FindByFirebaseUID(ctx interface{}, firebaseUID interface{}) *MockUserRepository_FindByFirebaseUID_Call {
+	return &MockUserRepository_FindByFirebaseUID_Call{Call: _e.mock.On("FindByFirebaseUID", ctx, firebaseUID)}
+}
+
+func (_c *MockUserRepository_FindByFirebaseUID_Call) Run(run func(ctx context.Context, firebaseUID string)) *MockUserRepository_FindByFirebaseUID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserRepository_FindByFirebaseUID_Call) Return(user *entity.User, err error) *MockUserRepository_FindByFirebaseUID_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockUserRepository_FindByFirebaseUID_Call) RunAndReturn(run func(ctx context.Context, firebaseUID string) (*entity.User, error)) *MockUserRepository_FindByFirebaseUID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindOrCreateByFirebaseUID provides a mock function for the type MockUserRepository
+func (_mock *MockUserRepository) FindOrCreateByFirebaseUID(ctx context.Context, firebaseUID string, email string, name string) (*entity.User, error) {
+	ret := _mock.Called(ctx, firebaseUID, email, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindOrCreateByFirebaseUID")
+	}
+
+	var r0 *entity.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (*entity.User, error)); ok {
+		return returnFunc(ctx, firebaseUID, email, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) *entity.User); ok {
+		r0 = returnFunc(ctx, firebaseUID, email, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = returnFunc(ctx, firebaseUID, email, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUserRepository_FindOrCreateByFirebaseUID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindOrCreateByFirebaseUID'
+type MockUserRepository_FindOrCreateByFirebaseUID_Call struct {
+	*mock.Call
+}
+
+// FindOrCreateByFirebaseUID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - firebaseUID string
+//   - email string
+//   - name string
+func (_e *MockUserRepository_Expecter) FindOrCreateByFirebaseUID(ctx interface{}, firebaseUID interface{}, email interface{}, name interface{}) *MockUserRepository_FindOrCreateByFirebaseUID_Call {
+	return &MockUserRepository_FindOrCreateByFirebaseUID_Call{Call: _e.mock.On("FindOrCreateByFirebaseUID", ctx, firebaseUID, email, name)}
+}
+
+func (_c *MockUserRepository_FindOrCreateByFirebaseUID_Call) Run(run func(ctx context.Context, firebaseUID string, email string, name string)) *MockUserRepository_FindOrCreateByFirebaseUID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUserRepository_FindOrCreateByFirebaseUID_Call) Return(user *entity.User, err error) *MockUserRepository_FindOrCreateByFirebaseUID_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockUserRepository_FindOrCreateByFirebaseUID_Call) RunAndReturn(run func(ctx context.Context, firebaseUID string, email string, name string) (*entity.User, error)) *MockUserRepository_FindOrCreateByFirebaseUID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Save provides a mock function for the type MockUserRepository
 func (_mock *MockUserRepository) Save(ctx context.Context, user *entity.User) error {
 	ret := _mock.Called(ctx, user)

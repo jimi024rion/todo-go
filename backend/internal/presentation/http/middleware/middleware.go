@@ -3,16 +3,16 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 
-	apikeyCache "github.com/jimi024rion/todo-go/backend/internal/domain/apikey/cache"
-	apikeyrepo "github.com/jimi024rion/todo-go/backend/internal/domain/apikey/repository"
+	userrepo "github.com/jimi024rion/todo-go/backend/internal/domain/user/repository"
+	firebaseinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/firebase"
 )
 
 type Middleware struct {
-	APIKeyAuth gin.HandlerFunc
+	FirebaseAuth gin.HandlerFunc
 }
 
-func NewMiddleware(apiKeyRepo apikeyrepo.APIKeyRepository, apiKeyCache apikeyCache.APIKeyCache) *Middleware {
+func NewMiddleware(verifier firebaseinfra.TokenVerifier, userRepo userrepo.UserRepository) *Middleware {
 	return &Middleware{
-		APIKeyAuth: APIKeyAuth(apiKeyRepo, apiKeyCache),
+		FirebaseAuth: FirebaseAuth(verifier, userRepo),
 	}
 }
