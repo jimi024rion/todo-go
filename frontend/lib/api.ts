@@ -1,9 +1,20 @@
 import type { CreateTodoInput, Tag, Todo, UpdateTodoInput } from "@/types/todo"
+import { auth } from "./firebase"
+
+async function getAuthHeader(): Promise<string> {
+  const token = await auth.currentUser?.getIdToken()
+  return token ? `Bearer ${token}` : ""
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const authorization = await getAuthHeader()
   const res = await fetch(path, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(authorization ? { Authorization: authorization } : {}),
+      ...init?.headers,
+    },
   })
   if (res.status === 204) return undefined as T
   const data = await res.json()
