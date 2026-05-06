@@ -1,18 +1,39 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 
 export default function LoginPage() {
   const { user, loading, signInWithGoogle } = useAuth()
   const router = useRouter()
+  const [error, setError] = useState<string | null>(null)
+  const [signingIn, setSigningIn] = useState(false)
 
   useEffect(() => {
     if (!loading && user) {
       router.replace("/todos")
     }
   }, [user, loading, router])
+
+  const handleSignIn = async () => {
+    setError(null)
+    setSigningIn(true)
+    try {
+      await signInWithGoogle()
+    } catch (e: unknown) {
+      const code = (e as { code?: string }).code ?? ""
+      if (code === "auth/unauthorized-domain") {
+        setError("このドメインはFirebaseで許可されていません。Firebase ConsoleのAuthorized domainsに追加してください。")
+      } else if (code === "auth/popup-closed-by-user") {
+        // ユーザーが自分でポップアップを閉じた場合は無視
+      } else {
+        setError(`サインインに失敗しました (${code || "unknown"})`)
+      }
+    } finally {
+      setSigningIn(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -32,12 +53,19 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-muted-foreground">タスクを管理する</p>
         </div>
 
+        {error && (
+          <p className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {error}
+          </p>
+        )}
+
         <button
-          onClick={signInWithGoogle}
-          className="flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-secondary"
+          onClick={handleSignIn}
+          disabled={signingIn}
+          className="flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <GoogleIcon />
-          Googleでサインイン
+          {signingIn ? "サインイン中..." : "Googleでサインイン"}
         </button>
       </div>
     </div>
