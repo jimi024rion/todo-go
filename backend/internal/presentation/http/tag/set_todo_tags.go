@@ -29,6 +29,7 @@ func NewSetTodoTagsHandler(u *taguc.SetTodoTagsUseCase) *SetTodoTagsHandler {
 // @Param   request body setTodoTagsRequest true "タグIDリスト"
 // @Success 204
 // @Security ApiKeyAuth
+// @Security    SkipAuth
 // @Router  /v1/todos/{id}/tags [put]
 func (h *SetTodoTagsHandler) Handle(c *gin.Context) {
 	todoID := c.Param("id")

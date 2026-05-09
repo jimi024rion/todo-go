@@ -44,6 +44,7 @@ type userItem struct {
 // @Failure     400     {object} response.ErrorResponse
 // @Failure     500     {object} response.ErrorResponse
 // @Security    ApiKeyAuth
+// @Security    SkipAuth
 // @Router      /v1/users [post]
 func (h *CreateUserHandler) Handle(c *gin.Context) {
 	var req createUserRequest

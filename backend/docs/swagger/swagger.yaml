@@ -233,6 +233,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: APIキー削除
       tags:
       - api-keys
@@ -249,6 +250,7 @@ paths:
             type: array
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タグ一覧取得
       tags:
       - tags
@@ -271,6 +273,7 @@ paths:
             $ref: '#/definitions/internal_presentation_http_tag.tagItem'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タグ作成
       tags:
       - tags
@@ -287,6 +290,7 @@ paths:
           description: No Content
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タグ削除
       tags:
       - tags
@@ -308,6 +312,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タスク一覧取得
       tags:
       - todos
@@ -340,6 +345,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タスク削除
       tags:
       - todos
@@ -373,6 +379,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タスク詳細取得
       tags:
       - todos
@@ -414,6 +421,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: タスク更新
       tags:
       - todos
@@ -438,6 +446,7 @@ paths:
           description: No Content
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: TodoにタグをセットするPUT /v1/todos/:id/tags
       tags:
       - todos
@@ -470,6 +479,7 @@ paths:
             $ref: '#/definitions/ErrorResponse'
       security:
       - ApiKeyAuth: []
+      - SkipAuth: []
       summary: ユーザー作成
       tags:
       - users
@@ -478,5 +488,10 @@ securityDefinitions:
     description: X-API-Keyヘッダーにトークンを設定してください
     in: header
     name: X-API-Key
+    type: apiKey
+  SkipAuth:
+    description: 認証をスキップするためのヘッダー。テストや特定の内部APIで使用する。ユーザーIDを指定する。
+    in: header
+    name: X-Skip-Auth
     type: apiKey
 swagger: "2.0"

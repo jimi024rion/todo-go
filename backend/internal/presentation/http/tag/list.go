@@ -31,6 +31,7 @@ func NewListHandler(u *taguc.ListUseCase) *ListHandler {
 // @Produce json
 // @Success 200 {array}  tagItem
 // @Security ApiKeyAuth
+// @Security    SkipAuth
 // @Router  /v1/tags [get]
 func (h *ListHandler) Handle(c *gin.Context) {
 	userID, exists := c.Get("user_id")

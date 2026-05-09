@@ -29,6 +29,7 @@ func NewListHandler(u *todousecase.ListUseCase) *ListHandler {
 // @Success     200 {array}  todoItem
 // @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
+// @Security    SkipAuth
 // @Router      /v1/todos [get]
 func (h *ListHandler) Handle(c *gin.Context) {
 	ctx, span := otel.Tracer("handler").Start(c, "Span1")

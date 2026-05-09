@@ -27,7 +27,7 @@ import (
 // @securityDefinitions.apikey  SkipAuth
 // @in                          header
 // @name                        X-Skip-Auth
-// @description                 認証をスキップするためのヘッダー。テストや特定の内部APIで使用します。
+// @description                 認証をスキップするためのヘッダー。テストや特定の内部APIで使用する。ユーザーIDを指定する。
 
 func main() {
 	ctx := context.Background()

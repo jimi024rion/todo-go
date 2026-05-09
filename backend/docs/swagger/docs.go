@@ -86,6 +86,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "指定されたIDのAPIキーを削除します",
@@ -130,6 +133,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "produces": [
@@ -155,6 +161,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "consumes": [
@@ -193,6 +202,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "tags": [
@@ -220,6 +232,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "すべてのタスクを一覧で取得します",
@@ -254,6 +269,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "指定されたIDのタスクを取得します",
@@ -305,6 +323,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "指定されたIDのタスクを更新します",
@@ -368,6 +389,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "指定されたIDのタスクを削除します",
@@ -418,6 +442,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "consumes": [
@@ -457,6 +484,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "ApiKeyAuth": []
+                    },
+                    {
+                        "SkipAuth": []
                     }
                 ],
                 "description": "新しいユーザーを作成します",
@@ -738,6 +768,12 @@ const docTemplate = `{
             "description": "X-API-Keyヘッダーにトークンを設定してください",
             "type": "apiKey",
             "name": "X-API-Key",
+            "in": "header"
+        },
+        "SkipAuth": {
+            "description": "認証をスキップするためのヘッダー。テストや特定の内部APIで使用する。ユーザーIDを指定する。",
+            "type": "apiKey",
+            "name": "X-Skip-Auth",
             "in": "header"
         }
     }

@@ -41,6 +41,7 @@ type updateRequestBody struct {
 // @Failure     404     {object} response.ErrorResponse
 // @Failure     500     {object} response.ErrorResponse
 // @Security    ApiKeyAuth
+// @Security    SkipAuth
 // @Router      /v1/todos/{id} [put]
 func (h *UpdateHandler) Handle(c *gin.Context) {
 	id := c.Param("id")

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/jimi024rion/todo-go/backend/internal/config/env"
 	"github.com/jimi024rion/todo-go/backend/internal/config/errs"
 	userrepo "github.com/jimi024rion/todo-go/backend/internal/domain/user/repository"
 	firebaseinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/firebase"
@@ -13,6 +14,15 @@ import (
 
 func FirebaseAuth(verifier firebaseinfra.TokenVerifier, userRepo userrepo.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// non-production 環境のみ X-Skip-Auth によるテスト用認証スキップを許可
+		if env.Cfg.AppEnv != "production" {
+			if skipUserID := c.GetHeader("X-Skip-Auth"); skipUserID != "" {
+				c.Set("user_id", skipUserID)
+				c.Next()
+				return
+			}
+		}
+
 		authHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			c.JSON(

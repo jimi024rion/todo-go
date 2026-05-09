@@ -29,6 +29,7 @@ func NewCreateHandler(u *taguc.CreateUseCase) *CreateHandler {
 // @Param   request body     createRequest true "タグ作成リクエスト"
 // @Success 201     {object} tagItem
 // @Security ApiKeyAuth
+// @Security    SkipAuth
 // @Router  /v1/tags [post]
 func (h *CreateHandler) Handle(c *gin.Context) {
 	userID, exists := c.Get("user_id")

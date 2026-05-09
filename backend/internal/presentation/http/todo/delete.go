@@ -29,6 +29,7 @@ func NewDeleteHandler(u *todousecase.DeleteUseCase) *DeleteHandler {
 // @Failure     404 {object} response.ErrorResponse
 // @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
+// @Security    SkipAuth
 // @Router      /v1/todos/{id} [delete]
 func (h *DeleteHandler) Handle(c *gin.Context) {
 	id := c.Param("id")

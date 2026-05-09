@@ -47,6 +47,7 @@ func NewGetHandler(u *todousecase.GetUseCase) *GetHandler {
 // @Failure     404 {object} response.ErrorResponse
 // @Failure     500 {object} response.ErrorResponse
 // @Security    ApiKeyAuth
+// @Security    SkipAuth
 // @Router      /v1/todos/{id} [get]
 func (h *GetHandler) Handle(c *gin.Context) {
 	id := c.Param("id")

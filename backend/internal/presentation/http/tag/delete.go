@@ -23,6 +23,7 @@ func NewDeleteHandler(u *taguc.DeleteUseCase) *DeleteHandler {
 // @Param   id path string true "タグID"
 // @Success 204
 // @Security ApiKeyAuth
+// @Security    SkipAuth
 // @Router  /v1/tags/{id} [delete]
 func (h *DeleteHandler) Handle(c *gin.Context) {
 	userID, exists := c.Get("user_id")
