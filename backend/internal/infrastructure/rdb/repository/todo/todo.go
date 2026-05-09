@@ -10,7 +10,7 @@ import (
 	"github.com/aarondl/opt/null"
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/dm"
@@ -44,7 +44,7 @@ func (r *Repository) getExecutor(ctx context.Context) bob.Executor {
 
 // Save は、Todoエンティティを永続化します。
 func (r *Repository) Save(ctx context.Context, td *entity.Todo) error {
-	uid, err := uuid.FromString(td.ID().String())
+	uid, err := uuid.Parse(td.ID().String())
 	if err != nil {
 		return fmt.Errorf("invalid todo id format: %w", err)
 	}
@@ -79,7 +79,7 @@ func (r *Repository) Save(ctx context.Context, td *entity.Todo) error {
 
 // FindByID は、指定されたIDを持つTodoエンティティを検索します。
 func (r *Repository) FindByID(ctx context.Context, id valueobject.TodoID) (*entity.Todo, error) {
-	uid, err := uuid.FromString(id.String())
+	uid, err := uuid.Parse(id.String())
 	if err != nil {
 		return nil, fmt.Errorf("invalid todo id format: %w", err)
 	}
@@ -98,7 +98,7 @@ func (r *Repository) FindByID(ctx context.Context, id valueobject.TodoID) (*enti
 
 // Delete は、指定されたIDを持つTodoエンティティを削除します。
 func (r *Repository) Delete(ctx context.Context, id valueobject.TodoID) error {
-	uid, err := uuid.FromString(id.String())
+	uid, err := uuid.Parse(id.String())
 	if err != nil {
 		return fmt.Errorf("invalid todo id format: %w", err)
 	}
@@ -180,8 +180,8 @@ func toDBTodoSetter(td *entity.Todo) *models.TodoSetter {
 	}
 
 	return &models.TodoSetter{
-		ID:          omit.From(uuid.FromStringOrNil(td.ID().String())),
-		UserID:      omit.From(uuid.FromStringOrNil(td.UserID().String())),
+		ID:          omit.From(uuid.MustParse(td.ID().String())),
+		UserID:      omit.From(uuid.MustParse(td.UserID().String())),
 		Title:       omit.From(td.Title().String()),
 		Description: description,
 		Status:      omit.From(td.Status().String()),

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aarondl/opt/omit"
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/dm"
@@ -37,11 +37,11 @@ func (r *Repository) exec(ctx context.Context) bob.Executor {
 
 // Create はタグを新規作成します。
 func (r *Repository) Create(ctx context.Context, tag *tagentity.Tag) error {
-	id, err := uuid.FromString(tag.ID())
+	id, err := uuid.Parse(tag.ID())
 	if err != nil {
 		return fmt.Errorf("invalid tag id: %w", err)
 	}
-	userID, err := uuid.FromString(tag.UserID())
+	userID, err := uuid.Parse(tag.UserID())
 	if err != nil {
 		return fmt.Errorf("invalid user id: %w", err)
 	}
@@ -62,7 +62,7 @@ func (r *Repository) Create(ctx context.Context, tag *tagentity.Tag) error {
 
 // FindByUserID はユーザーに紐づくタグ一覧を返します。
 func (r *Repository) FindByUserID(ctx context.Context, userID string) ([]*tagentity.Tag, error) {
-	uid, err := uuid.FromString(userID)
+	uid, err := uuid.Parse(userID)
 	if err != nil {
 		return nil, fmt.Errorf("invalid user id: %w", err)
 	}
@@ -91,7 +91,7 @@ func (r *Repository) FindByTodoIDs(ctx context.Context, todoIDs []string) (map[s
 	exec := r.exec(ctx)
 
 	for _, todoID := range todoIDs {
-		todoUID, err := uuid.FromString(todoID)
+		todoUID, err := uuid.Parse(todoID)
 		if err != nil {
 			return nil, fmt.Errorf("invalid todo id: %w", err)
 		}
@@ -123,11 +123,11 @@ func (r *Repository) FindByTodoIDs(ctx context.Context, todoIDs []string) (map[s
 
 // Delete はタグを削除します（所有者チェック含む）。
 func (r *Repository) Delete(ctx context.Context, id, userID string) error {
-	uid, err := uuid.FromString(id)
+	uid, err := uuid.Parse(id)
 	if err != nil {
 		return fmt.Errorf("invalid tag id: %w", err)
 	}
-	uUserID, err := uuid.FromString(userID)
+	uUserID, err := uuid.Parse(userID)
 	if err != nil {
 		return fmt.Errorf("invalid user id: %w", err)
 	}
@@ -144,7 +144,7 @@ func (r *Repository) Delete(ctx context.Context, id, userID string) error {
 
 // SetTodoTags はTodoに紐づくタグを一括更新します（全削除→再挿入）。
 func (r *Repository) SetTodoTags(ctx context.Context, todoID string, tagIDs []string) error {
-	todoUID, err := uuid.FromString(todoID)
+	todoUID, err := uuid.Parse(todoID)
 	if err != nil {
 		return fmt.Errorf("invalid todo id: %w", err)
 	}
@@ -161,7 +161,7 @@ func (r *Repository) SetTodoTags(ctx context.Context, todoID string, tagIDs []st
 
 	// 新しい tag_ids を挿入
 	for _, tagID := range tagIDs {
-		tagUID, err := uuid.FromString(tagID)
+		tagUID, err := uuid.Parse(tagID)
 		if err != nil {
 			return fmt.Errorf("invalid tag id: %w", err)
 		}

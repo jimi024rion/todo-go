@@ -9,7 +9,7 @@ import (
 	"io"
 
 	"github.com/aarondl/opt/omit"
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/dialect"

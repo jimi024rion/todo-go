@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	"github.com/jimi024rion/todo-go/backend/internal/domain/tag/model/entity"

@@ -28,9 +28,10 @@ plugins:
     disabled: false
 
 psql:
-  driver_name: "github.com/lib/pq"
+  driver: "github.com/jackc/pgx/v5/stdlib"
   dsn: "postgres://user:P@ssw0rd@localhost:5432/todo-go?sslmode=disable"
   schemas:
     - public
+  uuid_pkg: "google"
   except:
     atlas_schema_revisions:

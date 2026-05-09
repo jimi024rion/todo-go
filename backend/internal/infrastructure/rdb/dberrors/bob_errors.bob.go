@@ -3,7 +3,7 @@
 
 package dberrors
 
-import "github.com/lib/pq"
+import "github.com/jackc/pgx/v5/pgconn"
 
 // ErrUniqueConstraint captures all unique constraint errors by explicitly leaving `s` empty.
 var ErrUniqueConstraint = &UniqueConstraintError{s: ""}
@@ -24,9 +24,9 @@ func (e *UniqueConstraintError) Error() string {
 }
 
 func (e *UniqueConstraintError) Is(target error) bool {
-	err, ok := target.(*pq.Error)
+	err, ok := target.(*pgconn.PgError)
 	if !ok {
 		return false
 	}
-	return err.Code == "23505" && (e.s == "" || err.Constraint == e.s)
+	return err.Code == "23505" && (e.s == "" || err.ConstraintName == e.s)
 }

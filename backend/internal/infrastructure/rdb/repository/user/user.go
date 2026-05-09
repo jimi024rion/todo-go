@@ -9,7 +9,7 @@ import (
 
 	"github.com/aarondl/opt/omit"
 	"github.com/aarondl/opt/omitnull"
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/sm"
@@ -37,7 +37,7 @@ func (r *Repository) getExecutor(ctx context.Context) bob.Executor {
 }
 
 func (r *Repository) Save(ctx context.Context, user *userentity.User) error {
-	uid, err := uuid.FromString(user.ID().String())
+	uid, err := uuid.Parse(user.ID().String())
 	if err != nil {
 		return fmt.Errorf("invalid user id format: %w", err)
 	}

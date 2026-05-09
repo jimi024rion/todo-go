@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aarondl/opt/omit"
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 	"github.com/stephenafamo/bob/dialect/psql"
 	"github.com/stephenafamo/bob/dialect/psql/dm"
@@ -34,11 +34,11 @@ func (r *Repository) getExecutor(ctx context.Context) bob.Executor {
 }
 
 func (r *Repository) Save(ctx context.Context, apiKey *apikeyentity.APIKey) error {
-	uid, err := uuid.FromString(apiKey.ID().String())
+	uid, err := uuid.Parse(apiKey.ID().String())
 	if err != nil {
 		return fmt.Errorf("invalid api key id format: %w", err)
 	}
-	userUID, err := uuid.FromString(apiKey.UserID())
+	userUID, err := uuid.Parse(apiKey.UserID())
 	if err != nil {
 		return fmt.Errorf("invalid user id format: %w", err)
 	}
@@ -82,7 +82,7 @@ func (r *Repository) FindByKeyHash(ctx context.Context, keyHash string) (*apikey
 }
 
 func (r *Repository) Delete(ctx context.Context, id apikeyvo.APIKeyID) error {
-	uid, err := uuid.FromString(id.String())
+	uid, err := uuid.Parse(id.String())
 	if err != nil {
 		return fmt.Errorf("invalid api key id format: %w", err)
 	}

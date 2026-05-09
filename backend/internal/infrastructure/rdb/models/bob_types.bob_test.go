@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 
-	"github.com/gofrs/uuid/v5"
+	"github.com/google/uuid"
 	"github.com/stephenafamo/bob"
 )
 

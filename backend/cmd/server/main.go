@@ -18,10 +18,17 @@ import (
 // @description     Todo管理アプリケーションのREST API
 // @host            localhost:8080
 // @BasePath        /
+
 // @securityDefinitions.apikey  ApiKeyAuth
 // @in                          header
 // @name                        X-API-Key
 // @description                 X-API-Keyヘッダーにトークンを設定してください
+
+// @securityDefinitions.apikey  SkipAuth
+// @in                          header
+// @name                        X-Skip-Auth
+// @description                 認証をスキップするためのヘッダー。テストや特定の内部APIで使用します。
+
 func main() {
 	ctx := context.Background()
 

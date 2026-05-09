@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/XSAM/otelsql"
+	_ "github.com/jackc/pgx/v5" // PostgreSQL driver
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
-	_ "github.com/lib/pq" // PostgreSQL driver
 	"github.com/stephenafamo/bob"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
