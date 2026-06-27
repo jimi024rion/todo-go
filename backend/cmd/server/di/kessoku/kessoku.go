@@ -62,8 +62,9 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Bind[tagrepo.TagRepository](kessoku.Async(kessoku.Provide(taginfra.NewRepository))),
 	// gcs storage
 	kessoku.Bind[filerepo.StorageRepository](kessoku.Async(kessoku.Provide(gcsinfra.NewStorageRepository))),
-	// ses email
-	kessoku.Bind[emailuc.EmailSender](kessoku.Async(kessoku.Provide(sesinfra.NewEmailSender))),
+	// ses
+	kessoku.Async(kessoku.Provide(sesinfra.NewClient)),
+	kessoku.Bind[emailuc.EmailSender](kessoku.Provide(sesinfra.NewEmailSender)),
 
 	kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))),
 

@@ -51,7 +51,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		tokenVerifier         firebase.TokenVerifier
 		tokenVerifierCh       = make(chan struct{})
 		storageRepository     repository0.StorageRepository
-		emailSender           email0.EmailSender
+		client                *ses.Client
 		userRepository        repository2.UserRepository
 		userRepositoryCh      = make(chan struct{})
 		txManager             tx.TxManager
@@ -62,7 +62,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		repositoryCh0         = make(chan struct{})
 		apikeyRepository      repository.APIKeyRepository
 		getDownloadURLUseCase *file0.GetDownloadURLUseCase
-		sendWelcomeUseCase    *email0.SendWelcomeUseCase
+		emailSender           email0.EmailSender
 		middleware0           *middleware.Middleware
 		createUserUsecase     *user1.CreateUserUsecase
 		createUseCase         *todo2.CreateUseCase
@@ -77,7 +77,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		createUseCase1        *apikey1.CreateUseCase
 		deleteUseCase1        *apikey1.DeleteUseCase
 		getDownloadURLHandler *file.GetDownloadURLHandler
-		sendWelcomeHandler    *email.SendWelcomeHandler
+		sendWelcomeUseCase    *email0.SendWelcomeUseCase
 		createUserHandler     *user0.CreateUserHandler
 		createHandler         *todo1.CreateHandler
 		getHandler            *todo1.GetHandler
@@ -96,15 +96,16 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		deleteHandler1        *apikey0.DeleteHandler
 		handler1              *file.Handler
 		handlerCh             = make(chan struct{})
-		handler2              *email.Handler
+		sendWelcomeHandler    *email.SendWelcomeHandler
+		handler2              *user0.Handler
 		handlerCh0            = make(chan struct{})
-		handler3              *user0.Handler
+		handler3              *todo1.Handler
 		handlerCh1            = make(chan struct{})
-		handler4              *todo1.Handler
+		handler4              *tag0.Handler
 		handlerCh2            = make(chan struct{})
-		handler5              *tag0.Handler
+		handler5              *apikey0.Handler
 		handlerCh3            = make(chan struct{})
-		handler6              *apikey0.Handler
+		handler6              *email.Handler
 		handlerCh4            = make(chan struct{})
 		handler7              *handler.Handler
 		handlerCh5            = make(chan struct{})
@@ -125,14 +126,15 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 	})
 	eg.Go(func() error {
 		var err0 error
-		emailSender, err0 = kessoku.Bind[email0.EmailSender](kessoku.Async(kessoku.Provide(ses.NewEmailSender))).Fn()(ctx)
+		client, err0 = kessoku.Async(kessoku.Provide(ses.NewClient)).Fn()(ctx)
 		if err0 != nil {
 			return err0
 		}
+		emailSender = kessoku.Bind[email0.EmailSender](kessoku.Provide(ses.NewEmailSender)).Fn()(client)
 		sendWelcomeUseCase = kessoku.Provide(email0.NewSendWelcomeUseCase).Fn()(emailSender)
 		sendWelcomeHandler = kessoku.Provide(email.NewSendWelcomeHandler).Fn()(sendWelcomeUseCase)
-		handler2 = kessoku.Provide(email.NewHandler).Fn()(sendWelcomeHandler)
-		close(handlerCh0)
+		handler6 = kessoku.Provide(email.NewHandler).Fn()(sendWelcomeHandler)
+		close(handlerCh4)
 		return nil
 	})
 	eg.Go(func() error {
@@ -190,8 +192,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		close(deleteHandlerCh)
 		setTodoTagsHandler = kessoku.Provide(tag0.NewSetTodoTagsHandler).Fn()(setTodoTagsUseCase)
 		close(setTodoTagsHandlerCh)
-		handler3 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
-		close(handlerCh1)
+		handler2 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
+		close(handlerCh0)
 		return nil
 	})
 	eg.Go(func() error {
@@ -215,8 +217,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 				return ctx.Err()
 			}
 		}
-		handler4 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
-		close(handlerCh2)
+		handler3 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
+		close(handlerCh1)
 		return nil
 	})
 	eg.Go(func() error {
@@ -246,8 +248,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		handler5 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler0, deleteHandler0, setTodoTagsHandler)
-		close(handlerCh3)
+		handler4 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler0, deleteHandler0, setTodoTagsHandler)
+		close(handlerCh2)
 		return nil
 	})
 	eg.Go(func() error {
@@ -268,8 +270,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		deleteUseCase1 = kessoku.Provide(apikey1.NewDeleteUseCase).Fn()(apikeyRepository, txManager)
 		createHandler1 = kessoku.Provide(apikey0.NewCreateHandler).Fn()(createUseCase1)
 		deleteHandler1 = kessoku.Provide(apikey0.NewDeleteHandler).Fn()(deleteUseCase1)
-		handler6 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler1, deleteHandler1)
-		close(handlerCh4)
+		handler5 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler1, deleteHandler1)
+		close(handlerCh3)
 		return nil
 	})
 	healthCheckHandler = kessoku.Provide(health.NewHealthCheckHandler).Fn()()
@@ -283,7 +285,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		return zero, err1
 	}
 	close(tokenVerifierCh)
-	for _, ch := range []<-chan struct{}{handlerCh1, handlerCh2, handlerCh4, handlerCh3, handlerCh, handlerCh0} {
+	for _, ch := range []<-chan struct{}{handlerCh0, handlerCh1, handlerCh3, handlerCh2, handlerCh, handlerCh4} {
 		select {
 		case <-ch:
 		case <-ctx.Done():
@@ -291,7 +293,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 			return zero, ctx.Err()
 		}
 	}
-	handler7 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler3, handler4, handler6, handler5, handler1, handler2)
+	handler7 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler2, handler3, handler5, handler4, handler1, handler6)
 	close(handlerCh5)
 	if err := eg.Wait(); err != nil {
 		return nil, err
