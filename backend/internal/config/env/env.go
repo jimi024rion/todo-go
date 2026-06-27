@@ -15,6 +15,9 @@ type Config struct {
 	LogLevel          string   `env:"LOG_LEVEL" envDefault:"debug"`
 	FirebaseProjectID string   `env:"FIREBASE_PROJECT_ID" envDefault:""`
 	GCSBucketName     string   `env:"GCS_BUCKET_NAME" envDefault:""`
+	SESEndpoint       string   `env:"SES_ENDPOINT" envDefault:""`
+	SESFromAddress    string   `env:"SES_FROM_ADDRESS" envDefault:"noreply@example.com"`
+	AWSRegion         string   `env:"AWS_REGION" envDefault:"ap-northeast-1"`
 }
 
 // DBConfig holds the database connection configuration.

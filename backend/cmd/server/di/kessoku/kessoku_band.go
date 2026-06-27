@@ -20,9 +20,11 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/tag"
 	todo0 "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/user"
+	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/ses"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	apikey0 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/apikey"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/email"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/file"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/middleware"
@@ -30,6 +32,7 @@ import (
 	todo1 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
 	user0 "github.com/jimi024rion/todo-go/backend/internal/presentation/http/user"
 	apikey1 "github.com/jimi024rion/todo-go/backend/internal/usecase/apikey"
+	email0 "github.com/jimi024rion/todo-go/backend/internal/usecase/email"
 	file0 "github.com/jimi024rion/todo-go/backend/internal/usecase/file"
 	tag1 "github.com/jimi024rion/todo-go/backend/internal/usecase/tag"
 	todo2 "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
@@ -48,6 +51,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		tokenVerifier         firebase.TokenVerifier
 		tokenVerifierCh       = make(chan struct{})
 		storageRepository     repository0.StorageRepository
+		emailSender           email0.EmailSender
 		userRepository        repository2.UserRepository
 		userRepositoryCh      = make(chan struct{})
 		txManager             tx.TxManager
@@ -58,6 +62,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		repositoryCh0         = make(chan struct{})
 		apikeyRepository      repository.APIKeyRepository
 		getDownloadURLUseCase *file0.GetDownloadURLUseCase
+		sendWelcomeUseCase    *email0.SendWelcomeUseCase
 		middleware0           *middleware.Middleware
 		createUserUsecase     *user1.CreateUserUsecase
 		createUseCase         *todo2.CreateUseCase
@@ -72,6 +77,7 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		createUseCase1        *apikey1.CreateUseCase
 		deleteUseCase1        *apikey1.DeleteUseCase
 		getDownloadURLHandler *file.GetDownloadURLHandler
+		sendWelcomeHandler    *email.SendWelcomeHandler
 		createUserHandler     *user0.CreateUserHandler
 		createHandler         *todo1.CreateHandler
 		getHandler            *todo1.GetHandler
@@ -90,16 +96,18 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		deleteHandler1        *apikey0.DeleteHandler
 		handler1              *file.Handler
 		handlerCh             = make(chan struct{})
-		handler2              *user0.Handler
+		handler2              *email.Handler
 		handlerCh0            = make(chan struct{})
-		handler3              *todo1.Handler
+		handler3              *user0.Handler
 		handlerCh1            = make(chan struct{})
-		handler4              *tag0.Handler
+		handler4              *todo1.Handler
 		handlerCh2            = make(chan struct{})
-		handler5              *apikey0.Handler
+		handler5              *tag0.Handler
 		handlerCh3            = make(chan struct{})
-		handler6              *handler.Handler
+		handler6              *apikey0.Handler
 		handlerCh4            = make(chan struct{})
+		handler7              *handler.Handler
+		handlerCh5            = make(chan struct{})
 		engine                *gin.Engine
 	)
 	eg, ctx := errgroup.WithContext(ctx)
@@ -116,6 +124,18 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		return nil
 	})
 	eg.Go(func() error {
+		var err0 error
+		emailSender, err0 = kessoku.Bind[email0.EmailSender](kessoku.Async(kessoku.Provide(ses.NewEmailSender))).Fn()(ctx)
+		if err0 != nil {
+			return err0
+		}
+		sendWelcomeUseCase = kessoku.Provide(email0.NewSendWelcomeUseCase).Fn()(emailSender)
+		sendWelcomeHandler = kessoku.Provide(email.NewSendWelcomeHandler).Fn()(sendWelcomeUseCase)
+		handler2 = kessoku.Provide(email.NewHandler).Fn()(sendWelcomeHandler)
+		close(handlerCh0)
+		return nil
+	})
+	eg.Go(func() error {
 		userRepository = kessoku.Bind[repository2.UserRepository](kessoku.Async(kessoku.Provide(user.NewRepository))).Fn()(db)
 		close(userRepositoryCh)
 		select {
@@ -125,11 +145,11 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		}
 		middleware0 = kessoku.Provide(middleware.NewMiddleware).Fn()(tokenVerifier, userRepository)
 		select {
-		case <-handlerCh4:
+		case <-handlerCh5:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		engine = kessoku.Provide(http.NewRouter).Fn()(handler6, middleware0)
+		engine = kessoku.Provide(http.NewRouter).Fn()(handler7, middleware0)
 		return nil
 	})
 	eg.Go(func() error {
@@ -170,8 +190,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		close(deleteHandlerCh)
 		setTodoTagsHandler = kessoku.Provide(tag0.NewSetTodoTagsHandler).Fn()(setTodoTagsUseCase)
 		close(setTodoTagsHandlerCh)
-		handler2 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
-		close(handlerCh0)
+		handler3 = kessoku.Provide(user0.NewHandler).Fn()(createUserHandler)
+		close(handlerCh1)
 		return nil
 	})
 	eg.Go(func() error {
@@ -195,8 +215,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 				return ctx.Err()
 			}
 		}
-		handler3 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
-		close(handlerCh1)
+		handler4 = kessoku.Provide(todo1.NewHandler).Fn()(listHandler, createHandler, getHandler, updateHandler, deleteHandler)
+		close(handlerCh2)
 		return nil
 	})
 	eg.Go(func() error {
@@ -226,8 +246,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		handler4 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler0, deleteHandler0, setTodoTagsHandler)
-		close(handlerCh2)
+		handler5 = kessoku.Provide(tag0.NewHandler).Fn()(listHandler0, createHandler0, deleteHandler0, setTodoTagsHandler)
+		close(handlerCh3)
 		return nil
 	})
 	eg.Go(func() error {
@@ -248,22 +268,22 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 		deleteUseCase1 = kessoku.Provide(apikey1.NewDeleteUseCase).Fn()(apikeyRepository, txManager)
 		createHandler1 = kessoku.Provide(apikey0.NewCreateHandler).Fn()(createUseCase1)
 		deleteHandler1 = kessoku.Provide(apikey0.NewDeleteHandler).Fn()(deleteUseCase1)
-		handler5 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler1, deleteHandler1)
-		close(handlerCh3)
+		handler6 = kessoku.Provide(apikey0.NewHandler).Fn()(createHandler1, deleteHandler1)
+		close(handlerCh4)
 		return nil
 	})
 	healthCheckHandler = kessoku.Provide(health.NewHealthCheckHandler).Fn()()
 	clock1 = kessoku.Bind[clock.Clock](kessoku.Provide(clock0.NewRealClock)).Fn()()
 	close(clockCh)
 	handler0 = kessoku.Provide(health.NewHandler).Fn()(healthCheckHandler)
-	var err0 error
-	tokenVerifier, err0 = kessoku.Bind[firebase.TokenVerifier](kessoku.Async(kessoku.Provide(firebase.NewTokenVerifier))).Fn()(ctx)
-	if err0 != nil {
+	var err1 error
+	tokenVerifier, err1 = kessoku.Bind[firebase.TokenVerifier](kessoku.Async(kessoku.Provide(firebase.NewTokenVerifier))).Fn()(ctx)
+	if err1 != nil {
 		var zero *gin.Engine
-		return zero, err0
+		return zero, err1
 	}
 	close(tokenVerifierCh)
-	for _, ch := range []<-chan struct{}{handlerCh0, handlerCh1, handlerCh3, handlerCh2, handlerCh} {
+	for _, ch := range []<-chan struct{}{handlerCh1, handlerCh2, handlerCh4, handlerCh3, handlerCh, handlerCh0} {
 		select {
 		case <-ch:
 		case <-ctx.Done():
@@ -271,8 +291,8 @@ func InitializeServer(ctx context.Context, db bob.DB) (*gin.Engine, error) {
 			return zero, ctx.Err()
 		}
 	}
-	handler6 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler2, handler3, handler5, handler4, handler1)
-	close(handlerCh4)
+	handler7 = kessoku.Provide(handler.NewHandler).Fn()(handler0, handler3, handler4, handler6, handler5, handler1, handler2)
+	close(handlerCh5)
 	if err := eg.Wait(); err != nil {
 		return nil, err
 	}

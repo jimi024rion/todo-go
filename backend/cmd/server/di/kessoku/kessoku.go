@@ -21,11 +21,13 @@ import (
 	taginfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/tag"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/todo"
 	userinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/user"
+	sesinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/ses"
 
 	// presentation
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	apikeypresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/apikey"
+	emailpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/email"
 	filepresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/file"
 	healthpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/middleware"
@@ -35,6 +37,7 @@ import (
 
 	// usecase
 	apikeyuc "github.com/jimi024rion/todo-go/backend/internal/usecase/apikey"
+	emailuc "github.com/jimi024rion/todo-go/backend/internal/usecase/email"
 	fileuc "github.com/jimi024rion/todo-go/backend/internal/usecase/file"
 	taguc "github.com/jimi024rion/todo-go/backend/internal/usecase/tag"
 	todouc "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
@@ -59,6 +62,8 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Bind[tagrepo.TagRepository](kessoku.Async(kessoku.Provide(taginfra.NewRepository))),
 	// gcs storage
 	kessoku.Bind[filerepo.StorageRepository](kessoku.Async(kessoku.Provide(gcsinfra.NewStorageRepository))),
+	// ses email
+	kessoku.Bind[emailuc.EmailSender](kessoku.Async(kessoku.Provide(sesinfra.NewEmailSender))),
 
 	kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))),
 
@@ -81,6 +86,8 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Provide(taguc.NewSetTodoTagsUseCase),
 	// file
 	kessoku.Provide(fileuc.NewGetDownloadURLUseCase),
+	// email
+	kessoku.Provide(emailuc.NewSendWelcomeUseCase),
 
 	// -- Presentation Layer --
 	// health
@@ -109,6 +116,9 @@ var _ = kessoku.Inject[*gin.Engine](
 	// file
 	kessoku.Provide(filepresen.NewGetDownloadURLHandler),
 	kessoku.Provide(filepresen.NewHandler),
+	// email
+	kessoku.Provide(emailpresen.NewSendWelcomeHandler),
+	kessoku.Provide(emailpresen.NewHandler),
 
 	kessoku.Provide(handler.NewHandler),
 	kessoku.Provide(middleware.NewMiddleware),

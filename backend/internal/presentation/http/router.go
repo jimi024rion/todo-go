@@ -35,6 +35,7 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 		// 認証不要
 		v1.POST("/api-keys", h.APIKey.Create.Handle)
 		v1.POST("/users", h.User.Create.Handle)
+		v1.POST("/emails/welcome", h.Email.SendWelcome.Handle)
 
 		// 認証必須グループ
 		auth := v1.Group("")
