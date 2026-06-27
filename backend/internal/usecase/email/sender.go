@@ -9,11 +9,10 @@ type Attachment struct {
 }
 
 type SendEmailInput struct {
-	To          []string
-	CC          []string
+	To          string
 	Subject     string
 	Body        string
-	Attachments []Attachment
+	Attachment  *Attachment
 }
 
 type EmailSender interface {

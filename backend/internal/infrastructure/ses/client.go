@@ -13,8 +13,21 @@ import (
 	"github.com/jhillyerd/enmime/v2"
 
 	"github.com/jimi024rion/todo-go/backend/internal/config/env"
-	emailuc "github.com/jimi024rion/todo-go/backend/internal/usecase/email"
 )
+
+type SendEmailInput struct {
+	To          []string
+	CC          []string
+	Subject     string
+	Body        string
+	Attachments []Attachment
+}
+
+type Attachment struct {
+	Filename    string
+	ContentType string
+	Data        []byte
+}
 
 type Client struct {
 	ses         *sesv2.Client
@@ -52,7 +65,7 @@ func NewClient(ctx context.Context) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) SendEmail(ctx context.Context, input *emailuc.SendEmailInput) error {
+func (c *Client) SendEmail(ctx context.Context, input *SendEmailInput) error {
 	builder := enmime.Builder().
 		From("", c.fromAddress).
 		Subject(input.Subject).

@@ -15,5 +15,21 @@ func NewEmailSender(client *Client) emailuc.EmailSender {
 }
 
 func (s *emailSender) Send(ctx context.Context, input *emailuc.SendEmailInput) error {
-	return s.client.SendEmail(ctx, input)
+	sesInput := &SendEmailInput{
+		To:      []string{input.To},
+		Subject: input.Subject,
+		Body:    input.Body,
+	}
+
+	if input.Attachment != nil {
+		sesInput.Attachments = []Attachment{
+			{
+				Filename:    input.Attachment.Filename,
+				ContentType: input.Attachment.ContentType,
+				Data:        input.Attachment.Data,
+			},
+		}
+	}
+
+	return s.client.SendEmail(ctx, sesInput)
 }

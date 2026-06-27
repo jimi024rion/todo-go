@@ -19,8 +19,7 @@ func NewSendWelcomeUseCase(emailSender EmailSender) *SendWelcomeUseCase {
 }
 
 type SendWelcomeInput struct {
-	To []string
-	CC []string
+	To string
 }
 
 type SendWelcomeOutput struct {
@@ -28,8 +27,8 @@ type SendWelcomeOutput struct {
 }
 
 func (uc *SendWelcomeUseCase) Execute(ctx context.Context, input *SendWelcomeInput) (*SendWelcomeOutput, error) {
-	if len(input.To) == 0 {
-		return nil, fmt.Errorf("at least one recipient is required")
+	if input.To == "" {
+		return nil, fmt.Errorf("recipient is required")
 	}
 
 	data := WelcomeTemplateData{
@@ -43,15 +42,12 @@ func (uc *SendWelcomeUseCase) Execute(ctx context.Context, input *SendWelcomeInp
 
 	err := uc.emailSender.Send(ctx, &SendEmailInput{
 		To:      input.To,
-		CC:      input.CC,
 		Subject: welcomeSubject,
 		Body:    bodyBuf.String(),
-		Attachments: []Attachment{
-			{
-				Filename:    "qr_code.png",
-				ContentType: "image/png",
-				Data:        dummyQRPNG,
-			},
+		Attachment: &Attachment{
+			Filename:    "qr_code.png",
+			ContentType: "image/png",
+			Data:        dummyQRPNG,
 		},
 	})
 	if err != nil {

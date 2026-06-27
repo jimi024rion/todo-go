@@ -19,8 +19,7 @@ func NewSendWelcomeHandler(u *emailuc.SendWelcomeUseCase) *SendWelcomeHandler {
 }
 
 type sendWelcomeRequest struct {
-	To []string `json:"to" validate:"required" example:"user@example.com"`
-	CC []string `json:"cc,omitempty"            example:"admin@example.com"`
+	To string `json:"to" binding:"required,email" example:"user@example.com"`
 } // @name EmailSendWelcomeRequest
 
 type sendWelcomeResponse struct {
@@ -50,7 +49,6 @@ func (h *SendWelcomeHandler) Handle(c *gin.Context) {
 
 	output, err := h.usecase.Execute(c.Request.Context(), &emailuc.SendWelcomeInput{
 		To: req.To,
-		CC: req.CC,
 	})
 	if err != nil {
 		rc := errs.ResultCodeFrom(err)
