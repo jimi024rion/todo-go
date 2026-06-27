@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/apikey"
+	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/file"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/tag"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/todo"
@@ -14,6 +15,7 @@ type Handler struct {
 	Todo   *todo.Handler
 	APIKey *apikey.Handler
 	Tag    *tag.Handler
+	File   *file.Handler
 }
 
 func NewHandler(
@@ -22,6 +24,7 @@ func NewHandler(
 	todoHandler *todo.Handler,
 	apiKeyHandler *apikey.Handler,
 	tagHandler *tag.Handler,
+	fileHandler *file.Handler,
 ) *Handler {
 	return &Handler{
 		Health: healthHandler,
@@ -29,5 +32,6 @@ func NewHandler(
 		Todo:   todoHandler,
 		APIKey: apiKeyHandler,
 		Tag:    tagHandler,
+		File:   fileHandler,
 	}
 }

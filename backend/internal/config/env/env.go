@@ -14,6 +14,7 @@ type Config struct {
 	GCPProjectID      string   `env:"GCP_PROJECT_ID" envDefault:"test-project"`
 	LogLevel          string   `env:"LOG_LEVEL" envDefault:"debug"`
 	FirebaseProjectID string   `env:"FIREBASE_PROJECT_ID" envDefault:""`
+	GCSBucketName     string   `env:"GCS_BUCKET_NAME" envDefault:""`
 }
 
 // DBConfig holds the database connection configuration.

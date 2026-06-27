@@ -9,11 +9,13 @@ import (
 	// repository
 	"github.com/jimi024rion/todo-go/backend/internal/config/clock"
 	apikeyrepo "github.com/jimi024rion/todo-go/backend/internal/domain/apikey/repository"
+	filerepo "github.com/jimi024rion/todo-go/backend/internal/domain/file/repository"
 	tagrepo "github.com/jimi024rion/todo-go/backend/internal/domain/tag/repository"
 	todorepo "github.com/jimi024rion/todo-go/backend/internal/domain/todo/repository"
 	userrepo "github.com/jimi024rion/todo-go/backend/internal/domain/user/repository"
 	clockimpl "github.com/jimi024rion/todo-go/backend/internal/infrastructure/clock"
 	firebaseinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/firebase"
+	gcsinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/gcs"
 	"github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb"
 	apikeyinfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/apikey"
 	taginfra "github.com/jimi024rion/todo-go/backend/internal/infrastructure/rdb/repository/tag"
@@ -24,6 +26,7 @@ import (
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/handler"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http"
 	apikeypresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/apikey"
+	filepresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/file"
 	healthpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/health"
 	"github.com/jimi024rion/todo-go/backend/internal/presentation/http/middleware"
 	tagpresen "github.com/jimi024rion/todo-go/backend/internal/presentation/http/tag"
@@ -32,6 +35,7 @@ import (
 
 	// usecase
 	apikeyuc "github.com/jimi024rion/todo-go/backend/internal/usecase/apikey"
+	fileuc "github.com/jimi024rion/todo-go/backend/internal/usecase/file"
 	taguc "github.com/jimi024rion/todo-go/backend/internal/usecase/tag"
 	todouc "github.com/jimi024rion/todo-go/backend/internal/usecase/todo"
 	useruc "github.com/jimi024rion/todo-go/backend/internal/usecase/user"
@@ -53,6 +57,8 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Bind[apikeyrepo.APIKeyRepository](kessoku.Async(kessoku.Provide(apikeyinfra.NewRepository))),
 	// tag
 	kessoku.Bind[tagrepo.TagRepository](kessoku.Async(kessoku.Provide(taginfra.NewRepository))),
+	// gcs storage
+	kessoku.Bind[filerepo.StorageRepository](kessoku.Async(kessoku.Provide(gcsinfra.NewStorageRepository))),
 
 	kessoku.Async(kessoku.Async(kessoku.Provide(rdb.NewTxManager))),
 
@@ -73,6 +79,8 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Provide(taguc.NewListUseCase),
 	kessoku.Provide(taguc.NewDeleteUseCase),
 	kessoku.Provide(taguc.NewSetTodoTagsUseCase),
+	// file
+	kessoku.Provide(fileuc.NewGetDownloadURLUseCase),
 
 	// -- Presentation Layer --
 	// health
@@ -98,6 +106,9 @@ var _ = kessoku.Inject[*gin.Engine](
 	kessoku.Provide(tagpresen.NewDeleteHandler),
 	kessoku.Provide(tagpresen.NewSetTodoTagsHandler),
 	kessoku.Provide(tagpresen.NewHandler),
+	// file
+	kessoku.Provide(filepresen.NewGetDownloadURLHandler),
+	kessoku.Provide(filepresen.NewHandler),
 
 	kessoku.Provide(handler.NewHandler),
 	kessoku.Provide(middleware.NewMiddleware),

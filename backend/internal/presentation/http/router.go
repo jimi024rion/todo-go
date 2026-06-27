@@ -58,6 +58,11 @@ func NewRouter(h *handler.Handler, mw *middleware.Middleware) *gin.Engine {
 				tags.POST("", h.Tag.Create.Handle)
 				tags.DELETE("/:id", h.Tag.Delete.Handle)
 			}
+
+			files := auth.Group("/files")
+			{
+				files.GET("/download-url", h.File.GetDownloadURL.Handle)
+			}
 		}
 	}
 
